@@ -12,11 +12,22 @@ smooth‑scroll y animaciones al hacer scroll. CTA principal: pedir presupuesto 
 ```
 index.html          Markup de todas las secciones
 v3.css              Sistema visual + estados/animaciones (fuente de verdad del estilo)
-v3.js               Lenis + GSAP wiring, loader, reveals, scrub, acordeón, parallax,
-                    carrusel mobile, cursor custom, botones magnéticos, modal, video crossfade
-assets/             Video del hero + 6 fotos de proyectos provistas por el cliente
+v3.js               Lenis + GSAP wiring, loader, reveals, scrub, acordeón, marquee vertical
+                    de proyectos, carrusel mobile, cursor custom, botones magnéticos, modal, video
+favicon.svg         Favicon (monograma blanco sobre negro — placeholder hasta el logo real)
+assets/             Video del hero + fotos de proyectos (locales)
 DESIGN_HANDOFF.md   Especificación de diseño completa (referencia)
 ```
+
+### Notas de comportamiento (cambios pedidos sobre el handoff)
+
+- **Proyectos (desktop):** en lugar del parallax atado al scroll del handoff, la grilla es ahora un
+  **marquee vertical infinito** (tipo "tragamonedas"): cada columna se desplaza sola y a distinta
+  velocidad, y **acopla su velocidad a la del scroll** de la página. Implementado en `v3.js` (módulo
+  "infinite vertical marquee") envolviendo las tarjetas en `.wg-track` y recortando `.wg-col` a la
+  altura de un set para que el flujo de la página no se altere. Mobile sigue usando el carrusel.
+- **Logo del nav:** agrandado (38px).
+- **Hero CTAs en mobile:** reducidos para dejar ver mejor el video.
 
 ## Librerías (todas gratis, vía CDN, cargadas en `<head>`)
 
@@ -62,10 +73,14 @@ Cualquier hosting estático sirve el repo tal cual desde la raíz:
 
 ## Pendientes / próximos pasos
 
-- [ ] **Localizar imágenes externas.** Hoy 12 fotos de proyectos + 3 de aplicaciones + el logo se
-      cargan por URL desde `plasmartcba.com`. Conviene descargarlas y servirlas localmente
-      (idealmente WebP) para velocidad y para no depender de un host externo. *(No se pudieron
-      descargar en este entorno porque la red sólo permite hosts del allowlist.)*
+- [x] **Imágenes de proyectos localizadas.** Las 12 fotos de proyectos ya se sirven desde `assets/`
+      (más las 6 que ya venían del cliente = 18 en total).
+- [ ] **Faltan 3 assets externos** (siguen cargando desde `plasmartcba.com`): la imagen de la
+      aplicación **Industria** (`industria-img-opt`), la de **Paneles** (`portfolio-cuad-16`) y el
+      **logo** (`plasmart-logo-w-500.png`). Pasámelas y las integro. *(Tip: optimizar todo a WebP.)*
+- [ ] **Favicon real.** Hoy es un monograma "P" blanco sobre negro generado como placeholder
+      (`favicon.svg`), porque el logo real no se pudo traer en este entorno. Con el logo en SVG/PNG
+      lo reemplazo por la marca real sobre fondo negro.
 - [ ] **Logo en SVG.** Pedir al cliente el SVG del logo (hoy se usa el PNG 500×500).
 - [ ] **Catálogo PDF.** El botón "Descargar catálogo" hoy abre WhatsApp pidiendo el catálogo.
       Cuando exista el PDF, cambiar el `href` por la descarga directa (`download`).

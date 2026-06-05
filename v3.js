@@ -107,6 +107,7 @@
   /* ---------- Scroll reveals ---------- */
   if (ST_OK && !REDUCE) {
     GS.utils.toArray('[data-rv]').forEach(function (el) {
+      if (el.closest('.work-grid')) return; // project cards live in the moving marquee
       GS.to(el, { opacity: 1, y: 0, duration: 1, ease: 'power3.out',
         scrollTrigger: { trigger: el, start: 'top 86%' } });
     });
@@ -130,13 +131,7 @@
         scrollTrigger: { trigger: img.closest('.app3-row'), start: 'top bottom', end: 'bottom top', scrub: true } });
     });
 
-    /* projects grid — column parallax */
-    GS.utils.toArray('.wg-col').forEach(function (col) {
-      var sp = parseFloat(col.getAttribute('data-speed')) || 0;
-      if (!sp) return;
-      GS.to(col, { y: function () { return -sp * window.innerHeight; }, ease: 'none',
-        scrollTrigger: { trigger: '.work', start: 'top bottom', end: 'bottom top', scrub: 1, invalidateOnRefresh: true } });
-    });
+    /* projects grid uses an infinite vertical marquee instead of scroll parallax (see module below) */
   }
 
   /* ---------- Hover-card (text) on capability list ---------- */
@@ -289,7 +284,7 @@
   (function () {
     var mount = document.getElementById('workMobile'), track = document.querySelector('.work-grid');
     if (!mount || !track) return;
-    var cards = Array.prototype.slice.call(track.querySelectorAll('.wcard'));
+    var cards = Array.prototype.slice.call(track.querySelectorAll('.wcard:not([data-clone])'));
     var items = cards.map(function (c) {
       var img = c.querySelector('img'), nm = (c.querySelector('.nm') || {}).textContent || '';
       var parts = nm.split('\u00b7');
@@ -315,6 +310,96 @@
     function upd() { if (mq.matches) start(); else stop(); }
     if (mq.addEventListener) mq.addEventListener('change', upd); else if (mq.addListener) mq.addListener(upd);
     go(0); upd();
+  })();
+
+  /* ---------- Proyectos: infinite vertical marquee (desktop) ----------
+     Each column scrolls on its own (slot-machine), at a different speed,
+     and couples its velocity to the page scroll velocity. The cards are
+     wrapped in a .wg-track that is translated and looped seamlessly; the
+     .wg-col is clipped to one set's height so the page flow stays normal. */
+  (function () {
+    var grid = document.querySelector('.work-grid');
+    if (!grid) return;
+    var cols = Array.prototype.slice.call(grid.querySelectorAll('.wg-col'));
+    if (!cols.length) return;
+
+    // cards live in a continuously moving track → always visible (no scroll-reveal)
+    grid.querySelectorAll('.wcard').forEach(function (c) {
+      c.removeAttribute('data-rv'); c.style.opacity = '1'; c.style.transform = 'none';
+    });
+
+    if (!GS || REDUCE) return; // static grid; cards already visible
+
+    var deskMQ = window.matchMedia('(min-width: 761px)');
+    var lanes = [], built = false, running = false, lastScroll = 0, vel = 0;
+    var MULS = [0.85, 1.1, 0.7], FRAC = [0, 0.4, 0.7]; // per-column scroll coupling + start offset
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+    function build() {
+      lanes = cols.map(function (col, i) {
+        var trk = col.querySelector('.wg-track');
+        if (!trk) {
+          trk = document.createElement('div'); trk.className = 'wg-track';
+          while (col.firstChild) trk.appendChild(col.firstChild);
+          col.appendChild(trk);
+        }
+        Array.prototype.slice.call(trk.querySelectorAll('[data-clone]')).forEach(function (n) { n.remove(); });
+        trk.style.transform = 'translate3d(0,0,0)';
+        col.classList.add('is-marquee'); col.style.height = 'auto';
+        var cs = getComputedStyle(trk);
+        var gap = parseFloat(cs.rowGap); if (isNaN(gap)) gap = parseFloat(cs.gap) || 0;
+        var setH = trk.scrollHeight;            // one set (clones removed)
+        var loop = setH + gap;                   // seamless wrap distance
+        col.style.height = setH + 'px';          // clip to one set
+        Array.prototype.slice.call(trk.children).forEach(function (card) {
+          var cl = card.cloneNode(true);
+          cl.setAttribute('data-clone', ''); cl.setAttribute('aria-hidden', 'true');
+          trk.appendChild(cl);
+        });
+        var sp = parseFloat(col.getAttribute('data-speed')) || 0.05;
+        return { trk: trk, loop: loop, pos: loop * (FRAC[i] || 0), auto: 26 + sp * 260, mul: (MULS[i] != null ? MULS[i] : 1) };
+      });
+      built = true;
+    }
+
+    function frame(time, dt) {
+      if (!running || !built) return;
+      var s = window.scrollY || document.documentElement.scrollTop || 0;
+      var dts = Math.min((dt || 16) / 1000, 0.05);
+      var raw = dts > 0 ? (s - lastScroll) / dts : 0;   // scroll velocity (px/s)
+      lastScroll = s;
+      vel = clamp(lerp(vel, raw, 0.12), -3000, 3000);   // smoothed + clamped
+      for (var k = 0; k < lanes.length; k++) {
+        var L = lanes[k];
+        if (!L.loop) continue;
+        L.pos += (L.auto + vel * L.mul) * dts;
+        var y = L.pos % L.loop; if (y < 0) y += L.loop;
+        L.trk.style.transform = 'translate3d(0,' + (-y) + 'px,0)';
+      }
+    }
+    GS.ticker.add(frame);
+
+    function startEngine() { if (!built) build(); lastScroll = window.scrollY || 0; running = true; }
+    function stopEngine() {
+      running = false;
+      cols.forEach(function (col) {
+        var t = col.querySelector('.wg-track'); if (t) t.style.transform = 'translate3d(0,0,0)';
+        col.classList.remove('is-marquee'); col.style.height = '';
+      });
+      built = false;
+    }
+    function sync() { if (deskMQ.matches) startEngine(); else stopEngine(); }
+
+    var rt;
+    window.addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () { if (deskMQ.matches) { stopEngine(); startEngine(); } else { stopEngine(); } }, 200);
+    });
+    if (deskMQ.addEventListener) deskMQ.addEventListener('change', sync); else if (deskMQ.addListener) deskMQ.addListener(sync);
+    window.addEventListener('load', function () { if (deskMQ.matches) { stopEngine(); startEngine(); } }); // re-measure after fonts/images
+    sync();
   })();
 
   /* refresh ST after load (fonts/images) */
