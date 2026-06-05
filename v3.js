@@ -171,7 +171,8 @@
   /* ---------- Counters (independent of GSAP) ---------- */
   function fmtCount(el, v) {
     var raw = el.dataset.count, decs = el.dataset.dec === '1' ? ((raw.split('.')[1] || '').length || 1) : 0;
-    return decs > 0 ? v.toFixed(decs).replace('.', ',') : Math.round(v).toLocaleString('es-AR');
+    var es = (document.documentElement.lang || 'es').toLowerCase().indexOf('en') !== 0; // EN page uses '.'
+    return decs > 0 ? v.toFixed(decs).replace('.', es ? ',' : '.') : Math.round(v).toLocaleString(es ? 'es-AR' : 'en-US');
   }
   function animateCount(el) {
     var target = parseFloat(el.dataset.count), start = null, dur = 1400;
@@ -272,8 +273,11 @@
     if (form) form.addEventListener('submit', function (e) {
       e.preventDefault();
       var d = new FormData(form);
-      var subj = encodeURIComponent('Consulta web — ' + (d.get('nombre') || ''));
-      var body = encodeURIComponent('Nombre: ' + (d.get('nombre') || '') + '\nEmail: ' + (d.get('email') || '') + '\nTeléfono: ' + (d.get('tel') || '') + '\n\n' + (d.get('msg') || ''));
+      var en = (document.documentElement.lang || 'es').toLowerCase().indexOf('en') === 0;
+      var t = en ? { subj: 'Web inquiry — ', name: 'Name: ', email: 'Email: ', tel: 'Phone: ' }
+                 : { subj: 'Consulta web — ', name: 'Nombre: ', email: 'Email: ', tel: 'Teléfono: ' };
+      var subj = encodeURIComponent(t.subj + (d.get('nombre') || ''));
+      var body = encodeURIComponent(t.name + (d.get('nombre') || '') + '\n' + t.email + (d.get('email') || '') + '\n' + t.tel + (d.get('tel') || '') + '\n\n' + (d.get('msg') || ''));
       if (ok) ok.style.display = 'block';
       window.location.href = 'mailto:ventasplasmart@transfil.com.ar?subject=' + subj + '&body=' + body;
       setTimeout(close, 1200);
@@ -293,7 +297,7 @@
     items.sort(function (a, b) { return parseInt(a.num, 10) - parseInt(b.num, 10); });
     if (!items.length) return;
     mount.innerHTML =
-      '<div class="wm-stage">' + items.map(function (it, i) { return '<div class="wm-slide' + (i === 0 ? ' on' : '') + '"><img src="' + it.src + '" alt="' + it.name + '"></div>'; }).join('') + '</div>' +
+      '<div class="wm-stage">' + items.map(function (it, i) { return '<div class="wm-slide' + (i === 0 ? ' on' : '') + '"><img ' + (i ? 'loading="lazy" ' : '') + 'decoding="async" src="' + it.src + '" alt="' + it.name + '"></div>'; }).join('') + '</div>' +
       '<div class="wm-meta"><span class="wm-nm"></span><span class="wm-ix"></span></div>' +
       '<div class="wm-bar"><span></span></div>' +
       '<div class="wm-dots">' + items.map(function (it, i) { return '<i' + (i === 0 ? ' class="on"' : '') + ' data-i="' + i + '"></i>'; }).join('') + '</div>';

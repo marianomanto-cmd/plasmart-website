@@ -10,14 +10,23 @@ smooth‑scroll y animaciones al hacer scroll. CTA principal: pedir presupuesto 
 ## Estructura
 
 ```
-index.html          Markup de todas las secciones
+index.html          Página en español (ES) — markup de todas las secciones
+en.html             Página en inglés (EN) — misma estructura, textos traducidos
 v3.css              Sistema visual + estados/animaciones (fuente de verdad del estilo)
 v3.js               Lenis + GSAP wiring, loader, reveals, scrub, acordeón, marquee vertical
                     de proyectos, carrusel mobile, cursor custom, botones magnéticos, modal, video
 favicon.svg         Favicon (monograma blanco sobre negro — placeholder hasta el logo real)
-assets/             Video del hero + fotos de proyectos (locales)
+assets/             Video del hero + fotos (WebP) + catálogo PDF
 DESIGN_HANDOFF.md   Especificación de diseño completa (referencia)
 ```
+
+### Bilingüe (ES / EN)
+
+- `index.html` (es) y `en.html` (en) comparten **el mismo CSS, JS y assets**. El **toggle ES / EN**
+  está en el nav (esquina derecha) y enlaza una página con la otra.
+- `v3.js` es **locale-aware** vía `<html lang>`: los contadores de stats usan coma o punto decimal
+  (12,7 / 12.7) y el `mailto:` del modal arma asunto/cuerpo en el idioma correcto.
+- SEO: cada página declara `hreflang` (es / en / x-default).
 
 ### Notas de comportamiento (cambios pedidos sobre el handoff)
 
@@ -27,7 +36,19 @@ DESIGN_HANDOFF.md   Especificación de diseño completa (referencia)
   "infinite vertical marquee") envolviendo las tarjetas en `.wg-track` y recortando `.wg-col` a la
   altura de un set para que el flujo de la página no se altere. Mobile sigue usando el carrusel.
 - **Logo del nav:** agrandado (38px).
-- **Hero CTAs en mobile:** reducidos para dejar ver mejor el video.
+- **Hero CTAs en mobile:** reducidos (44px, mínimo táctil) para dejar ver mejor el video.
+
+### Auditoría UX aplicada (rúbrica "UI UX Pro Max")
+
+Mejoras de accesibilidad / performance pasadas sobre la guía:
+- **Imágenes → WebP** (redimensionadas a máx. 1400px): payload de imágenes **-55%** (~9,5 MB → ~4,2 MB),
+  + `loading="lazy"` y `decoding="async"` en todo lo que está bajo el fold.
+- **Manifiesto legible** cuando no corre el scrub (sin GSAP o con `reduced-motion`): antes quedaba en
+  gris casi ilegible.
+- **Foco de teclado visible** (`:focus-visible`) — importante porque el cursor custom oculta el puntero.
+- **Skip-link** "Saltar al contenido" para teclado/lectores de pantalla.
+- **Formulario:** labels asociados (`for`/`id`), `type="tel"`/`email` + `inputmode` + `autocomplete`.
+- **Se quitó SplitType** (se cargaba pero no se usaba) → un request bloqueante menos.
 
 ## Librerías (todas gratis, vía CDN, cargadas en `<head>`)
 
@@ -76,9 +97,10 @@ Cualquier hosting estático sirve el repo tal cual desde la raíz:
 - [x] **Imágenes de proyectos localizadas.** Las 12 fotos de proyectos ya se sirven desde `assets/`
       (más las 6 que ya venían del cliente = 18 en total).
 - [x] **Imágenes de Aplicaciones localizadas.** Arquitectura / Industria / Paneles ahora usan
-      `assets/app-*.jpg` (la foto de Industria venía en 16320×9180/10 MB → reescalada a 1600×900/116 KB).
+      `assets/app-*.webp` (la foto de Industria venía en 16320×9180/10 MB → reescalada y comprimida).
+- [x] **Todas las imágenes pasadas a WebP** (máx. 1400px) → payload de imágenes -55%.
 - [ ] **Sólo queda externo el logo** (`plasmart-logo-w-500.png`, en nav/footer/OG). Pendiente el
-      SVG/PNG del logo para localizarlo y rehacer el favicon con la marca real. *(Tip: WebP para todo.)*
+      SVG/PNG del logo para localizarlo y rehacer el favicon con la marca real.
 - [ ] **Favicon real.** Hoy es un monograma "P" blanco sobre negro generado como placeholder
       (`favicon.svg`), porque el logo real no se pudo traer en este entorno. Con el logo en SVG/PNG
       lo reemplazo por la marca real sobre fondo negro.
