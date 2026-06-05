@@ -142,7 +142,7 @@ html.cursor-on .cursor-dot { opacity: 1; }
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 400; display: flex; align-items: center; justify-content: space-between; padding: 22px var(--pad); mix-blend-mode: difference; transition: background .35s var(--ease), backdrop-filter .35s var(--ease), box-shadow .35s var(--ease), border-color .35s var(--ease), padding .35s var(--ease); border-bottom: 1px solid transparent; }
 /* once scrolled, drop the difference blend and give the bar a legible backdrop + soft shadow */
 .nav.scrolled { mix-blend-mode: normal; background: rgba(8, 9, 11, .72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); padding-top: 16px; padding-bottom: 16px; }
-.nav .brand { font-family: var(--display); font-weight: 600; font-size: 19px; letter-spacing: -.02em; color: #fff; display: flex; align-items: center; }
+.nav .brand { font-family: var(--display); font-weight: 600; font-size: 26px; letter-spacing: -.03em; color: #fff; display: flex; align-items: center; }
 .nav .brand img { height: 38px; width: auto; display: block; }
 .nav .brand i { color: var(--accent); font-style: normal; }
 .nav-mid { display: flex; gap: 30px; }
