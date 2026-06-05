@@ -75,9 +75,10 @@ Cualquier hosting estático sirve el repo tal cual desde la raíz:
 
 - [x] **Imágenes de proyectos localizadas.** Las 12 fotos de proyectos ya se sirven desde `assets/`
       (más las 6 que ya venían del cliente = 18 en total).
-- [ ] **Faltan 3 assets externos** (siguen cargando desde `plasmartcba.com`): la imagen de la
-      aplicación **Industria** (`industria-img-opt`), la de **Paneles** (`portfolio-cuad-16`) y el
-      **logo** (`plasmart-logo-w-500.png`). Pasámelas y las integro. *(Tip: optimizar todo a WebP.)*
+- [x] **Imágenes de Aplicaciones localizadas.** Arquitectura / Industria / Paneles ahora usan
+      `assets/app-*.jpg` (la foto de Industria venía en 16320×9180/10 MB → reescalada a 1600×900/116 KB).
+- [ ] **Sólo queda externo el logo** (`plasmart-logo-w-500.png`, en nav/footer/OG). Pendiente el
+      SVG/PNG del logo para localizarlo y rehacer el favicon con la marca real. *(Tip: WebP para todo.)*
 - [ ] **Favicon real.** Hoy es un monograma "P" blanco sobre negro generado como placeholder
       (`favicon.svg`), porque el logo real no se pudo traer en este entorno. Con el logo en SVG/PNG
       lo reemplazo por la marca real sobre fondo negro.
