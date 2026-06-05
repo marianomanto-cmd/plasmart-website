@@ -82,7 +82,8 @@ Cualquier hosting estático sirve el repo tal cual desde la raíz:
       (`favicon.svg`), porque el logo real no se pudo traer en este entorno. Con el logo en SVG/PNG
       lo reemplazo por la marca real sobre fondo negro.
 - [ ] **Logo en SVG.** Pedir al cliente el SVG del logo (hoy se usa el PNG 500×500).
-- [ ] **Catálogo PDF.** El botón "Descargar catálogo" hoy abre WhatsApp pidiendo el catálogo.
-      Cuando exista el PDF, cambiar el `href` por la descarga directa (`download`).
+- [x] **Catálogo PDF.** El botón "Descargar catálogo" del hero ahora descarga
+      `assets/Catalogo-Plasmart.pdf` (45 págs, ~35 MB) directo con `download`.
+      *(Pendiente opcional: comprimir/optimizar el PDF — pesa bastante para mobile.)*
 - [ ] **Backend de contacto (opcional).** El modal de mail arma un `mailto:`. Si hay endpoint,
       reemplazar por un `POST`.
