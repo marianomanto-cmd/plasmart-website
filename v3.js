@@ -61,12 +61,15 @@
     });
   }
 
-  /* ---------- Scroll progress ---------- */
+  /* ---------- Scroll progress + nav backdrop ---------- */
   var prog = document.querySelector('.progress');
+  var navEl = document.querySelector('.nav');
   function updateProg() {
+    var y = window.scrollY || document.documentElement.scrollTop;
     var h = document.documentElement.scrollHeight - window.innerHeight;
-    var p = h > 0 ? (window.scrollY || document.documentElement.scrollTop) / h : 0;
+    var p = h > 0 ? y / h : 0;
     if (prog) prog.style.width = (p * 100) + '%';
+    if (navEl) navEl.classList.toggle('scrolled', y > 40); // solid bar once scrolled past hero top
   }
   window.addEventListener('scroll', updateProg, { passive: true });
   if (lenis) lenis.on('scroll', updateProg);
@@ -362,6 +365,8 @@
           cl.setAttribute('data-clone', ''); cl.setAttribute('aria-hidden', 'true');
           trk.appendChild(cl);
         });
+        // marquee is desktop-only & continuously animated → load images eagerly so clones never blank
+        Array.prototype.slice.call(trk.querySelectorAll('img')).forEach(function (im) { im.loading = 'eager'; });
         var sp = parseFloat(col.getAttribute('data-speed')) || 0.05;
         return { trk: trk, loop: loop, pos: loop * (FRAC[i] || 0), auto: 26 + sp * 260, mul: (MULS[i] != null ? MULS[i] : 1) };
       });
@@ -404,6 +409,32 @@
     if (deskMQ.addEventListener) deskMQ.addEventListener('change', sync); else if (deskMQ.addListener) deskMQ.addListener(sync);
     window.addEventListener('load', function () { if (deskMQ.matches) { stopEngine(); startEngine(); } }); // re-measure after fonts/images
     sync();
+  })();
+
+  /* ---------- Analytics: dataLayer listeners (GTM) ----------
+     Direct wa.me clicks (those that bypass the /whatsapp intermediate) and outbound
+     social clicks are pushed to the dataLayer; GTM (configured outside the code) maps
+     them to GA4 / Google Ads. The hero/nav/contact/floating CTAs route through
+     /whatsapp/?src=... which fires `whatsapp_click` on that page instead. */
+  (function () {
+    window.dataLayer = window.dataLayer || [];
+    var SOCIAL = { 'instagram.com': 'instagram', 'facebook.com': 'facebook', 'fb.com': 'facebook', 'linkedin.com': 'linkedin', 'twitter.com': 'twitter', 'x.com': 'twitter', 'youtube.com': 'youtube', 'tiktok.com': 'tiktok' };
+    document.addEventListener('click', function (e) {
+      var link = e.target && e.target.closest ? e.target.closest('a') : null;
+      if (!link || !link.href) return;
+      var href = link.href.toLowerCase();
+      var waDirect = (href.indexOf('wa.me/') !== -1 || href.indexOf('api.whatsapp.com/send') !== -1) && href.indexOf('/whatsapp') === -1;
+      if (waDirect) {
+        window.dataLayer.push({ event: 'whatsapp_direct_click', lead_type: 'whatsapp_direct', lead_value: 50000, value: 50000, currency: 'ARS' });
+        return;
+      }
+      for (var d in SOCIAL) {
+        if (href.indexOf(d) !== -1) {
+          window.dataLayer.push({ event: 'social_click', lead_type: SOCIAL[d], social_url: link.href });
+          return;
+        }
+      }
+    }, false);
   })();
 
   /* refresh ST after load (fonts/images) */

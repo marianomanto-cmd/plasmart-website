@@ -14,9 +14,13 @@ index.html          Página en español (ES) — markup de todas las secciones
 en.html             Página en inglés (EN) — misma estructura, textos traducidos
 v3.css              Sistema visual + estados/animaciones (fuente de verdad del estilo)
 v3.js               Lenis + GSAP wiring, loader, reveals, scrub, acordeón, marquee vertical
-                    de proyectos, carrusel mobile, cursor custom, botones magnéticos, modal, video
+                    de proyectos, carrusel mobile, cursor custom, botones magnéticos, video,
+                    listeners de analytics (dataLayer), nav backdrop on-scroll
+whatsapp/index.html Página intermedia de tracking → pushea whatsapp_click y redirige a wa.me
 favicon.svg         Favicon (monograma blanco sobre negro — placeholder hasta el logo real)
-assets/             Video del hero + fotos (WebP) + catálogo PDF
+llms.txt            Resumen del sitio para LLMs (formato llmstxt.org)
+robots.txt          Crawlers
+assets/             Video del hero + fotos (WebP) + catálogo PDF + og-cover.jpg
 DESIGN_HANDOFF.md   Especificación de diseño completa (referencia)
 ```
 
@@ -49,6 +53,41 @@ Mejoras de accesibilidad / performance pasadas sobre la guía:
 - **Skip-link** "Saltar al contenido" para teclado/lectores de pantalla.
 - **Formulario:** labels asociados (`for`/`id`), `type="tel"`/`email` + `inputmode` + `autocomplete`.
 - **Se quitó SplitType** (se cargaba pero no se usaba) → un request bloqueante menos.
+
+### Contacto: solo WhatsApp
+
+- Se eliminó el botón/modal de "Escribinos un mail" y su formulario. Todos los CTA de presupuesto
+  van a WhatsApp. (El email queda como dato de contacto informativo en la sección Contacto.)
+- Redes en el footer: **Instagram**, **Facebook**, **LinkedIn** (URLs actualizadas).
+
+### SEO / LLM
+
+- **Títulos** keyword-rich + **canonical** + `robots` por página, **OpenGraph/Twitter** con imagen
+  generada (`assets/og-cover.jpg`, 1200×630) y `hreflang` es/en/x-default.
+- **JSON-LD `LocalBusiness`** en ambas páginas (dirección, horario, teléfono, `sameAs`, servicios) —
+  rich results + comprensión por LLMs.
+- **`llms.txt`** (formato llmstxt.org) con el resumen del negocio, servicios, contacto y páginas.
+- **Nav con backdrop al scrollear** (`.nav.scrolled`): deja de mezclarse con el contenido.
+- Cosmético: `color-scheme: dark`, scrollbar temático, sin flash de tap en mobile.
+
+> ⚠️ `canonical` / `og:image` / JSON-LD `url` están en rutas **relativas** porque aún no hay dominio
+> final. Cuando se defina el dominio, conviene pasarlas a absolutas y agregar `sitemap.xml` +
+> `Sitemap:` en `robots.txt`.
+
+### Analytics / Tracking (GTM)
+
+Adaptado del brief de Next.js al **stack estático actual** (mismo container, mismos eventos):
+
+- **GTM `GTM-T6GRB89`** cargado (snippet async en `<head>` + `<noscript>` tras `<body>`) en
+  `index.html`, `en.html` y la página intermedia de WhatsApp. GA4/Google Ads se configuran dentro
+  de GTM (no en el código).
+- **Página intermedia `/whatsapp/`**: los CTA de presupuesto (hero/nav/contacto/flotante) apuntan a
+  `whatsapp/?src=...`; esa página pushea `whatsapp_click` al `dataLayer` (con `wa_source`,
+  `lead_value`/`value` 50000 ARS, `eventCallback` + timeout de 1500 ms) y recién ahí redirige a wa.me.
+- **`whatsapp_direct_click`**: el link directo a wa.me del bloque de contacto.
+- **`social_click`**: listener global (en `v3.js`) para clicks salientes a IG/FB/LinkedIn/etc.
+- `generate_lead`/form **no aplica**: se quitó el formulario (todo va por WhatsApp).
+- `src` por CTA: `hero`, `nav`, `contacto`, `floating` → se reporta como `wa_source` en GA4.
 
 ## Librerías (todas gratis, vía CDN, cargadas en `<head>`)
 

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Redirigiendo a WhatsApp… · Plasmart</title>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-T6GRB89');</script>
+<!-- End Google Tag Manager -->
+<style>
+  :root { --bg:#08090b; --text:#eef0f3; --muted:#8a8f99; --accent:#6e7bff; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { height:100%; }
+  body { background:var(--bg); color:var(--text); font-family:"Sora",system-ui,sans-serif;
+    display:grid; place-items:center; text-align:center; padding:24px; }
+  .box { max-width:420px; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 14px var(--accent); display:inline-block; margin-bottom:20px;
+    animation:pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:.4;transform:scale(.9)} 50%{opacity:1;transform:scale(1.18)} }
+  h1 { font-weight:200; font-size:24px; letter-spacing:-.02em; margin-bottom:10px; }
+  p { color:var(--muted); font-size:14px; line-height:1.55; }
+  a.manual { display:inline-block; margin-top:20px; color:var(--accent); font-size:13px;
+    border-bottom:1px solid var(--accent); padding-bottom:2px; text-decoration:none; }
+  @media (prefers-reduced-motion: reduce) { .dot { animation:none; } }
+</style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T6GRB89"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<div class="box">
+  <span class="dot"></span>
+  <h1>Redirigiendo a WhatsApp…</h1>
+  <p>Te conectamos con Plasmart.<br />Redirecting to WhatsApp…</p>
+  <a class="manual" id="waManual" href="https://wa.me/5493513820321">Tocá acá si no se abre automáticamente</a>
+</div>
+<script>
+  (function () {
+    window.dataLayer = window.dataLayer || [];
+    var params = new URLSearchParams(window.location.search);
+    var waSource = params.get('src') || 'unknown';
+    var waUrl = 'https://wa.me/5493513820321?text=' +
+      encodeURIComponent('Hola Plasmart, vengo desde la web y me interesa pedir un presupuesto.');
+    var manual = document.getElementById('waManual');
+    if (manual) manual.href = waUrl;
+
+    var redirected = false;
+    function go() { if (redirected) return; redirected = true; window.location.href = waUrl; }
+
+    window.dataLayer.push({
+      event: 'whatsapp_click',
+      lead_type: 'whatsapp',
+      lead_value: 50000,
+      value: 50000,
+      currency: 'ARS',
+      wa_source: waSource,
+      page_referrer: document.referrer || 'direct',
+      eventCallback: go,
+      eventTimeout: 1500
+    });
+    // Fallback in case eventCallback never fires (e.g. GTM blocked)
+    setTimeout(go, 1500);
+  })();
+</script>
+</body>
+</html>
