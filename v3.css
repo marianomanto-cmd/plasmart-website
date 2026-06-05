@@ -143,7 +143,7 @@ html.cursor-on .cursor-dot { opacity: 1; }
 /* once scrolled, drop the difference blend and give the bar a legible backdrop + soft shadow */
 .nav.scrolled { mix-blend-mode: normal; background: rgba(8, 9, 11, .72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); padding-top: 16px; padding-bottom: 16px; }
 .nav .brand { font-family: var(--display); font-weight: 600; font-size: 26px; letter-spacing: -.03em; color: #fff; display: flex; align-items: center; }
-.nav .brand img { height: 38px; width: auto; display: block; }
+.nav .brand img { height: 44px; width: auto; display: block; }
 .nav .brand i { color: var(--accent); font-style: normal; }
 .nav-mid { display: flex; gap: 30px; }
 .nav-mid a { font-size: 14px; color: #fff; opacity: .7; transition: opacity .3s; }
