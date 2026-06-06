@@ -44,6 +44,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>
   (function () {
     window.dataLayer = window.dataLayer || [];
+
+    // PASO 1: construir la URL de WhatsApp y cablear la UI — SIEMPRE, antes de validar
     var params = new URLSearchParams(window.location.search);
     var waSource = params.get('src') || 'unknown';
     var waUrl = 'https://wa.me/5493513820321?text=' +
@@ -51,22 +53,67 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var manual = document.getElementById('waManual');
     if (manual) manual.href = waUrl;
 
+    // PASO 2: redirect garantizado por timer, independiente del evento (la UX nunca depende del tracking)
     var redirected = false;
     function go() { if (redirected) return; redirected = true; window.location.href = waUrl; }
+    setTimeout(go, 1200);
 
-    window.dataLayer.push({
-      event: 'whatsapp_click',
-      lead_type: 'whatsapp',
-      lead_value: 50000,
-      value: 50000,
-      currency: 'ARS',
-      wa_source: waSource,
-      page_referrer: document.referrer || 'direct',
-      eventCallback: go,
-      eventTimeout: 1500
-    });
-    // Fallback in case eventCallback never fires (e.g. GTM blocked)
-    setTimeout(go, 1500);
+    // PASO 3: chequeos de legitimidad — el evento principal sólo se dispara si TODOS pasan
+    var reasons = [];
+
+    // a) bots / crawlers / previews por User-Agent
+    var ua = navigator.userAgent || '';
+    if (/bot|crawler|spider|crawling|preview|facebookexternalhit|whatsapp|telegram|slurp|bingpreview|google-ads|googleads|adsbot|mediapartners|headlesschrome|phantomjs|puppeteer|playwright|selenium/i.test(ua)) {
+      reasons.push('bot_ua');
+    }
+
+    // b) pestaña no visible (prefetch / background)
+    if (document.visibilityState !== 'visible') {
+      reasons.push('not_visible');
+    }
+
+    // c) sin source legítimo (los CTAs del sitio siempre mandan ?src=...)
+    if (waSource === 'unknown') {
+      reasons.push('no_source');
+    }
+
+    // d) deduplicación por sesión
+    var alreadyFired = false;
+    try { alreadyFired = sessionStorage.getItem('pm_wa_fired') === '1'; } catch (e) {}
+    if (alreadyFired) {
+      reasons.push('already_fired_session');
+    }
+
+    // e) navigator.languages vacío (señal típica de headless)
+    if (!navigator.languages || navigator.languages.length === 0) {
+      reasons.push('no_languages');
+    }
+
+    // f) webdriver (Selenium / Puppeteer / Playwright setean esto a true)
+    if (navigator.webdriver === true) {
+      reasons.push('webdriver');
+    }
+
+    // PASO 4 / 5: pushear según corresponda
+    if (reasons.length === 0) {
+      try { sessionStorage.setItem('pm_wa_fired', '1'); } catch (e) {}
+      window.dataLayer.push({
+        event: 'whatsapp_click',
+        lead_type: 'whatsapp',
+        lead_value: 50000,
+        value: 50000,
+        currency: 'ARS',
+        wa_source: waSource,
+        page_referrer: document.referrer || 'direct'
+      });
+    } else {
+      window.dataLayer.push({
+        event: 'whatsapp_click_blocked',
+        block_reasons: reasons.join(','),
+        wa_source: waSource,
+        page_referrer: document.referrer || 'direct'
+      });
+    }
   })();
 </script>
 </body>
