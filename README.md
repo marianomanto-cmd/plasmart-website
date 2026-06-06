@@ -77,15 +77,24 @@ configuran **dentro de GTM**, no en el código.
 - **GTM `GTM-T6GRB89`**: snippet async en `<head>` + `<noscript>` tras `<body>` en `index.html`,
   `en.html` y `whatsapp/index.html`.
 - **`/whatsapp/`** (intermedia): los CTA apuntan a `whatsapp/?src=...` (hero / nav / contacto /
-  floating). Esa página pushea **`whatsapp_click`** al `dataLayer` (`wa_source`, `lead_value`/`value`
-  50000 ARS, `eventCallback` + timeout 1500 ms) y recién ahí redirige a wa.me.
+  floating). La página **redirige siempre** a wa.me por un `setTimeout` de 1200 ms (la UX no depende
+  del tracking) y **sólo pushea `whatsapp_click`** si pasa 6 chequeos de legitimidad (anti‑inflado de
+  conversiones). El evento lleva `wa_source`, `lead_value`/`value` 50000 ARS, `page_referrer` (sin
+  `eventCallback`/`eventTimeout`).
+  - **Chequeos:** `bot_ua` (regex de User‑Agent) · `not_visible` (`document.visibilityState`, descarta
+    prefetch / pestañas en background) · `no_source` (sin `?src` o `unknown`) · `already_fired_session`
+    (dedup por `sessionStorage` `pm_wa_fired`) · `no_languages` · `webdriver`.
+  - Si **algún** chequeo falla, en vez del evento principal se pushea **`whatsapp_click_blocked`** con
+    `block_reasons` (IDs separados por coma) — sirve para auditar en GA4 cuánto/por qué se filtró.
 - **`whatsapp_direct_click`**: link directo a wa.me del bloque de contacto.
 - **`social_click`**: listener global en `v3.js` para clicks salientes a IG/FB/LinkedIn/etc.
 - `generate_lead` / form **no aplica** (se quitó el formulario).
 
-> **Falta del lado de GTM (panel, no código):** triggers que escuchen `whatsapp_click` /
-> `whatsapp_direct_click` / `social_click` → GA4 + Ads, y mapear `whatsapp_click` como el key event
-> de conversión (`generate_lead`), ya que no hay formulario.
+> **Falta del lado de GTM / Ads (panel, no código):**
+> - Trigger de conversión que escuche **sólo** `event = whatsapp_click` (NO `whatsapp_click_blocked`),
+>   y mapearlo como key event (`generate_lead`), ya que no hay formulario.
+> - Mandar `whatsapp_click_blocked` a **GA4 como evento de auditoría** (con `block_reasons` / `wa_source`).
+> - En Google Ads, contar la conversión como **"Una"** por interacción (no "Cada").
 
 ## SEO / LLM
 
