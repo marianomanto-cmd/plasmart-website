@@ -287,7 +287,7 @@
     });
   })();
 
-  /* ---------- Proyectos: mobile swipe gallery (scroll-snap, user-driven) ---------- */
+  /* ---------- Proyectos: mobile gallery \u2014 slow auto-marquee + free swipe + tap to pause ---------- */
   (function () {
     var mount = document.getElementById('workMobile'), grid = document.querySelector('.work-grid');
     if (!mount || !grid) return;
@@ -301,24 +301,53 @@
     if (!items.length) return;
     var total = String(items.length).padStart(2, '0');
     var en = (document.documentElement.lang || 'es').toLowerCase().indexOf('en') === 0;
-    mount.innerHTML =
-      '<div class="wm-track">' + items.map(function (it, i) {
-        return '<article class="wm-card">' +
-          '<div class="wm-pic"><img ' + (i ? 'loading="lazy" ' : '') + 'decoding="async" src="' + it.src + '" alt="' + it.name + '"></div>' +
-          '<div class="wm-cap"><span class="wm-nm">' + it.name + '</span><span class="wm-ix">' + it.num + ' / ' + total + '</span></div>' +
-          '</article>';
-      }).join('') + '</div>' +
-      '<div class="wm-foot"><div class="wm-bar"><span></span></div><span class="wm-hint mono">' + (en ? 'swipe to browse \u2192' : 'desliz\u00e1 para recorrer \u2192') + '</span></div>';
-    var trackEl = mount.querySelector('.wm-track'), bar = mount.querySelector('.wm-bar span');
-    function updateBar() {
-      var max = trackEl.scrollWidth - trackEl.clientWidth;
-      var p = max > 0 ? Math.min(1, Math.max(0, trackEl.scrollLeft / max)) : 0;
-      bar.style.width = (8 + p * 92) + '%';
-      if (p > 0.015) mount.classList.add('wm-go');
+    function card(it, i, clone) {
+      return '<article class="wm-card"' + (clone ? ' aria-hidden="true"' : '') + '>' +
+        '<div class="wm-pic"><img ' + ((i > 1 || clone) ? 'loading="lazy" ' : '') + 'decoding="async" src="' + it.src + '" alt="' + (clone ? '' : it.name) + '"></div>' +
+        '<div class="wm-cap"><span class="wm-nm">' + it.name + '</span><span class="wm-ix">' + it.num + ' / ' + total + '</span></div>' +
+        '</article>';
     }
-    trackEl.addEventListener('scroll', updateBar, { passive: true });
-    window.addEventListener('resize', updateBar);
-    updateBar();
+    // render the set twice for a seamless loop
+    var twice = items.map(function (it, i) { return card(it, i, false); }).join('') +
+                items.map(function (it, i) { return card(it, i, true); }).join('');
+    var baseHint = REDUCE ? (en ? 'swipe to browse \u2192' : 'desliz\u00e1 para recorrer \u2192')
+                          : (en ? 'swipe \u00b7 tap to pause' : 'desliz\u00e1 \u00b7 toc\u00e1 para pausar');
+    mount.innerHTML = '<div class="wm-track">' + twice + '</div>' +
+      '<div class="wm-foot"><span class="wm-hint mono">' + baseHint + '</span></div>';
+    var trackEl = mount.querySelector('.wm-track'), hintEl = mount.querySelector('.wm-hint');
+
+    var oneSet = 0;
+    function measure() {
+      var a = mount.querySelectorAll('.wm-card');
+      oneSet = a.length > items.length ? (a[items.length].offsetLeft - a[0].offsetLeft) : 0;
+    }
+    window.addEventListener('resize', measure);
+    window.addEventListener('load', measure);
+    measure();
+
+    if (REDUCE) return; // no auto-marquee under reduced motion; gallery stays free-swipe
+
+    var SPEED = 32, paused = false, hold = false, resumeT = null, last = 0;
+    function holdOn() { hold = true; clearTimeout(resumeT); }
+    function holdOff() { clearTimeout(resumeT); resumeT = setTimeout(function () { hold = false; }, 1400); }
+    trackEl.addEventListener('touchstart', holdOn, { passive: true });
+    trackEl.addEventListener('touchend', holdOff, { passive: true });
+    trackEl.addEventListener('pointerdown', holdOn, { passive: true });
+    trackEl.addEventListener('pointerup', holdOff, { passive: true });
+    trackEl.addEventListener('wheel', function () { holdOn(); holdOff(); }, { passive: true });
+    trackEl.addEventListener('click', function () {
+      paused = !paused; mount.classList.toggle('wm-paused', paused);
+      hintEl.textContent = paused ? (en ? 'paused \u00b7 tap to resume' : 'en pausa \u00b7 toc\u00e1 para reanudar') : baseHint;
+    });
+    function frame(ts) {
+      var dt = last ? Math.min((ts - last) / 1000, 0.05) : 0; last = ts;
+      if (!paused && !hold && oneSet > 0) {
+        trackEl.scrollLeft += SPEED * dt;
+        if (trackEl.scrollLeft >= oneSet) trackEl.scrollLeft -= oneSet; // seamless wrap
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
   })();
 
   /* ---------- Proyectos: infinite vertical marquee (desktop) ----------

@@ -63,7 +63,8 @@ Tipografías: **Sora** + **JetBrains Mono** (Google Fonts).
 - **Proyectos (desktop):** en vez del parallax atado al scroll, la grilla es un **marquee vertical
   infinito** (cada columna a distinta velocidad, **acoplado a la velocidad del scroll**). Las
   tarjetas se envuelven en `.wg-track` y `.wg-col` se recorta a un set para no alterar el flujo de la
-  página. **Mobile**: galería de **swipe** (scroll‑snap, sin auto‑rotación, con barra de posición).
+  página. **Mobile**: galería tipo **marquesina** — auto‑scroll lento + swipe libre + tap para
+  pausar/reanudar (loop sin corte duplicando el set; respeta `reduced-motion`).
 - **Logo real del cliente** en nav (44px) y footer (PNG con fondo transparente).
 - **Hero CTAs en mobile** más chicos (44px, mínimo táctil) para dejar ver el video.
 - **Nav con backdrop + sombra al scrollear** (`.nav.scrolled`): deja de mezclarse con el contenido.
