@@ -287,11 +287,11 @@
     });
   })();
 
-  /* ---------- Proyectos: mobile carousel (auto-rotate, crossfade, Ken Burns) ---------- */
+  /* ---------- Proyectos: mobile swipe gallery (scroll-snap, user-driven) ---------- */
   (function () {
-    var mount = document.getElementById('workMobile'), track = document.querySelector('.work-grid');
-    if (!mount || !track) return;
-    var cards = Array.prototype.slice.call(track.querySelectorAll('.wcard:not([data-clone])'));
+    var mount = document.getElementById('workMobile'), grid = document.querySelector('.work-grid');
+    if (!mount || !grid) return;
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.wcard:not([data-clone])'));
     var items = cards.map(function (c) {
       var img = c.querySelector('img'), nm = (c.querySelector('.nm') || {}).textContent || '';
       var parts = nm.split('\u00b7');
@@ -299,24 +299,26 @@
     });
     items.sort(function (a, b) { return parseInt(a.num, 10) - parseInt(b.num, 10); });
     if (!items.length) return;
+    var total = String(items.length).padStart(2, '0');
+    var en = (document.documentElement.lang || 'es').toLowerCase().indexOf('en') === 0;
     mount.innerHTML =
-      '<div class="wm-stage">' + items.map(function (it, i) { return '<div class="wm-slide' + (i === 0 ? ' on' : '') + '"><img ' + (i ? 'loading="lazy" ' : '') + 'decoding="async" src="' + it.src + '" alt="' + it.name + '"></div>'; }).join('') + '</div>' +
-      '<div class="wm-meta"><span class="wm-nm"></span><span class="wm-ix"></span></div>' +
-      '<div class="wm-bar"><span></span></div>' +
-      '<div class="wm-dots">' + items.map(function (it, i) { return '<i' + (i === 0 ? ' class="on"' : '') + ' data-i="' + i + '"></i>'; }).join('') + '</div>';
-    var slides = mount.querySelectorAll('.wm-slide'), dots = mount.querySelectorAll('.wm-dots i');
-    var nmEl = mount.querySelector('.wm-nm'), ixEl = mount.querySelector('.wm-ix'), bar = mount.querySelector('.wm-bar span'), stage = mount.querySelector('.wm-stage');
-    var idx = 0, timer = null, DWELL = 3400, total = String(items.length).padStart(2, '0');
-    function prog() { bar.style.transition = 'none'; bar.style.width = '0'; void bar.offsetWidth; bar.style.transition = 'width ' + DWELL + 'ms linear'; bar.style.width = '100%'; }
-    function go(i) { idx = (i + items.length) % items.length; slides.forEach(function (s, k) { s.classList.toggle('on', k === idx); }); dots.forEach(function (d, k) { d.classList.toggle('on', k === idx); }); nmEl.textContent = items[idx].name; ixEl.textContent = items[idx].num + ' / ' + total; prog(); }
-    function start() { stop(); timer = setInterval(function () { go(idx + 1); }, DWELL); }
-    function stop() { if (timer) { clearInterval(timer); timer = null; } }
-    stage.addEventListener('click', function () { go(idx + 1); start(); });
-    dots.forEach(function (d) { d.addEventListener('click', function () { go(parseInt(d.getAttribute('data-i'), 10)); start(); }); });
-    var mq = window.matchMedia('(max-width: 760px)');
-    function upd() { if (mq.matches) start(); else stop(); }
-    if (mq.addEventListener) mq.addEventListener('change', upd); else if (mq.addListener) mq.addListener(upd);
-    go(0); upd();
+      '<div class="wm-track">' + items.map(function (it, i) {
+        return '<article class="wm-card">' +
+          '<div class="wm-pic"><img ' + (i ? 'loading="lazy" ' : '') + 'decoding="async" src="' + it.src + '" alt="' + it.name + '"></div>' +
+          '<div class="wm-cap"><span class="wm-nm">' + it.name + '</span><span class="wm-ix">' + it.num + ' / ' + total + '</span></div>' +
+          '</article>';
+      }).join('') + '</div>' +
+      '<div class="wm-foot"><div class="wm-bar"><span></span></div><span class="wm-hint mono">' + (en ? 'swipe to browse \u2192' : 'desliz\u00e1 para recorrer \u2192') + '</span></div>';
+    var trackEl = mount.querySelector('.wm-track'), bar = mount.querySelector('.wm-bar span');
+    function updateBar() {
+      var max = trackEl.scrollWidth - trackEl.clientWidth;
+      var p = max > 0 ? Math.min(1, Math.max(0, trackEl.scrollLeft / max)) : 0;
+      bar.style.width = (8 + p * 92) + '%';
+      if (p > 0.015) mount.classList.add('wm-go');
+    }
+    trackEl.addEventListener('scroll', updateBar, { passive: true });
+    window.addEventListener('resize', updateBar);
+    updateBar();
   })();
 
   /* ---------- Proyectos: infinite vertical marquee (desktop) ----------
@@ -435,6 +437,22 @@
         }
       }
     }, false);
+  })();
+
+  /* ---------- Nav active section (scrollspy) ---------- */
+  (function () {
+    if (!('IntersectionObserver' in window)) return;
+    var links = {};
+    document.querySelectorAll('.nav-mid a[href^="#"]').forEach(function (a) {
+      var id = a.getAttribute('href').slice(1); if (id) links[id] = a;
+    });
+    var ids = Object.keys(links); if (!ids.length) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) ids.forEach(function (id) { links[id].classList.toggle('active', id === e.target.id); });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+    ids.forEach(function (id) { var s = document.getElementById(id); if (s) io.observe(s); });
   })();
 
   /* refresh ST after load (fonts/images) */
