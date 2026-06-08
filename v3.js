@@ -244,6 +244,10 @@
     var va = document.getElementById('heroVideo3'), vb = document.getElementById('heroVideo3b');
     if (!va) return;
     var MAXO = 0.4, FADE = 1.1;
+    // per-page override (landings usan un hero menos sombreado vía data-hero-opacity)
+    var heroEl = va.closest('.hero');
+    var od = heroEl && heroEl.getAttribute('data-hero-opacity');
+    if (od != null && !isNaN(parseFloat(od))) MAXO = parseFloat(od);
     function play(v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
     if (!vb) { va.style.opacity = MAXO; play(va); document.addEventListener('pointerdown', function () { play(va); }, { once: true }); return; }
     va.style.opacity = MAXO; vb.style.opacity = 0;

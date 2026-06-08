@@ -126,14 +126,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="progress"></div>
 
 <!-- HERO -->
-<header class="hero" id="top">
+<header class="hero hero-soft" id="top" data-hero-opacity="0.62">
   <div class="hero-bg">
-    <!-- Video de hero provisto por el cliente (720p, sin audio, doble buffer para loop sin corte).
-         NOTA: no pude previsualizar el contenido en este entorno; confirmar que el clip asignado a
-         Arquitectura es el correcto. Existen variantes 1080p si se quiere servir más nitidez a desktop.
-         TODO opcional: clip específico de fachadas/paneles terminados si Mariano lo prefiere. -->
+    <!-- Hero de Arquitectura provisto por el cliente.
+         OJO (TODO perf): el archivo pesa ~11 MB y es casi cuadrado (944x960), así que en desktop
+         recorta arriba/abajo. RECOMENDADO re-encodear a 1920x1080 < 3 MB para mejor performance y
+         encuadre. El buffer del crossfade usa preload="metadata" para no descargar el video 2 veces. -->
     <video class="hbv" id="heroVideo3" autoplay muted loop playsinline preload="auto"><source src="/assets/arq-hero.mp4" type="video/mp4" /></video>
-    <video class="hbv" id="heroVideo3b" muted loop playsinline preload="auto"><source src="/assets/arq-hero.mp4" type="video/mp4" /></video>
+    <video class="hbv" id="heroVideo3b" muted loop playsinline preload="metadata"><source src="/assets/arq-hero.mp4" type="video/mp4" /></video>
   </div>
   <div class="hero-inner wrap">
     <div class="hero-top">
@@ -237,14 +237,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
        Hoy combina imágenes ilustrativas (arq-*.jpg) con proyectos reales del portfolio
        (portfolio-cuad-*). Pedir a Mariano fotos de obra terminada + nombre de proyecto/estudio. -->
   <div class="proj-scroll">
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-escalera-blanca.jpg" alt="Escalera escultórica con baranda calada" /></div><div class="wm"><span class="nm">01 · Escalera escultórica</span></div></article>
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-revestimiento.jpg" alt="Revestimiento orgánico perforado en exterior" /></div><div class="wm"><span class="nm">02 · Revestimiento orgánico</span></div></article>
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-porton.jpg" alt="Portón decorativo de corte láser" /></div><div class="wm"><span class="nm">03 · Portón decorativo</span></div></article>
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-baranda.jpg" alt="Baranda calada en balcón interior" /></div><div class="wm"><span class="nm">04 · Baranda calada</span></div></article>
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-08.webp" alt="Envolvente exterior perforado" /></div><div class="wm"><span class="nm">05 · Envolvente exterior</span></div></article>
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-09.webp" alt="Baranda geométrica de corte láser" /></div><div class="wm"><span class="nm">06 · Baranda geométrica</span></div></article>
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-11.webp" alt="Escalera con baranda calada" /></div><div class="wm"><span class="nm">07 · Escalera calada</span></div></article>
-    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-12.webp" alt="Pérgola perforada exterior" /></div><div class="wm"><span class="nm">08 · Pérgola perforada</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-pergola.jpg" alt="Pérgola de metal desplegado sobre acceso" /></div><div class="wm"><span class="nm">01 · Pérgola metálica</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-escalera-blanca.jpg" alt="Escalera escultórica con baranda calada" /></div><div class="wm"><span class="nm">02 · Escalera escultórica</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-reja.jpg" alt="Reja decorativa con calado de bambú" /></div><div class="wm"><span class="nm">03 · Reja decorativa</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-revestimiento.jpg" alt="Revestimiento orgánico perforado en exterior" /></div><div class="wm"><span class="nm">04 · Revestimiento orgánico</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-puerta-corten.jpg" alt="Puerta de acero corten" /></div><div class="wm"><span class="nm">05 · Puerta corten</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-porton.jpg" alt="Portón decorativo de corte láser" /></div><div class="wm"><span class="nm">06 · Portón decorativo</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/arq-baranda.jpg" alt="Baranda calada en balcón interior" /></div><div class="wm"><span class="nm">07 · Baranda calada</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-08.webp" alt="Envolvente exterior perforado" /></div><div class="wm"><span class="nm">08 · Envolvente exterior</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-09.webp" alt="Baranda geométrica de corte láser" /></div><div class="wm"><span class="nm">09 · Baranda geométrica</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-11.webp" alt="Escalera con baranda calada" /></div><div class="wm"><span class="nm">10 · Escalera calada</span></div></article>
+    <article class="wcard"><div class="pic"><img loading="lazy" decoding="async" src="/assets/portfolio-cuad-12.webp" alt="Pérgola perforada exterior" /></div><div class="wm"><span class="nm">11 · Pérgola perforada</span></div></article>
   </div>
 </section>
 

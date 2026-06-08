@@ -13,17 +13,25 @@
   line-height: 1.5; font-weight: 300; color: #c9ced8; letter-spacing: -.01em;
 }
 
+/* ---------- Hero menos sombreado (landings) ----------
+   El video se ve más (opacidad vía data-hero-opacity en v3.js) y el overlay aclara
+   las zonas alta/media, manteniendo el fondo inferior firme para que el texto se lea. */
+.hero-soft .hero-bg .hbv { filter: grayscale(.1); }
+.hero-soft .hero-bg::after {
+  background: linear-gradient(180deg, rgba(8,9,11,.30) 0%, rgba(8,9,11,.04) 34%, rgba(8,9,11,.22) 62%, rgba(8,9,11,.86) 90%, var(--bg) 100%);
+}
+
 /* ---------- Cards de aplicaciones (grid 3 col · stack mobile) ----------
    Mismo lenguaje visual que el acordeón "Aplicaciones" del home:
    imagen oscurecida, tinte inferior, código "A · 01", título fino y arrow-link. */
 .appcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 1.6vw, 24px); margin-top: clamp(28px, 4vw, 48px); }
 .appcard { position: relative; overflow: hidden; border-radius: 4px; background: var(--panel); min-height: clamp(380px, 42vw, 520px); display: flex; }
-.appcard img, .appcard .ph-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.05); filter: grayscale(.45) brightness(.6); transition: transform 1.1s var(--ease), filter .7s var(--ease); }
-.appcard:hover img { transform: scale(1); filter: grayscale(.06) brightness(.82); }
+.appcard img, .appcard .ph-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.05); filter: grayscale(.18) brightness(.88); transition: transform 1.1s var(--ease), filter .7s var(--ease); }
+.appcard:hover img { transform: scale(1); filter: grayscale(0) brightness(1.02); }
 /* placeholder visual (sin foto aún) — patrón de chapa perforada en clave de marca */
 .appcard .ph-art { background: radial-gradient(130% 120% at 72% 0%, #1a1f29 0%, #0c0e12 68%); }
 .appcard .ph-art::after { content: ""; position: absolute; inset: 0; opacity: .55; background-image: radial-gradient(rgba(110,123,255,.18) 1px, transparent 1.5px); background-size: 17px 17px; }
-.appcard .tint { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,9,11,.95) 6%, rgba(8,9,11,.42) 52%, transparent 100%); }
+.appcard .tint { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,9,11,.94) 2%, rgba(8,9,11,.55) 30%, rgba(8,9,11,.12) 60%, transparent 82%); }
 .appcard .body { position: relative; z-index: 2; align-self: flex-end; width: 100%; padding: clamp(24px, 2.6vw, 40px); }
 .appcard .ai { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: .12em; }
 .appcard h3 { font-size: clamp(24px, 2.4vw, 36px); font-weight: 200; letter-spacing: -.03em; margin: 12px 0 12px; }
