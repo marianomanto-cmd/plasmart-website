@@ -75,6 +75,39 @@
   if (lenis) lenis.on('scroll', updateProg);
   updateProg();
 
+  /* ---------- Mobile menu (hamburger · multi-page header) ---------- */
+  (function () {
+    var burger = document.querySelector('.nav-burger');
+    var menu = document.getElementById('navMenu');
+    if (!burger || !menu) return;            // pages without the multi-page header (e.g. en.html)
+    var nav = document.querySelector('.nav');
+    var isOpen = false;
+    function setOpen(v) {
+      isOpen = v;
+      menu.classList.toggle('open', v);
+      if (nav) nav.classList.toggle('menu-open', v);
+      burger.setAttribute('aria-expanded', v ? 'true' : 'false');
+      burger.setAttribute('aria-label', v ? 'Cerrar menú' : 'Abrir menú');
+      menu.setAttribute('aria-hidden', v ? 'false' : 'true');
+      document.body.style.overflow = v ? 'hidden' : '';
+      if (lenis) { if (v) lenis.stop(); else lenis.start(); }
+    }
+    burger.addEventListener('click', function () { setOpen(!isOpen); });
+    // capture phase → runs before the global Lenis anchor handler, so an in-page
+    // smooth-scroll fires with Lenis already restarted
+    menu.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setOpen(false);
+    }, true);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isOpen) setOpen(false);
+    });
+    // close if the viewport crosses back to desktop while the menu is open
+    var deskMQ = window.matchMedia('(min-width: 901px)');
+    var onChange = function () { if (deskMQ.matches && isOpen) setOpen(false); };
+    if (deskMQ.addEventListener) deskMQ.addEventListener('change', onChange);
+    else if (deskMQ.addListener) deskMQ.addListener(onChange);
+  })();
+
   /* ---------- Custom cursor ---------- */
   if (FINE && !REDUCE) {
     var ring = document.createElement('div'); ring.className = 'cursor';
@@ -102,8 +135,11 @@
     var lines = document.querySelectorAll('.hero h1 .ln-in');
     if (lines.length) tl.from(lines, { yPercent: 115, duration: 1.1, ease: 'power4.out', stagger: .1 });
     else tl.from('.hero h1', { y: 60, opacity: 0, duration: 1, ease: 'power3.out' });
-    tl.from('.hero-top > *', { opacity: 0, y: 18, stagger: .08, duration: .7, ease: 'power2.out' }, '-=.7')
-      .from('.hero-cta', { opacity: 0, y: 18, duration: .7, ease: 'power2.out' }, '-=.55')
+    tl.from('.hero-top > *', { opacity: 0, y: 18, stagger: .08, duration: .7, ease: 'power2.out' }, '-=.7');
+    if (document.querySelector('.hero-sub')) {              // landings only (home has no subtitle)
+      tl.from('.hero-sub', { opacity: 0, y: 18, duration: .7, ease: 'power2.out' }, '-=.5');
+    }
+    tl.from('.hero-cta', { opacity: 0, y: 18, duration: .7, ease: 'power2.out' }, '-=.55')
       .from('.hero-foot > *', { opacity: 0, y: 18, stagger: .08, duration: .7, ease: 'power2.out' }, '-=.5');
   }
 
@@ -208,6 +244,10 @@
     var va = document.getElementById('heroVideo3'), vb = document.getElementById('heroVideo3b');
     if (!va) return;
     var MAXO = 0.4, FADE = 1.1;
+    // per-page override (landings usan un hero menos sombreado vía data-hero-opacity)
+    var heroEl = va.closest('.hero');
+    var od = heroEl && heroEl.getAttribute('data-hero-opacity');
+    if (od != null && !isNaN(parseFloat(od))) MAXO = parseFloat(od);
     function play(v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
     if (!vb) { va.style.opacity = MAXO; play(va); document.addEventListener('pointerdown', function () { play(va); }, { once: true }); return; }
     va.style.opacity = MAXO; vb.style.opacity = 0;
@@ -440,6 +480,57 @@
     if (deskMQ.addEventListener) deskMQ.addEventListener('change', sync); else if (deskMQ.addListener) deskMQ.addListener(sync);
     window.addEventListener('load', function () { if (deskMQ.matches) { stopEngine(); startEngine(); } }); // re-measure after fonts/images
     sync();
+  })();
+
+  /* ---------- Proyectos (landings): carrusel horizontal con auto-scroll ----------
+     Se mueve solo de izquierda a derecha, sigue siendo deslizable a mano y pausa al
+     pasar el mouse. Loop sin corte duplicando el set. Respeta reduced-motion. */
+  (function () {
+    var mq = document.querySelector('.proj-marquee');
+    if (!mq) return;
+    var track = mq.querySelector('.pm-track');
+    if (!track) return;
+    var originals = Array.prototype.slice.call(track.children);
+    if (!originals.length) return;
+    // duplicar el set para un loop continuo sin salto
+    originals.forEach(function (c) {
+      var cl = c.cloneNode(true);
+      cl.setAttribute('aria-hidden', 'true'); cl.setAttribute('data-clone', '');
+      track.appendChild(cl);
+    });
+    // el carrusel está siempre en movimiento → cargar las imágenes ya (que los clones no queden en blanco)
+    Array.prototype.slice.call(track.querySelectorAll('img')).forEach(function (im) { im.loading = 'eager'; });
+
+    var oneSet = 0;
+    function measure() {
+      var kids = track.children;
+      oneSet = kids.length > originals.length ? (kids[originals.length].offsetLeft - kids[0].offsetLeft) : 0;
+    }
+    window.addEventListener('resize', measure);
+    window.addEventListener('load', measure);
+    measure();
+
+    if (REDUCE) return; // sin auto-scroll bajo reduced-motion; queda el deslizamiento libre
+
+    var SPEED = 42, paused = false, hold = false, resumeT = null, last = 0;
+    function holdOn() { hold = true; clearTimeout(resumeT); }
+    function holdOff() { clearTimeout(resumeT); resumeT = setTimeout(function () { hold = false; }, 1400); }
+    mq.addEventListener('mouseenter', function () { paused = true; });
+    mq.addEventListener('mouseleave', function () { paused = false; });
+    mq.addEventListener('touchstart', holdOn, { passive: true });
+    mq.addEventListener('touchend', holdOff, { passive: true });
+    mq.addEventListener('pointerdown', holdOn, { passive: true });
+    mq.addEventListener('pointerup', holdOff, { passive: true });
+    mq.addEventListener('wheel', function () { holdOn(); holdOff(); }, { passive: true });
+    function frame(ts) {
+      var dt = last ? Math.min((ts - last) / 1000, 0.05) : 0; last = ts;
+      if (!paused && !hold && oneSet > 0) {
+        mq.scrollLeft += SPEED * dt;
+        if (mq.scrollLeft >= oneSet) mq.scrollLeft -= oneSet; // wrap sin corte
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
   })();
 
   /* ---------- Analytics: dataLayer listeners (GTM) ----------

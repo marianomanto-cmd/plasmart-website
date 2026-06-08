@@ -153,20 +153,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="llabel">Plasmart — corte de acero</div>
 </div>
 
-<!-- NAV -->
+<!-- NAV (multi-página) -->
 <nav class="nav">
   <a href="#top" class="brand" aria-label="Plasmart — inicio"><img src="assets/plasmart-logo.png" alt="Plasmart" /></a>
   <div class="nav-mid">
-    <a href="#aplicaciones">Aplicaciones</a>
-    <a href="#capacidades">Capacidades</a>
+    <a href="#top" class="active">Inicio</a>
+    <a href="/arquitectura/">Arquitectura</a>
+    <a href="/industria/">Industria</a>
     <a href="#trabajo">Proyectos</a>
     <a href="#contacto">Contacto</a>
   </div>
   <div class="nav-right">
     <div class="lang" aria-label="Idioma / Language"><a href="index.html" class="on" aria-current="page">ES</a><span class="sep">/</span><a href="en.html">EN</a></div>
     <a href="whatsapp/?src=nav" class="nav-cta" target="_blank" rel="noopener">Presupuesto ↗</a>
+    <button class="nav-burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="navMenu"><span></span><span></span><span></span></button>
   </div>
 </nav>
+<!-- NAV — menú mobile (mismos links del header multi-página) -->
+<div class="nav-menu" id="navMenu" aria-hidden="true">
+  <div class="nav-menu-inner">
+    <a href="#top">Inicio</a>
+    <a href="/arquitectura/">Arquitectura</a>
+    <a href="/industria/">Industria</a>
+    <a href="#trabajo">Proyectos</a>
+    <a href="#contacto">Contacto</a>
+    <a href="whatsapp/?src=nav" class="nav-menu-cta" target="_blank" rel="noopener">Pedí tu presupuesto ↗</a>
+    <div class="nav-menu-lang" aria-label="Idioma / Language"><a href="index.html" class="on" aria-current="page">ES</a><span class="sep">/</span><a href="en.html">EN</a></div>
+  </div>
+</div>
 <div class="progress"></div>
 
 <!-- HERO -->
@@ -218,7 +232,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <span class="ai">A · 01</span>
         <h3>Arquitectura</h3>
         <p>Fachadas, cerramientos y escaleras que vuelven único un espacio, combinando tecnología de corte y diseño contemporáneo.</p>
-        <a href="#contacto" class="arrow-link">Diseñemos tu fachada <span class="ln"></span></a>
+        <a href="/arquitectura/" class="arrow-link">Diseñemos tu fachada <span class="ln"></span></a>
       </div>
       <span class="acc3-prog"></span>
     </article>
@@ -230,7 +244,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <span class="ai">A · 02</span>
         <h3>Industria</h3>
         <p>Corte y plegado de alta precisión para producción industrial, con procesos consistentes y más de 20 años de oficio.</p>
-        <a href="#contacto" class="arrow-link">Cotizar producción <span class="ln"></span></a>
+        <a href="/industria/" class="arrow-link">Cotizar producción <span class="ln"></span></a>
       </div>
       <span class="acc3-prog"></span>
     </article>

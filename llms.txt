@@ -14,8 +14,8 @@
 - Envíos a todo el país / Nationwide shipping
 
 ## Aplicaciones (Applications)
-- Arquitectura / Architecture: fachadas, cerramientos y escaleras.
-- Industria / Industry: corte y plegado de alta precisión para producción.
+- Arquitectura / Architecture: fachadas, cerramientos y escaleras. Landing dedicada: /arquitectura/
+- Industria / Industry: corte y plegado de alta precisión para producción. Landing dedicada: /industria/
 - Paneles decorativos / Decorative panels: interior y exterior.
 
 ## Contacto (Contact)
@@ -28,7 +28,9 @@
 - LinkedIn: https://www.linkedin.com/company/plasmartcba
 
 ## Páginas (Pages)
-- Español: /index.html
+- Español / Spanish (home): /index.html
+- Arquitectura (landing): /arquitectura/
+- Industria (landing): /industria/
 - English: /en.html
 - Catálogo / Catalog (PDF): /assets/Catalogo-Plasmart.pdf
 
