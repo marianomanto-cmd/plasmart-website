@@ -128,11 +128,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- HERO -->
 <header class="hero hero-soft" id="top" data-hero-opacity="0.62">
   <div class="hero-bg">
-    <!-- Video de hero provisto por el cliente (720p horizontal, sin audio, doble buffer para loop
-         sin corte). Existe también una variante vertical 720x1280 para un hero optimizado en mobile.
-         TODO opcional: clip específico de plasma cortando chapa gruesa / plegadora CNC en acción. -->
+    <!-- Hero de Industria provisto por el cliente (1080p horizontal, 18s, sin audio).
+         OJO (TODO perf): pesa ~11 MB; conviene comprimirlo (< 3-4 MB) para mejor performance.
+         Existe también una variante vertical 1080x1920 para un hero optimizado en mobile.
+         El buffer del crossfade usa preload="metadata" para no descargar el video 2 veces. -->
     <video class="hbv" id="heroVideo3" autoplay muted loop playsinline preload="auto"><source src="/assets/ind-hero.mp4" type="video/mp4" /></video>
-    <video class="hbv" id="heroVideo3b" muted loop playsinline preload="auto"><source src="/assets/ind-hero.mp4" type="video/mp4" /></video>
+    <video class="hbv" id="heroVideo3b" muted loop playsinline preload="metadata"><source src="/assets/ind-hero.mp4" type="video/mp4" /></video>
   </div>
   <div class="hero-inner wrap">
     <div class="hero-top">
