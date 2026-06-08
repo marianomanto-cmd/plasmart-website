@@ -1,8 +1,9 @@
 # Plasmart — Sitio web
 
-Landing de **Plasmart** (corte láser y plasma de acero · Córdoba, Argentina). Estética
-ultra‑minimalista / futurista: negro espacial, tipografía Sora finísima, smooth‑scroll y
-animaciones al hacer scroll. CTA principal: **pedir presupuesto por WhatsApp**. **Bilingüe ES / EN.**
+Sitio de **Plasmart** (corte láser y plasma de acero · Córdoba, Argentina). **Multi‑página**: home +
+landings dedicadas de **Arquitectura** e **Industria**. Estética ultra‑minimalista / futurista: negro
+espacial, tipografía Sora finísima, smooth‑scroll y animaciones al hacer scroll. CTA principal:
+**pedir presupuesto por WhatsApp**. Home **bilingüe ES / EN**; las landings, por ahora, sólo en ES.
 
 > **Sitio estático** (HTML/CSS/JS vanilla, sin build). El handoff de diseño original está en
 > [`DESIGN_HANDOFF.md`](./DESIGN_HANDOFF.md) — es la referencia histórica; algunas decisiones
@@ -16,19 +17,25 @@ arquitectura/index.html  Landing dedicada · Arquitectura (fachadas, paneles, es
 industria/index.html     Landing dedicada · Industria (plasma 32mm, metalmecánica, agro)
 en.html               Página EN — misma estructura, textos traducidos (sin tocar por ahora)
 v3.css                Sistema visual + estados/animaciones compartido (header/footer/tipografía)
-landing.css           Estilos específicos de las landings (appcards, timeline, split, proj-scroll)
+landing.css           Estilos de las landings (appcards, timeline + banda de proceso, split
+                      diferencial, carrusel de proyectos, hero-soft)
 v3.js                 Lenis + GSAP, loader, reveals, scrub, acordeón, marquee vertical de
                       proyectos, carrusel mobile, cursor custom, botones magnéticos, video
-                      crossfade, nav backdrop on-scroll, menú hamburguesa, analytics (dataLayer)
+                      crossfade, nav backdrop on-scroll, menú hamburguesa, carrusel auto de
+                      landings, analytics (dataLayer)
 whatsapp/index.html   Página intermedia de tracking (pushea whatsapp_click y redirige a wa.me)
 llms.txt              Resumen del sitio para LLMs (formato llmstxt.org)
-robots.txt · .nojekyll
+sitemap.xml · robots.txt · .nojekyll
 assets/
   plasmart-logo.png   Logo del cliente (fondo transparente) — usado en nav y footer
   favicon.png · apple-touch-icon.png   Íconos (logo sobre fondo negro de marca)
   og-cover.jpg        Imagen de compartido / OpenGraph (1200×630)
-  *.webp              Fotos de proyectos y de aplicaciones
-  transfil-hero-light.mp4   Video del hero
+  *.webp              Fotos de proyectos y de aplicaciones (home + curaduría arquitectura)
+  arq-*.jpg           Fotos de la landing de Arquitectura (fachadas, escaleras, paneles…)
+  ind-*.jpg           Fotos de la landing de Industria (planta, plegadora, piezas cortadas…)
+  arq-hero.mp4 · ind-hero.mp4   Videos de hero de las landings (720p, comprimidos, sin audio)
+  ind-planta-loop.mp4   Clip de planta del diferencial "Plasma 32mm"
+  transfil-hero-light.mp4   Video del hero (home)
   Catalogo-Plasmart.pdf     Catálogo (botón "Descargar catálogo")
 DESIGN_HANDOFF.md     Especificación de diseño original (referencia)
 ```
@@ -55,6 +62,35 @@ Tipografías: **Sora** + **JetBrains Mono** (Google Fonts).
   (12,7 / 12.7).
 - SEO: `hreflang` (es / en / x-default) + `canonical` por página.
 
+## Landings segmentadas (Arquitectura · Industria)
+
+Dos landings dedicadas que comparten el sistema visual del home (`v3.css` + `v3.js`) y suman su CSS
+propio en `landing.css`.
+
+- **Header multi‑página** (global, en home y landings): `Inicio · Arquitectura · Industria · Proyectos ·
+  Contacto` + botón `Presupuesto ↗`. En **mobile** colapsa en **hamburguesa** (overlay full‑screen,
+  módulo en `v3.js`). En el home, "Proyectos"/"Contacto" son anclas (`#trabajo` / `#contacto`); en las
+  landings apuntan a `/#trabajo` y `/#contacto`. El toggle ES/EN queda sólo en el home.
+- **Home → landings**: en la sección Aplicaciones del home, las cards **Arquitectura** e **Industria**
+  linkean a `/arquitectura/` y `/industria/`. La card **Paneles decorativos** sigue como ancla a
+  `#trabajo`.
+- **`/arquitectura/`**: hero con video · Aplicaciones (fachadas / paneles / escaleras) · Capacidades ·
+  Proceso 01–04 · **Proyectos** (carrusel horizontal con auto‑scroll) · Testimoniales (oculto hasta
+  tener contenido) · CTA + contacto.
+- **`/industria/`**: hero con video · Capacidades industriales · Aplicaciones (estructuras /
+  metalmecánica / producción en serie) · **Diferencial "Plasma 32mm"** (texto + video de planta) ·
+  Proceso B2B (con banda de foto de planta) · Clientes (oculto) · CTA + contacto.
+- **Componentes nuevos** (`landing.css`): `.appcards` (grid de aplicaciones), `.proc-grid` +
+  `.proc-media` (timeline + banda), `.split` (diferencial 2 col), `.proj-marquee` (carrusel auto),
+  `.hero-soft` (hero menos sombreado vía atributo `data-hero-opacity`).
+- **Rutas root‑relative** (`/arquitectura/`, `/assets/…`): el sitio se sirve desde la **raíz** del
+  dominio (Vercel / dominio propio), **no** desde una subcarpeta tipo GitHub Pages de proyecto.
+- **Videos de hero** comprimidos con ffmpeg (H.264, 720p, sin audio, `+faststart`): ~1,8–2,1 MB cada
+  uno. El buffer del crossfade (`#heroVideo3b`) carga en `preload="auto"`.
+
+> **`/en.html` sin tocar**: mantiene el header viejo (single‑page) y no tiene versión de las landings.
+> Replicar el header multi‑página y crear las landings EN queda como iteración futura.
+
 ## Contacto = WhatsApp
 
 - **Sin formulario ni modal de mail.** Todos los CTA de presupuesto van a WhatsApp a través de la
@@ -71,6 +107,8 @@ Tipografías: **Sora** + **JetBrains Mono** (Google Fonts).
 - **Logo real del cliente** en nav (44px) y footer (PNG con fondo transparente).
 - **Hero CTAs en mobile** más chicos (44px, mínimo táctil) para dejar ver el video.
 - **Nav con backdrop + sombra al scrollear** (`.nav.scrolled`): deja de mezclarse con el contenido.
+- **Multi‑página**: el sitio pasó de single‑landing a **home + landings** de Arquitectura e Industria,
+  con **header multi‑página + hamburguesa** en mobile (ver *Landings segmentadas*).
 
 ## Analytics / Tracking (GTM)
 
@@ -78,11 +116,14 @@ Adaptado al **stack estático** (mismo container y eventos que el sitio anterior
 configuran **dentro de GTM**, no en el código.
 
 - **GTM `GTM-T6GRB89`**: snippet async en `<head>` + `<noscript>` tras `<body>` en `index.html`,
-  `en.html` y `whatsapp/index.html`.
+  `arquitectura/index.html`, `industria/index.html`, `en.html` y `whatsapp/index.html`.
 - **`/whatsapp/`** (intermedia): los CTA apuntan a `whatsapp/?src=...` (hero / nav / contacto /
-  floating). La página **redirige siempre** a wa.me por un `setTimeout` de 1200 ms (la UX no depende
-  del tracking) y **sólo pushea `whatsapp_click`** si pasa 6 chequeos de legitimidad (anti‑inflado de
-  conversiones). El evento lleva `wa_source`, `lead_value`/`value` 50000 ARS, `page_referrer` (sin
+  floating). Las **landings** suman sources propios — `arquitectura-hero`, `arquitectura-fachadas`,
+  `arquitectura-estructuras`, `arquitectura-cta`, `industria-hero`, `industria-estructuras`,
+  `industria-metalmecanica`, `industria-serie`, `industria-cta` — todos llegan como `wa_source`. La
+  página **redirige siempre** a wa.me por un `setTimeout` de 1200 ms (la UX no depende del tracking) y
+  **sólo pushea `whatsapp_click`** si pasa 6 chequeos de legitimidad (anti‑inflado de conversiones). El
+  evento lleva `wa_source`, `lead_value`/`value` 50000 ARS, `page_referrer` (sin
   `eventCallback`/`eventTimeout`).
   - **Chequeos:** `bot_ua` (regex de User‑Agent) · `not_visible` (`document.visibilityState`, descarta
     prefetch / pestañas en background) · `no_source` (sin `?src` o `unknown`) · `already_fired_session`
@@ -92,6 +133,9 @@ configuran **dentro de GTM**, no en el código.
 - **`whatsapp_direct_click`**: link directo a wa.me del bloque de contacto.
 - **`social_click`**: listener global en `v3.js` para clicks salientes a IG/FB/LinkedIn/etc.
 - `generate_lead` / form **no aplica** (se quitó el formulario).
+- **Landings (Arquitectura / Industria)**: **no** agregan ningún evento ni pixel propio. Todos los CTA
+  de presupuesto pasan por `/whatsapp/`, así que los **6 chequeos anti‑inflado** y la dedup por sesión
+  (`pm_wa_fired`) **siguen aplicando sin cambios** — no hay nuevas vías de conversión que inflar.
 
 > **Falta del lado de GTM / Ads (panel, no código):**
 > - Trigger de conversión que escuche **sólo** `event = whatsapp_click` (NO `whatsapp_click_blocked`),
@@ -101,14 +145,18 @@ configuran **dentro de GTM**, no en el código.
 
 ## SEO / LLM
 
-- Títulos keyword-rich, `canonical`, `robots`, **OpenGraph/Twitter** con `assets/og-cover.jpg`,
-  `hreflang`.
-- **JSON-LD `LocalBusiness`** en ambas páginas (dirección, horario, teléfono, `sameAs`, servicios).
-- **`llms.txt`** con el resumen del negocio.
+- **Home / EN**: títulos keyword‑rich, `canonical`, `robots`, OpenGraph/Twitter con `og-cover.jpg`,
+  `hreflang` (es / en / x‑default), JSON‑LD **`LocalBusiness`**.
+- **Landings**: cada una con su `title` / `meta description` / OG / Twitter propios, `canonical` a sí
+  misma y **URLs absolutas** (`https://plasmartcba.com/…`) en canonical / OG / JSON‑LD — evita que el
+  preview de Vercel (u otro staging) se indexe como contenido duplicado. JSON‑LD **`Service`** (con
+  `provider` `LocalBusiness`) + **`BreadcrumbList`** por landing, y `og:image:alt`.
+- **`sitemap.xml`** (home · arquitectura · industria · en) + línea `Sitemap:` en `robots.txt`.
+- **`llms.txt`** con el resumen del negocio (incluye las landings).
 
-> ⚠️ `canonical` / `og:image` / JSON-LD `url` están en rutas **relativas** porque aún no hay dominio
-> final. Al definirlo, conviene pasarlas a absolutas y agregar `sitemap.xml` + `Sitemap:` en
-> `robots.txt`.
+> ⚠️ **Dominio**: las landings usan absolutas con `https://plasmartcba.com` (tomado del brief).
+> **Confirmar** que es el dominio de producción exacto (¿`www`?). El **home y `en.html` siguen con
+> `canonical`/`og` relativos** — conviene unificarlos a absolutas.
 
 ## Accesibilidad / robustez
 
@@ -121,8 +169,12 @@ configuran **dentro de GTM**, no en el código.
 
 ## Performance
 
-- Todas las imágenes en **WebP** (≤ 1400px) con `loading="lazy"` + `decoding="async"` bajo el fold
-  (el marquee fuerza *eager* para que los clones no queden en blanco).
+- Imágenes del home en **WebP** (≤ 1400px) con `loading="lazy"` + `decoding="async"` bajo el fold (el
+  marquee / carrusel fuerza *eager* para que los clones no queden en blanco).
+- **Videos de hero** de las landings comprimidos con ffmpeg (H.264 720p, sin audio, `+faststart`): de
+  ~11 MB a **~1,8–2,1 MB** cada uno.
+- ⚠️ Las **fotos nuevas de las landings van en `.jpg`** (no había herramientas de conversión en el
+  entorno al crearlas). Pendiente: pasarlas a **WebP** y redimensionar a ~1200px para igualar al resto.
 
 ## Correr localmente
 
@@ -141,9 +193,23 @@ Hosting estático desde la raíz, sin build:
 
 ## Pendientes / próximos pasos
 
+### Sitio
 - [ ] **Logo en SVG.** Hoy es PNG (derivado de la imagen provista, recortada a fondo transparente).
       Con el SVG vectorial quedaría nítido a cualquier tamaño.
-- [ ] **Dominio final** → pasar `canonical` / `og:image` / JSON-LD `url` a **absolutas**, agregar
-      `sitemap.xml` y la línea `Sitemap:` en `robots.txt`.
+- [ ] **Dominio**: confirmar `https://plasmartcba.com` (¿`www`?). Pasar **home y `en.html`** a
+      `canonical` / `og` **absolutas** (las landings y el `sitemap.xml` ya lo están).
 - [ ] **Optimizar el catálogo PDF** (~35 MB, pesado para mobile).
 - [ ] **GTM (panel):** crear los triggers/tags de los eventos y el mapeo a `generate_lead`.
+
+### Landings — contenido / assets que faltan (para Mariano)
+- [ ] **Fotos de las landings → WebP** (~1200px). Hoy son `.jpg`.
+- [ ] **Imagen OG propia** por landing (1200×630). Hoy usan la genérica del sitio.
+- [ ] **Arquitectura · Proyectos**: galería curada de obras reales (con nombre de proyecto/estudio).
+      Hoy mezcla fotos ilustrativas con proyectos reales del portfolio (códigos descriptivos).
+- [ ] **Arquitectura · Testimoniales**: 2–3 testimonios de arquitectos (texto + nombre + estudio +
+      foto). Sección maquetada y **comentada** en `arquitectura/index.html`.
+- [ ] **Industria · Clientes**: logos/nombres (6–10) o grid de sectores. Sección **comentada** en
+      `industria/index.html`.
+- [ ] **Industria · Diferencial**: idealmente un close‑up de plasma cortando chapa de 25–32 mm
+      (hoy usa un clip de planta como placeholder).
+- [ ] **Heroes**: opcional servir las **variantes verticales** en mobile (existen en 1080×1920).
