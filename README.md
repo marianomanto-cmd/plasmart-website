@@ -11,12 +11,15 @@ animaciones al hacer scroll. CTA principal: **pedir presupuesto por WhatsApp**. 
 ## Estructura
 
 ```
-index.html            Página ES — markup de todas las secciones
-en.html               Página EN — misma estructura, textos traducidos
-v3.css                Sistema visual + estados/animaciones (fuente de verdad del estilo)
+index.html            Home ES — markup de todas las secciones (header multi-página)
+arquitectura/index.html  Landing dedicada · Arquitectura (fachadas, paneles, escaleras)
+industria/index.html     Landing dedicada · Industria (plasma 32mm, metalmecánica, agro)
+en.html               Página EN — misma estructura, textos traducidos (sin tocar por ahora)
+v3.css                Sistema visual + estados/animaciones compartido (header/footer/tipografía)
+landing.css           Estilos específicos de las landings (appcards, timeline, split, proj-scroll)
 v3.js                 Lenis + GSAP, loader, reveals, scrub, acordeón, marquee vertical de
                       proyectos, carrusel mobile, cursor custom, botones magnéticos, video
-                      crossfade, nav backdrop on-scroll, listeners de analytics (dataLayer)
+                      crossfade, nav backdrop on-scroll, menú hamburguesa, analytics (dataLayer)
 whatsapp/index.html   Página intermedia de tracking (pushea whatsapp_click y redirige a wa.me)
 llms.txt              Resumen del sitio para LLMs (formato llmstxt.org)
 robots.txt · .nojekyll
