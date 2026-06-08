@@ -482,6 +482,57 @@
     sync();
   })();
 
+  /* ---------- Proyectos (landings): carrusel horizontal con auto-scroll ----------
+     Se mueve solo de izquierda a derecha, sigue siendo deslizable a mano y pausa al
+     pasar el mouse. Loop sin corte duplicando el set. Respeta reduced-motion. */
+  (function () {
+    var mq = document.querySelector('.proj-marquee');
+    if (!mq) return;
+    var track = mq.querySelector('.pm-track');
+    if (!track) return;
+    var originals = Array.prototype.slice.call(track.children);
+    if (!originals.length) return;
+    // duplicar el set para un loop continuo sin salto
+    originals.forEach(function (c) {
+      var cl = c.cloneNode(true);
+      cl.setAttribute('aria-hidden', 'true'); cl.setAttribute('data-clone', '');
+      track.appendChild(cl);
+    });
+    // el carrusel está siempre en movimiento → cargar las imágenes ya (que los clones no queden en blanco)
+    Array.prototype.slice.call(track.querySelectorAll('img')).forEach(function (im) { im.loading = 'eager'; });
+
+    var oneSet = 0;
+    function measure() {
+      var kids = track.children;
+      oneSet = kids.length > originals.length ? (kids[originals.length].offsetLeft - kids[0].offsetLeft) : 0;
+    }
+    window.addEventListener('resize', measure);
+    window.addEventListener('load', measure);
+    measure();
+
+    if (REDUCE) return; // sin auto-scroll bajo reduced-motion; queda el deslizamiento libre
+
+    var SPEED = 42, paused = false, hold = false, resumeT = null, last = 0;
+    function holdOn() { hold = true; clearTimeout(resumeT); }
+    function holdOff() { clearTimeout(resumeT); resumeT = setTimeout(function () { hold = false; }, 1400); }
+    mq.addEventListener('mouseenter', function () { paused = true; });
+    mq.addEventListener('mouseleave', function () { paused = false; });
+    mq.addEventListener('touchstart', holdOn, { passive: true });
+    mq.addEventListener('touchend', holdOff, { passive: true });
+    mq.addEventListener('pointerdown', holdOn, { passive: true });
+    mq.addEventListener('pointerup', holdOff, { passive: true });
+    mq.addEventListener('wheel', function () { holdOn(); holdOff(); }, { passive: true });
+    function frame(ts) {
+      var dt = last ? Math.min((ts - last) / 1000, 0.05) : 0; last = ts;
+      if (!paused && !hold && oneSet > 0) {
+        mq.scrollLeft += SPEED * dt;
+        if (mq.scrollLeft >= oneSet) mq.scrollLeft -= oneSet; // wrap sin corte
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
   /* ---------- Analytics: dataLayer listeners (GTM) ----------
      Direct wa.me clicks (those that bypass the /whatsapp intermediate) and outbound
      social clicks are pushed to the dataLayer; GTM (configured outside the code) maps
