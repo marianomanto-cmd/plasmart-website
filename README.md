@@ -152,7 +152,16 @@ configuran **dentro de GTM**, no en el código.
   preview de Vercel (u otro staging) se indexe como contenido duplicado. JSON‑LD **`Service`** (con
   `provider` `LocalBusiness`) + **`BreadcrumbList`** por landing, y `og:image:alt`.
 - **`sitemap.xml`** (home · arquitectura · industria · en) + línea `Sitemap:` en `robots.txt`.
-- **`llms.txt`** con el resumen del negocio (incluye las landings).
+- **`llms.txt`** con el resumen del negocio (incluye las landings, diferenciales y un mini‑FAQ).
+- **AEO / motores de respuesta** (ChatGPT Search, Perplexity, AI Overviews, Copilot): sección **FAQ**
+  visible (acordeón nativo `<details>`) + JSON‑LD **`FAQPage`** en home, `arquitectura`, `industria` y
+  `en.html` — el texto del schema **coincide** con el visible. `robots.txt` da bienvenida explícita a
+  los bots de citación (`OAI-SearchBot`, `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`,
+  `Google-Extended`, `Applebot-Extended`, etc.). El sitio es **HTML estático** → el contenido está en
+  el HTML (sin render JS), ideal para que los crawlers de IA lo extraigan.
+
+> 💡 **Off‑site (no es código, alto impacto para IA local)**: completar **Google Business Profile** +
+> reseñas, citaciones en directorios con NAP idéntico, y menciones/enlaces desde sitios relevantes.
 
 > ⚠️ **Dominio**: las landings usan absolutas con `https://plasmartcba.com` (tomado del brief).
 > **Confirmar** que es el dominio de producción exacto (¿`www`?). El **home y `en.html` siguen con
