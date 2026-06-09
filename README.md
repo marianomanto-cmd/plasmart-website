@@ -133,9 +133,14 @@ configuran **dentro de GTM**, no en el código.
 - **`whatsapp_direct_click`**: link directo a wa.me del bloque de contacto.
 - **`social_click`**: listener global en `v3.js` para clicks salientes a IG/FB/LinkedIn/etc.
 - `generate_lead` / form **no aplica** (se quitó el formulario).
-- **Landings (Arquitectura / Industria)**: **no** agregan ningún evento ni pixel propio. Todos los CTA
+- **Landings (Arquitectura / Industria)**: **no** agregan ninguna conversión propia. Todos los CTA
   de presupuesto pasan por `/whatsapp/`, así que los **6 chequeos anti‑inflado** y la dedup por sesión
   (`pm_wa_fired`) **siguen aplicando sin cambios** — no hay nuevas vías de conversión que inflar.
+- **Meta Pixel `2982494008617961`** (hardcodeado, no por GTM): base **PageView** en `<head>` de todas
+  las páginas (+ `<noscript>` tras `<body>`). El evento **`Lead`** (`value: 50000`, `currency: ARS`) se
+  dispara **sólo dentro del bloque validado de `/whatsapp/`** —junto al `whatsapp_click`—, así que
+  **hereda los mismos 6 chequeos anti‑inflado** (nunca en `whatsapp_click_blocked` ni en cada visita).
+  Para mayor robustez a futuro: **Conversions API** (server‑side) con `event_id` para deduplicar.
 
 > **Falta del lado de GTM / Ads (panel, no código):**
 > - Trigger de conversión que escuche **sólo** `event = whatsapp_click` (NO `whatsapp_click_blocked`),
