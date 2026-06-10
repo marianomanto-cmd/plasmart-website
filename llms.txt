@@ -41,7 +41,7 @@
 
 ## Diferenciales (Highlights)
 - Corte plasma de alta definición hasta 32 mm — capacidad poco común en Córdoba / HD plasma cutting up to 32 mm.
-- Corte láser de fibra hasta 12,7 mm y plegado CNC hasta 3 m / Fiber laser up to 12.7 mm, CNC bending up to 3 m.
+- Corte láser hasta 12,7 mm y plegado CNC hasta 3 m / Laser cutting up to 12.7 mm, CNC bending up to 3 m.
 - Cotización en 24-48 hs; se trabaja con archivos DXF/STEP / Quotes in 24-48 h; works with DXF/STEP files.
 - Producción en serie con calidad consistente / Consistent batch production.
 - Envíos a todo el país con Via Cargo o tu transportista, con pago en destino (llegada típica 5-7 días) / Nationwide shipping via Via Cargo or your carrier, paid on delivery (typ. 5-7 days).
