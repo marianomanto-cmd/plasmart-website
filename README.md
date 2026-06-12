@@ -168,9 +168,12 @@ configuran **dentro de GTM**, no en el código.
 > 💡 **Off‑site (no es código, alto impacto para IA local)**: completar **Google Business Profile** +
 > reseñas, citaciones en directorios con NAP idéntico, y menciones/enlaces desde sitios relevantes.
 
-> ⚠️ **Dominio**: las landings usan absolutas con `https://plasmartcba.com` (tomado del brief).
-> **Confirmar** que es el dominio de producción exacto (¿`www`?). El **home y `en.html` siguen con
-> `canonical`/`og` relativos** — conviene unificarlos a absolutas.
+> **Dominio primario: `https://plasmartcba.com` (non‑www)** — Search Console no tiene la propiedad
+> `www`. **Todo** el sitio (home, `en.html` y landings) usa `canonical` / `og:url` / `og:image` /
+> `hreflang` **absolutos non‑www**, el `sitemap.xml`/`robots.txt` idem, y `vercel.json` hace el **301
+> de `www` → non‑www**. Las `LocalBusiness` comparten `@id` (`#localbusiness`) para unificar la entidad.
+> Las landings tienen **OG image propia** (`arq-og.jpg` / `ind-og.jpg`, 1200×630 con logo).
+> Pendiente del lado de Vercel: marcar **non‑www como dominio primario** y **eliminar `tienda.`**.
 
 ## Accesibilidad / robustez
 
@@ -210,14 +213,14 @@ Hosting estático desde la raíz, sin build:
 ### Sitio
 - [ ] **Logo en SVG.** Hoy es PNG (derivado de la imagen provista, recortada a fondo transparente).
       Con el SVG vectorial quedaría nítido a cualquier tamaño.
-- [ ] **Dominio**: confirmar `https://plasmartcba.com` (¿`www`?). Pasar **home y `en.html`** a
-      `canonical` / `og` **absolutas** (las landings y el `sitemap.xml` ya lo están).
+- [x] **Dominio non‑www unificado** (canonical/og/hreflang/sitemap absolutos + `vercel.json` 301).
+      Falta en Vercel/DNS: **dominio primario = non‑www** y **borrar el subdominio `tienda.`**.
 - [ ] **Optimizar el catálogo PDF** (~35 MB, pesado para mobile).
 - [ ] **GTM (panel):** crear los triggers/tags de los eventos y el mapeo a `generate_lead`.
 
 ### Landings — contenido / assets que faltan (para Mariano)
 - [ ] **Fotos de las landings → WebP** (~1200px). Hoy son `.jpg`.
-- [ ] **Imagen OG propia** por landing (1200×630). Hoy usan la genérica del sitio.
+- [x] **Imagen OG propia** por landing (`arq-og.jpg` / `ind-og.jpg`, 1200×630 con logo).
 - [ ] **Arquitectura · Proyectos**: galería curada de obras reales (con nombre de proyecto/estudio).
       Hoy mezcla fotos ilustrativas con proyectos reales del portfolio (códigos descriptivos).
 - [ ] **Arquitectura · Testimoniales**: 2–3 testimonios de arquitectos (texto + nombre + estudio +
