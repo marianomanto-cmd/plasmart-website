@@ -15,7 +15,7 @@ espacial, tipografía Sora finísima, smooth‑scroll y animaciones al hacer scr
 index.html            Home ES — markup de todas las secciones (header multi-página)
 arquitectura/index.html  Landing dedicada · Arquitectura (fachadas, paneles, escaleras)
 industria/index.html     Landing dedicada · Industria (plasma 32mm, metalmecánica, agro)
-en.html               Página EN — misma estructura, textos traducidos (sin tocar por ahora)
+en.html               Home EN — header single-page; sí tiene FAQ, Meta Pixel y SEO absoluto
 v3.css                Sistema visual + estados/animaciones compartido (header/footer/tipografía)
 landing.css           Estilos de las landings (appcards, timeline + banda de proceso, split
                       diferencial, carrusel de proyectos, hero-soft)
@@ -25,7 +25,7 @@ v3.js                 Lenis + GSAP, loader, reveals, scrub, acordeón, marquee v
                       landings, analytics (dataLayer)
 whatsapp/index.html   Página intermedia de tracking (pushea whatsapp_click y redirige a wa.me)
 llms.txt              Resumen del sitio para LLMs (formato llmstxt.org)
-sitemap.xml · robots.txt · .nojekyll
+sitemap.xml · robots.txt · vercel.json (301 www→non-www) · .nojekyll
 assets/
   plasmart-logo.png   Logo del cliente (fondo transparente) — usado en nav y footer
   favicon.png · apple-touch-icon.png   Íconos (logo sobre fondo negro de marca)
@@ -33,8 +33,9 @@ assets/
   *.webp              Fotos de proyectos y de aplicaciones (home + curaduría arquitectura)
   arq-*.jpg           Fotos de la landing de Arquitectura (fachadas, escaleras, paneles…)
   ind-*.jpg           Fotos de la landing de Industria (planta, plegadora, piezas cortadas…)
+  arq-og.jpg · ind-og.jpg   Imágenes OpenGraph por landing (1200×630 con logo, generadas con ffmpeg)
   arq-hero.mp4 · ind-hero.mp4   Videos de hero de las landings (720p, comprimidos, sin audio)
-  ind-planta-loop.mp4   Clip de planta del diferencial "Plasma 32mm"
+  ind-planta-loop.mp4   Clip de planta del diferencial "Corte láser"
   transfil-hero-light.mp4   Video del hero (home)
   Catalogo-Plasmart.pdf     Catálogo (botón "Descargar catálogo")
 DESIGN_HANDOFF.md     Especificación de diseño original (referencia)
@@ -74,12 +75,12 @@ propio en `landing.css`.
 - **Home → landings**: en la sección Aplicaciones del home, las cards **Arquitectura** e **Industria**
   linkean a `/arquitectura/` y `/industria/`. La card **Paneles decorativos** sigue como ancla a
   `#trabajo`.
-- **`/arquitectura/`**: hero con video · Aplicaciones (fachadas / paneles / escaleras) · Capacidades ·
-  Proceso 01–04 · **Proyectos** (carrusel horizontal con auto‑scroll) · Testimoniales (oculto hasta
-  tener contenido) · CTA + contacto.
+- **`/arquitectura/`**: hero con video · Aplicaciones (fachadas / paneles / escaleras) · **¿Por qué
+  corte láser?** (3 ventajas para el diseño) · Capacidades · Proceso 01–04 · **Proyectos** (carrusel
+  horizontal con auto‑scroll) · Testimoniales (oculto hasta tener contenido) · CTA + contacto.
 - **`/industria/`**: hero con video · Capacidades industriales · Aplicaciones (estructuras /
-  metalmecánica / producción en serie) · **Diferencial "Plasma 32mm"** (texto + video de planta) ·
-  Proceso B2B (con banda de foto de planta) · Clientes (oculto) · CTA + contacto.
+  metalmecánica / producción en serie) · **Diferencial "Corte láser de alta precisión"** (texto +
+  video de planta) · Proceso B2B (con banda de foto de planta) · Clientes (oculto) · CTA + contacto.
 - **Componentes nuevos** (`landing.css`): `.appcards` (grid de aplicaciones), `.proc-grid` +
   `.proc-media` (timeline + banda), `.split` (diferencial 2 col), `.proj-marquee` (carrusel auto),
   `.hero-soft` (hero menos sombreado vía atributo `data-hero-opacity`).
@@ -88,13 +89,18 @@ propio en `landing.css`.
 - **Videos de hero** comprimidos con ffmpeg (H.264, 720p, sin audio, `+faststart`): ~1,8–2,1 MB cada
   uno. El buffer del crossfade (`#heroVideo3b`) carga en `preload="auto"`.
 
-> **`/en.html` sin tocar**: mantiene el header viejo (single‑page) y no tiene versión de las landings.
-> Replicar el header multi‑página y crear las landings EN queda como iteración futura.
+> **`/en.html`**: conserva el **header single‑page** (no el multi‑página) y no tiene versiones EN de
+> las landings — eso queda para una iteración futura. Sí recibió el resto de mejoras: FAQ + `FAQPage`,
+> Meta Pixel, canonical/OG **absolutos** y el ruteo del número de contacto por `/whatsapp/`.
 
 ## Contacto = WhatsApp
 
-- **Sin formulario ni modal de mail.** Todos los CTA de presupuesto van a WhatsApp a través de la
-  página intermedia `/whatsapp/` (para tracking). El email queda como dato informativo en Contacto.
+- **Sin formulario ni modal de mail.** **Todos** los caminos a WhatsApp —incluido el **número del
+  bloque de contacto** (`?src=contacto-directo`)— pasan por la página intermedia `/whatsapp/` para
+  tracking validado. **No queda ningún `wa.me` directo** en las páginas de contenido (sólo en
+  `/whatsapp/`, que es el destino). El email queda como dato informativo en Contacto.
+- **Envíos**: se coordinan con **Via Cargo o la transportista que prefiera el cliente**, con **pago en
+  destino** al recibir (no hay transporte propio).
 - Footer / redes: **Instagram · Facebook · LinkedIn**.
 
 ## Cambios sobre el handoff
@@ -228,7 +234,10 @@ Hosting estático desde la raíz, sin build:
 - [x] **Dominio non‑www unificado** (canonical/og/hreflang/sitemap absolutos + `vercel.json` 301).
       Falta en Vercel/DNS: **dominio primario = non‑www** y **borrar el subdominio `tienda.`**.
 - [ ] **Optimizar el catálogo PDF** (~35 MB, pesado para mobile).
-- [ ] **GTM (panel):** crear los triggers/tags de los eventos y el mapeo a `generate_lead`.
+- [x] **GTM — inflado de conversión resuelto** (jun 2026): se quitó `whatsapp_direct_click` de los tags
+      "Ads - Conv WhatsApp" y "GA4 - Event Lead"; la conversión cuenta sólo `whatsapp_click` validado.
+      Quedan los ajustes de auditoría del bloque *Analytics / Tracking* (mandar `whatsapp_click_blocked`
+      a GA4, contar "Una" por interacción en Ads).
 
 ### Landings — contenido / assets que faltan (para Mariano)
 - [ ] **Fotos de las landings → WebP** (~1200px). Hoy son `.jpg`.
