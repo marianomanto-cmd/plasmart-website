@@ -130,7 +130,12 @@ configuran **dentro de GTM**, no en el código.
     (dedup por `sessionStorage` `pm_wa_fired`) · `no_languages` · `webdriver`.
   - Si **algún** chequeo falla, en vez del evento principal se pushea **`whatsapp_click_blocked`** con
     `block_reasons` (IDs separados por coma) — sirve para auditar en GA4 cuánto/por qué se filtró.
-- **`whatsapp_direct_click`**: link directo a wa.me del bloque de contacto.
+- **`whatsapp_direct_click`** (legado): el listener de `v3.js` lo pushea si se clickea un link
+  **directo** a `wa.me`. **Desde el fix de inflado, TODOS los links de WhatsApp (incluido el número de
+  contacto) pasan por `/whatsapp/`** (`src=contacto-directo`), así que ya **no hay links `wa.me`
+  directos** en las páginas de contenido y este evento queda dormido. ⚠️ La conversión de Ads y
+  `generate_lead` deben disparar **sólo con `whatsapp_click`**, **nunca** con `whatsapp_direct_click`
+  (ese segundo trigger, sin los 6 chequeos ni dedup, era el origen del ~67% inflado en la home).
 - **`social_click`**: listener global en `v3.js` para clicks salientes a IG/FB/LinkedIn/etc.
 - `generate_lead` / form **no aplica** (se quitó el formulario).
 - **Landings (Arquitectura / Industria)**: **no** agregan ninguna conversión propia. Todos los CTA
@@ -142,9 +147,16 @@ configuran **dentro de GTM**, no en el código.
   **hereda los mismos 6 chequeos anti‑inflado** (nunca en `whatsapp_click_blocked` ni en cada visita).
   Para mayor robustez a futuro: **Conversions API** (server‑side) con `event_id` para deduplicar.
 
+> **Resuelto (2026‑06):** el tag de Ads **"Ads - Conv WhatsApp"** y el de **"GA4 - Event Lead"** estaban
+> disparando con **`whatsapp_click` OR `whatsapp_direct_click`**; ese segundo trigger contaba cada click
+> a un `wa.me` directo (sin chequeos ni dedup) e inflaba la home (~67% vs 13‑15% sano de las landings).
+> Se **quitó `whatsapp_direct_click`** de ambos tags en GTM y, del lado del código, **el número de
+> contacto se ruteó por `/whatsapp/`** (no quedan `wa.me` directos). La conversión cuenta sólo el lead
+> validado y deduplicado.
+>
 > **Falta del lado de GTM / Ads (panel, no código):**
-> - Trigger de conversión que escuche **sólo** `event = whatsapp_click` (NO `whatsapp_click_blocked`),
->   y mapearlo como key event (`generate_lead`), ya que no hay formulario.
+> - Trigger de conversión que escuche **sólo** `event = whatsapp_click` (NO `whatsapp_click_blocked` ni
+>   `whatsapp_direct_click`), y mapearlo como key event (`generate_lead`), ya que no hay formulario.
 > - Mandar `whatsapp_click_blocked` a **GA4 como evento de auditoría** (con `block_reasons` / `wa_source`).
 > - En Google Ads, contar la conversión como **"Una"** por interacción (no "Cada").
 
