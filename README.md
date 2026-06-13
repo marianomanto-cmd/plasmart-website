@@ -31,9 +31,10 @@ assets/
   favicon.png · apple-touch-icon.png   Íconos (logo sobre fondo negro de marca)
   og-cover.jpg        Imagen de compartido / OpenGraph (1200×630)
   *.webp              Fotos de proyectos y de aplicaciones (home + curaduría arquitectura)
-  arq-*.jpg           Fotos de la landing de Arquitectura (fachadas, escaleras, paneles…)
-  ind-*.jpg           Fotos de la landing de Industria (planta, plegadora, piezas cortadas…)
-  arq-og.jpg · ind-og.jpg   Imágenes OpenGraph por landing (1200×630 con logo, generadas con ffmpeg)
+  arq-*.webp          Fotos de la landing de Arquitectura (WebP, ≤1200px)
+  ind-*.webp          Fotos de la landing de Industria (WebP, ≤1200px)
+  arq-og.jpg · ind-og.jpg   Imágenes OpenGraph por landing (1200×630 con logo) — **JPG** a propósito
+                            (los scrapers sociales manejan JPG mejor que WebP para `og:image`)
   arq-hero.mp4 · ind-hero.mp4   Videos de hero de las landings (720p, comprimidos, sin audio)
   ind-planta-loop.mp4   Clip de planta del diferencial "Corte láser"
   transfil-hero-light.mp4   Video del hero (home)
@@ -208,8 +209,8 @@ configuran **dentro de GTM**, no en el código.
   marquee / carrusel fuerza *eager* para que los clones no queden en blanco).
 - **Videos de hero** de las landings comprimidos con ffmpeg (H.264 720p, sin audio, `+faststart`): de
   ~11 MB a **~1,8–2,1 MB** cada uno.
-- ⚠️ Las **fotos nuevas de las landings van en `.jpg`** (no había herramientas de conversión en el
-  entorno al crearlas). Pendiente: pasarlas a **WebP** y redimensionar a ~1200px para igualar al resto.
+- **Fotos de las landings en WebP** (`libwebp` q80, redimensionadas a ≤1200px): de **~4,8 MB a ~1,4 MB**
+  (‑73%). Las OG (`arq-og` / `ind-og`) quedan en **JPG** a propósito (compatibilidad de scrapers sociales).
 
 ## Correr localmente
 
@@ -240,7 +241,7 @@ Hosting estático desde la raíz, sin build:
       a GA4, contar "Una" por interacción en Ads).
 
 ### Landings — contenido / assets que faltan (para Mariano)
-- [ ] **Fotos de las landings → WebP** (~1200px). Hoy son `.jpg`.
+- [x] **Fotos de las landings → WebP** (≤1200px, libwebp q80): ~4,8 MB → ~1,4 MB. OG en JPG a propósito.
 - [x] **Imagen OG propia** por landing (`arq-og.jpg` / `ind-og.jpg`, 1200×630 con logo).
 - [ ] **Arquitectura · Proyectos**: galería curada de obras reales (con nombre de proyecto/estudio).
       Hoy mezcla fotos ilustrativas con proyectos reales del portfolio (códigos descriptivos).
