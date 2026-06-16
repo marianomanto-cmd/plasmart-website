@@ -8,38 +8,9 @@
   var FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   if (ST_OK) GS.registerPlugin(ST);
 
-  /* ---------- Loader (always clears) ---------- */
-  var loader = document.querySelector('.loader');
-  var loaderGone = false;
-  function killLoader() {
-    if (loaderGone) return; loaderGone = true;
-    document.documentElement.classList.add('loaded');
-    if (!loader) { heroIn(); return; }
-    if (GS && !REDUCE) {
-      GS.to(loader, { yPercent: -100, duration: 1, ease: 'expo.inOut', onComplete: function () { loader.remove(); } });
-    } else {
-      loader.style.transition = 'opacity .5s, transform .7s';
-      loader.style.opacity = '0'; loader.style.transform = 'translateY(-100%)';
-      setTimeout(function () { if (loader) loader.remove(); }, 700);
-    }
-    heroIn();
-  }
-  setTimeout(killLoader, 2600); // hard fallback
-  // count animation
-  (function () {
-    var num = document.querySelector('.loader .lnum'), bar = document.querySelector('.loader-bar');
-    if (!num) return;
-    if (REDUCE) { num.textContent = '100'; return; }
-    var start = null, dur = 1700;
-    function step(ts) {
-      if (!start) start = ts;
-      var p = Math.min((ts - start) / dur, 1), e = 1 - Math.pow(1 - p, 3);
-      num.textContent = Math.round(e * 100);
-      if (bar) bar.style.width = (e * 100) + '%';
-      if (p < 1) requestAnimationFrame(step); else setTimeout(killLoader, 220);
-    }
-    requestAnimationFrame(step);
-  })();
+  /* ---------- Hero entrance (sin cortina) ---------- */
+  document.documentElement.classList.add('loaded');
+  heroIn();   // heroIn está declarada más abajo en el mismo IIFE (hoisting): NO la muevas
 
   /* ---------- Lenis smooth scroll ---------- */
   var lenis = null;
