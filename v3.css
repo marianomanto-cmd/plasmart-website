@@ -129,14 +129,6 @@ html.cursor-on .cursor-dot { opacity: 1; }
 .progress { position: fixed; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); z-index: 9600; box-shadow: 0 0 12px var(--accent-soft); }
 
 /* ============================================================
-   LOADER
-   ============================================================ */
-.loader { position: fixed; inset: 0; z-index: 9700; background: var(--bg); display: flex; align-items: flex-end; justify-content: space-between; padding: var(--pad); }
-.loader .lnum { font-family: var(--display); font-weight: 200; font-size: clamp(80px, 20vw, 280px); line-height: .8; letter-spacing: -.05em; }
-.loader .llabel { font-family: var(--mono); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding-bottom: 12px; }
-.loader-bar { position: absolute; left: 0; bottom: 0; height: 1px; width: 0; background: var(--text); }
-
-/* ============================================================
    NAV
    ============================================================ */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 400; display: flex; align-items: center; justify-content: space-between; padding: 22px var(--pad); mix-blend-mode: difference; transition: background .35s var(--ease), backdrop-filter .35s var(--ease), box-shadow .35s var(--ease), border-color .35s var(--ease), padding .35s var(--ease); border-bottom: 1px solid transparent; }
@@ -208,6 +200,8 @@ html.cursor-on .cursor-dot { opacity: 1; }
 @media (max-width: 760px) {
   .hero-bg::after { background: linear-gradient(180deg, rgba(8,9,11,.42) 0%, rgba(8,9,11,.05) 35%, rgba(8,9,11,.2) 62%, rgba(8,9,11,.8) 92%, var(--bg) 100%); }
 }
+/* anti-FOUC: keep hero text hidden until v3.js adds .loaded (then heroIn animates it in) */
+html:not(.loaded) .hero-inner { opacity: 0; }
 .hero-inner { position: relative; z-index: 2; width: 100%; }
 .hero-top { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: clamp(30px, 6vh, 80px); }
 .hero h1 { max-width: 16ch; }
