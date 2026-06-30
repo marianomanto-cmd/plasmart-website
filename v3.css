@@ -48,7 +48,7 @@ a { color: inherit; text-decoration: none; }
 a, button, .btn { touch-action: manipulation; } /* remove 300ms tap delay */
 ::selection { background: var(--accent); color: #fff; }
 
-/* a11y: visible keyboard focus (the custom cursor hides the pointer, so focus must be clear) */
+/* a11y: visible keyboard focus */
 a:focus-visible, button:focus-visible, .btn:focus-visible,
 input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px;
@@ -112,18 +112,6 @@ html.lib-on [data-clip] { clip-path: inset(100% 0 0 0); }
 .arrow-link:hover { color: var(--text); }
 .arrow-link .ln { width: 28px; height: 1px; background: currentColor; transition: width .35s var(--ease); }
 .arrow-link:hover .ln { width: 46px; }
-
-/* ============================================================
-   CURSOR
-   ============================================================ */
-@media (hover: hover) and (pointer: fine) {
-  html.cursor-on, html.cursor-on * { cursor: none !important; }
-}
-.cursor { position: fixed; top: 0; left: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 1px solid var(--text); border-radius: 50%; z-index: 9500; pointer-events: none; mix-blend-mode: difference; opacity: 0; transition: opacity .3s, width .25s var(--ease), height .25s var(--ease), margin .25s var(--ease), background .25s; }
-html.cursor-on .cursor { opacity: 1; }
-.cursor.hot { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: rgba(255,255,255,.08); }
-.cursor-dot { position: fixed; top: 0; left: 0; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: var(--text); z-index: 9501; pointer-events: none; mix-blend-mode: difference; opacity: 0; }
-html.cursor-on .cursor-dot { opacity: 1; }
 
 /* scroll progress */
 .progress { position: fixed; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); z-index: 9600; box-shadow: 0 0 12px var(--accent-soft); }
@@ -377,7 +365,6 @@ html:not(.lib-on) .htrack { padding-block: 20px; }
 .wa-float svg { width: 26px; height: 26px; }
 
 /* modal */
-html.cursor-on input, html.cursor-on textarea { cursor: text !important; }
 .modal { position: fixed; inset: 0; z-index: 9400; display: none; align-items: center; justify-content: center; padding: 24px; }
 .modal.open { display: flex; }
 .modal-bg { position: absolute; inset: 0; background: rgba(4,5,7,.72); backdrop-filter: blur(6px); opacity: 0; transition: opacity .35s; }
@@ -428,8 +415,6 @@ html.cursor-on input, html.cursor-on textarea { cursor: text !important; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; }
   html.lib-on [data-rv], html.lib-on [data-clip] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
-  .cursor, .cursor-dot { display: none !important; }
-  html.cursor-on, html.cursor-on * { cursor: auto !important; }
 }
 
 /* ============================================================

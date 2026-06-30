@@ -92,7 +92,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 ### Accesibilidad / robustez (NO omitir):
 - **`prefers-reduced-motion`**: si está activo, **no** inicialices Lenis ni las animaciones; mostrá
-  todo el contenido visible (sin estados “ocultos”) y desactivá el cursor custom.
+  todo el contenido visible (sin estados “ocultos”).
 - **Degradación**: los elementos sólo se “esconden” (opacity:0 / clip) cuando GSAP cargó. Esto se
   controla con la clase `html.lib-on` (ver §6.1). Si GSAP no carga, **el contenido se ve igual**,
   sin animación. Reimplementá esa garantía.
@@ -334,11 +334,8 @@ Contenedor base `.wrap{max-width:1480px;margin-inline:auto;padding-inline:var(--
   desde los campos (sin backend) y cierra. *(Si hay backend disponible en el proyecto, reemplazá el
   `mailto` por un POST al endpoint de contacto.)*
 
-### 6.9 Cursor custom + barra de progreso
-- En punteros finos (no touch) y sin reduced‑motion: anillo (30px, `mix-blend-mode:difference`) que
-  sigue al cursor con `gsap.quickTo` + un punto. Se agranda (`.hot`) sobre `a, button, .btn, .cap-row,
-  .wcard, .arrow-link`. **Inputs/textarea** vuelven a cursor `text`. Ocultar todo el sistema en touch
-  y en reduced‑motion.
+### 6.9 Barra de progreso
+- Se usa el cursor nativo del sistema en todos los dispositivos (sin cursor custom).
 - `.progress` (top, 2px índigo) refleja el % de scroll (vía evento de Lenis y/o `scroll`).
 
 ### 6.10 Parallax de proyectos (desktop)
@@ -348,7 +345,7 @@ Contenedor base `.wrap{max-width:1480px;margin-inline:auto;padding-inline:var(--
 ### 6.11 Breakpoints
 - **≤ 900px:** se ocultan los links centrales del nav.
 - **≤ 760px:** Aplicaciones apila; Capacidades pasa a acordeón; Proyectos cambia grid→carrusel;
-  stats 2 columnas; cursor custom off (touch).
+  stats 2 columnas.
 - **≤ 560px:** se oculta el “Presupuesto ↗” del nav (queda el WhatsApp flotante).
 
 ---
@@ -366,7 +363,7 @@ Contenedor base `.wrap{max-width:1480px;margin-inline:auto;padding-inline:var(--
 - `index.html` — markup completo de la página (todas las secciones).
 - `v3.css` — sistema visual + todas las animaciones/estados (≈ fuente de verdad del estilo).
 - `v3.js` — Lenis+GSAP wiring, loader, reveals, scrub, acordeón, grid parallax, carrusel mobile,
-  cursor, magnético, modal, video crossfade. (Vanilla, sin build.)
+  magnético, modal, video crossfade. (Vanilla, sin build.)
 - `mobile.html` + `ios-frame.jsx` — **sólo para previsualizar** el sitio dentro de un iPhone (no es
   parte del producto; es una herramienta de review). `ios-frame.jsx` necesita React + Babel (ver el head de `mobile.html`).
 - `assets/transfil-hero-light.mp4` — video del hero.

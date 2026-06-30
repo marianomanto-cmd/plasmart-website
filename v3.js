@@ -79,24 +79,6 @@
     else if (deskMQ.addListener) deskMQ.addListener(onChange);
   })();
 
-  /* ---------- Custom cursor ---------- */
-  if (FINE && !REDUCE) {
-    var ring = document.createElement('div'); ring.className = 'cursor';
-    var dot = document.createElement('div'); dot.className = 'cursor-dot';
-    document.body.appendChild(ring); document.body.appendChild(dot);
-    document.documentElement.classList.add('cursor-on');
-    var rx, ry;
-    if (GS) { rx = GS.quickTo(ring, 'x', { duration: .4, ease: 'power3' }); ry = GS.quickTo(ring, 'y', { duration: .4, ease: 'power3' }); }
-    document.addEventListener('mousemove', function (e) {
-      dot.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
-      if (GS) { rx(e.clientX); ry(e.clientY); }
-      else ring.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
-    });
-    var HOT = 'a, button, .btn, .cap-row, .wcard, .arrow-link';
-    document.addEventListener('mouseover', function (e) { if (e.target.closest(HOT)) ring.classList.add('hot'); });
-    document.addEventListener('mouseout', function (e) { if (e.target.closest(HOT)) ring.classList.remove('hot'); });
-  }
-
   /* ---------- Hero entrance ---------- */
   var heroDone = false;
   function heroIn() {

@@ -20,7 +20,7 @@ v3.css                Sistema visual + estados/animaciones compartido (header/fo
 landing.css           Estilos de las landings (appcards, timeline + banda de proceso, split
                       diferencial, carrusel de proyectos, hero-soft)
 v3.js                 Lenis + GSAP, loader, reveals, scrub, acordeón, marquee vertical de
-                      proyectos, carrusel mobile, cursor custom, botones magnéticos, video
+                      proyectos, carrusel mobile, botones magnéticos, video
                       crossfade, nav backdrop on-scroll, menú hamburguesa, carrusel auto de
                       landings, analytics (dataLayer)
 whatsapp/index.html   Página intermedia de tracking (pushea whatsapp_click y redirige a wa.me)
@@ -196,8 +196,7 @@ configuran **dentro de GTM**, no en el código.
 
 ## Accesibilidad / robustez
 
-- `prefers-reduced-motion`: no se inicializan Lenis ni las animaciones; el contenido se ve completo y
-  el cursor custom se desactiva.
+- `prefers-reduced-motion`: no se inicializan Lenis ni las animaciones; el contenido se ve completo.
 - **Degradación**: los elementos sólo se ocultan para animar cuando GSAP cargó (`html.lib-on`). Si
   GSAP no carga, el contenido se ve igual, sin animación. Hay failsafes por timeout (loader, reveals,
   contadores). El manifiesto queda legible aun sin scrub.
