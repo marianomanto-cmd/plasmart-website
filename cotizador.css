@@ -73,6 +73,31 @@
 }
 .cot-warn b { color: var(--text); font-weight: 500; }
 
+/* ---------- carga de plano DXF ---------- */
+.cot-file { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; position: relative; }
+.cot-file input[type="file"] {
+  position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;
+}
+.cot-filebtn {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px;
+  border: 1px dashed var(--line-2); border-radius: 100px; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); transition: color .3s, border-color .3s;
+}
+.cot-filebtn:hover { color: var(--text); border-color: var(--accent); }
+.cot-file input:focus-visible + .cot-filebtn { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cot-filename { font-size: 12px; color: var(--text); word-break: break-all; }
+
+.cot-ok {
+  border: 1px solid var(--line-2); border-left: 2px solid var(--accent);
+  border-radius: 4px; padding: 14px 16px; font-size: 14px; font-weight: 300;
+  line-height: 1.55; color: var(--muted); background: var(--bg-2);
+}
+.cot-ok b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.cot-warn ul { margin: 8px 0 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.cot-warn li { font-size: 13.5px; color: var(--text); }
+
 /* ---------- el estimado ---------- */
 .cot-est { border-top: 1px solid var(--line); }
 .cot-row {

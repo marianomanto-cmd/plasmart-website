@@ -42,8 +42,9 @@
     return {
       paso: 1,
       espesor: 3,
-      modo: 'medidas',            // 'medidas' | 'm2'
+      modo: 'medidas',            // 'medidas' | 'm2' | 'dxf'
       ancho: 400, largo: 250, m2: 1,
+      dxfNombre: null, dxfOk: false, dxfMotivos: null, dxfLeyendo: false,
       cantidad: 10,
       plegado: false, pliegues: 2,
       calado: false,
@@ -64,11 +65,14 @@
     var dens = (tarifa && tarifa.densidad) || DENSIDAD;
     var peso = areaPieza * (num(st.espesor) / 1000) * dens * cant;
 
+    /* Un plano que no podemos leer con confianza no produce numero: ni
+       aproximado, ni tachado, ni entre parentesis. */
+    var revision = st.modo === 'dxf' && !!st.dxfMotivos;
     var precioKg = tarifa && tarifa.precio_kg_sin_iva;
-    var sinPrecio = !precioKg || !(peso > 0);
+    var sinPrecio = revision || !precioKg || !(peso > 0);
 
     if (sinPrecio) {
-      return { peso: peso, cantidad: cant, sinPrecio: true };
+      return { peso: peso, cantidad: cant, sinPrecio: true, revision: revision };
     }
 
     var bruto = peso * precioKg;
@@ -83,7 +87,7 @@
     var iva = subtotal * ((tarifa.iva_pct || 21) / 100);
 
     return {
-      peso: peso, cantidad: cant, sinPrecio: false,
+      peso: peso, cantidad: cant, sinPrecio: false, revision: false,
       precioKg: precioKg, bruto: bruto,
       subtotal: subtotal, minimoAplicado: minimoAplicado,
       minimoMonto: minimoAplicado === 'pedido' ? minPedido : minItem,
@@ -119,9 +123,14 @@
     L.push('— Pieza —');
     L.push('Material: ' + MATERIAL);
     L.push('Espesor: ' + st.espesor + ' mm');
-    L.push(st.modo === 'm2'
-      ? 'Superficie: ' + num(st.m2).toLocaleString('es-AR') + ' m2 por pieza'
-      : 'Medidas: ' + num(st.ancho) + ' x ' + num(st.largo) + ' mm');
+    if (st.modo === 'm2') {
+      L.push('Superficie: ' + num(st.m2).toLocaleString('es-AR') + ' m2 por pieza');
+    } else if (st.modo === 'dxf') {
+      L.push('Plano: ' + (st.dxfNombre || '—'));
+      if (st.dxfOk) L.push('Medidas leidas del plano: ' + num(st.ancho) + ' x ' + num(st.largo) + ' mm');
+    } else {
+      L.push('Medidas: ' + num(st.ancho) + ' x ' + num(st.largo) + ' mm');
+    }
     L.push('Cantidad: ' + m.cantidad + ' u');
     L.push('Proceso: Corte laser');
     L.push('Plegado: ' + (st.plegado
@@ -131,7 +140,12 @@
     L.push('Peso estimado: ' + kg(m.peso));
     L.push('');
 
-    if (m.sinPrecio) {
+    if (m.revision) {
+      L.push('*** REQUIERE REVISION DE PLANO ***');
+      L.push('Archivo: ' + (st.dxfNombre || '—'));
+      (st.dxfMotivos || []).forEach(function (mot) { L.push('- ' + mot); });
+      L.push('No se calculo precio. A cotizar por el vendedor con el plano a la vista.');
+    } else if (m.sinPrecio) {
       L.push('— Estimado —');
       L.push('SIN PRECIO: la tarifa no estaba disponible. A cotizar por el vendedor.');
     } else {
@@ -160,6 +174,16 @@
       .then(function (t) { tarifa = t; })
       .catch(function () { tarifa = { precio_kg_sin_iva: null }; })
       .then(function () { cargando = false; cb(); });
+  }
+
+  /* ---------- lector de DXF (se baja recien al elegir el modo) ---------- */
+  function cargarDxf(cb) {
+    if (window.PlasmartDxf) { cb(true); return; }
+    var js = document.createElement('script');
+    js.src = '/dxf-check.js';
+    js.onload = function () { cb(true); };
+    js.onerror = function () { cb(false); };
+    document.body.appendChild(js);
   }
 
   /* =========================================================
@@ -214,6 +238,7 @@
       '<div class="cot-seg" role="group" aria-label="Como das la medida">' +
         '<button type="button" class="cot-segb' + (st.modo === 'medidas' ? ' on' : '') + '" data-modo="medidas">Por medidas</button>' +
         '<button type="button" class="cot-segb' + (st.modo === 'm2' ? ' on' : '') + '" data-modo="m2">Por m²</button>' +
+        '<button type="button" class="cot-segb' + (st.modo === 'dxf' ? ' on' : '') + '" data-modo="dxf">Plano DXF</button>' +
       '</div>' +
 
       (st.modo === 'medidas'
@@ -223,8 +248,10 @@
             '<div class="mf-row"><label for="cot-la">Largo (mm)</label>' +
               '<input id="cot-la" type="number" inputmode="numeric" min="1" value="' + esc(st.largo) + '" /></div>' +
           '</div>'
-        : '<div class="mf-row"><label for="cot-m2">Superficie por pieza (m²)</label>' +
-            '<input id="cot-m2" type="number" inputmode="decimal" min="0.01" step="0.01" value="' + esc(st.m2) + '" /></div>') +
+        : st.modo === 'm2'
+        ? '<div class="mf-row"><label for="cot-m2">Superficie por pieza (m²)</label>' +
+            '<input id="cot-m2" type="number" inputmode="decimal" min="0.01" step="0.01" value="' + esc(st.m2) + '" /></div>'
+        : bloqueDxf()) +
 
       '<div class="cot-ops">' +
         '<button type="button" class="cot-chk' + (st.plegado ? ' on' : '') + '" data-op="plegado" aria-pressed="' + st.plegado + '">' +
@@ -240,10 +267,44 @@
       '<p class="cot-note">El plegado y el calado <b>no están incluidos</b> en este estimado. ' +
       'Marcalos igual: viajan en la consulta y el vendedor los suma cuando arme el presupuesto final.</p>' +
 
+      (st.tocado && st.modo === 'dxf' && !st.dxfNombre
+        ? '<p class="cot-err" role="alert">Elegí un archivo DXF para seguir.</p>' : '') +
+
       '<p class="cot-note cot-note-alt">¿Inoxidable, aluminio u otro material? No los estimamos online porque ' +
       'el precio varía mucho según disponibilidad. ' +
       '<a href="/whatsapp/?src=cotizador-material" target="_blank" rel="noopener">Consultanos directo</a>.</p>';
     }
+
+    /* ---- Bloque DXF del Paso 1 ----
+       Un plano puede venir bien (medidas leidas) o no (motivos). En el
+       segundo caso el estimador ya no va a mostrar precio, y conviene
+       decirlo aca y no al final. */
+    function bloqueDxf() {
+      var h = '<div class="cot-file">' +
+        '<input id="cot-dxf" type="file" accept=".dxf,application/dxf,image/vnd.dxf" />' +
+        '<label class="cot-filebtn" for="cot-dxf">' +
+          '<span>' + (st.dxfNombre ? 'Elegir otro plano' : 'Elegir archivo DXF') + '</span>' +
+        '</label>' +
+        (st.dxfNombre ? '<span class="cot-filename mono">' + esc(st.dxfNombre) + '</span>' : '') +
+      '</div>';
+
+      if (st.dxfLeyendo) return h + '<p class="cot-hint mono">Leyendo el plano…</p>';
+
+      if (st.dxfOk) {
+        h += '<div class="cot-ok"><b>Leímos ' + fmtMm(st.ancho) + ' × ' + fmtMm(st.largo) + ' mm</b>' +
+             '<br />Si no coincide con tu pieza, cargala por medidas.</div>';
+      } else if (st.dxfMotivos) {
+        h += '<div class="cot-warn"><b>No podemos estimar este plano con confianza.</b><ul>';
+        st.dxfMotivos.forEach(function (m) { h += '<li>' + esc(m) + '</li>'; });
+        h += '</ul>Podés seguir igual: mandamos la consulta con el plano marcado ' +
+             'para que un asesor lo revise y te pase el número.</div>';
+      } else {
+        h += '<p class="cot-hint mono">DXF en milímetros, contornos cerrados, sin bloques.</p>';
+      }
+      return h;
+    }
+
+    function fmtMm(v) { return num(v).toLocaleString('es-AR', { maximumFractionDigits: 1 }); }
 
     /* ---- Paso 2: lead gate ---- */
     function paso2() {
@@ -279,8 +340,21 @@
       filas += fila('Pieza', esc(MATERIAL) + ' · ' + esc(st.espesor) + ' mm',
         st.modo === 'm2'
           ? num(st.m2).toLocaleString('es-AR') + ' m² × ' + m.cantidad + ' u'
+          : st.modo === 'dxf'
+          ? esc(st.dxfNombre || 'plano') + (st.dxfOk ? ' · ' + num(st.ancho) + ' × ' + num(st.largo) + ' mm' : '') +
+            ' × ' + m.cantidad + ' u'
           : num(st.ancho) + ' × ' + num(st.largo) + ' mm × ' + m.cantidad + ' u');
-      filas += fila('Peso estimado', kg(m.peso));
+      filas += fila('Peso estimado', m.revision ? '—' : kg(m.peso));
+
+      if (m.revision) {
+        var li = '';
+        (st.dxfMotivos || []).forEach(function (x) { li += '<li>' + esc(x) + '</li>'; });
+        return '<div class="cot-est">' + filas + '</div>' +
+          '<div class="cot-warn"><b>Este plano necesita que lo revise un asesor.</b><ul>' + li + '</ul>' +
+          'Por eso no te mostramos un precio: preferimos no darte un número que después no se sostenga. ' +
+          'Mandá la consulta y te lo devolvemos revisado.</div>' +
+          canonica();
+      }
 
       if (m.sinPrecio) {
         return '<div class="cot-est">' + filas + '</div>' +
@@ -344,7 +418,52 @@
       bind('#cot-mail', 'email'); bind('#cot-ciu', 'ciudad');
 
       root.querySelectorAll('[data-modo]').forEach(function (b) {
-        b.addEventListener('click', function () { set('modo', b.getAttribute('data-modo')); pintar(); });
+        b.addEventListener('click', function () {
+          var modo = b.getAttribute('data-modo');
+          if (modo === 'dxf' && !window.PlasmartDxf) {
+            set('modo', modo); set('dxfLeyendo', true); pintar();
+            cargarDxf(function (ok) {
+              set('dxfLeyendo', false);
+              if (!ok) set('dxfMotivos', ['No pudimos cargar el lector de planos. Cargá la pieza por medidas.']);
+              pintar();
+            });
+            return;
+          }
+          set('modo', modo); pintar();
+        });
+      });
+
+      /* Lectura del plano: pase lo que pase, el resultado se guarda en el
+         estado y se vuelve a pintar. Nunca tira una excepcion a la cara. */
+      on('#cot-dxf', 'change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        set('dxfNombre', file.name);
+        set('dxfOk', false); set('dxfMotivos', null); set('dxfLeyendo', true);
+        pintar();
+
+        var fr = new FileReader();
+        fr.onload = function () {
+          var r;
+          try { r = window.PlasmartDxf.revisar(String(fr.result)); }
+          catch (err) { r = { ok: false, motivos: ['No pudimos leer el archivo.'] }; }
+          set('dxfLeyendo', false);
+          if (r.ok) {
+            set('dxfOk', true); set('dxfMotivos', null);
+            set('ancho', r.ancho); set('largo', r.largo);
+            track('estimador_dxf_ok');
+          } else {
+            set('dxfOk', false); set('dxfMotivos', r.motivos);
+            track('estimador_dxf_revision');
+          }
+          pintar();
+        };
+        fr.onerror = function () {
+          set('dxfLeyendo', false);
+          set('dxfMotivos', ['No pudimos leer el archivo.']);
+          pintar();
+        };
+        fr.readAsText(file);
       });
       root.querySelectorAll('[data-op]').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -354,6 +473,7 @@
 
       on('[data-nav="atras"]', 'click', function () { st.paso--; st.tocado = false; pintar(); scrollTop(); });
       on('[data-nav="seguir"]', 'click', function () {
+        if (st.paso === 1 && st.modo === 'dxf' && !st.dxfNombre) { st.tocado = true; pintar(); return; }
         if (st.paso === 2 && falta(st).length) { st.tocado = true; pintar(); return; }
         st.paso++;
         if (st.paso === 2) track('estimador_lead_form');
