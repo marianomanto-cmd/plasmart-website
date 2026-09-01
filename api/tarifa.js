@@ -9,9 +9,12 @@
    public.tarifa_web() — promedio de chapa negra del mes anterior + 10%.
 
    Variables de entorno (Vercel · Settings > Environment Variables):
-     SUPABASE_URL          https://xgoopnjklodmqxopjafv.supabase.co
-     SUPABASE_SERVICE_KEY  service_role key del proyecto Plasmart OT
-   Sin prefijo publico. Si Vercel las expusiera al cliente, se filtra la base.
+     SUPABASE_URL      https://xgoopnjklodmqxopjafv.supabase.co
+     SUPABASE_API_KEY  key publicable del proyecto Plasmart OT
+
+   Alcanza con la publicable, no hace falta service_role: tarifa_web() es
+   security definer y solo puede devolver el promedio agregado. Aun asi las
+   leemos desde el servidor, no desde el navegador.
    ============================================================ */
 'use strict';
 
@@ -39,7 +42,7 @@ module.exports = async function handler(req, res) {
   };
 
   var url = process.env.SUPABASE_URL;
-  var key = process.env.SUPABASE_SERVICE_KEY;
+  var key = process.env.SUPABASE_API_KEY;
 
   if (!url || !key) {
     /* Sin credenciales no inventamos un precio: el sitio pasa a "consultar". */
