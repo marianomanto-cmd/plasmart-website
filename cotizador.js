@@ -204,7 +204,8 @@
       })
       .catch(function (e) {
         tarifa = { precio_kg_sin_iva: null };
-        tarifaDiag = 'no se pudo leer la tarifa: ' + String(e && e.message || e);
+        tarifaDiag = 'no se pudo leer la tarifa: ' + String(e && e.message || e) +
+                     ' · desde ' + location.origin;
       })
       .then(function () {
         cargando = false;

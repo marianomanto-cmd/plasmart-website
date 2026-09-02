@@ -50,6 +50,26 @@ module.exports = async function handler(req, res) {
     densidad: DENSIDAD_ACERO
   };
 
+  /* CORS acotado a los dominios del proyecto.
+     El sitio se sirve en cinco dominios y vercel.json redirige www al
+     apex con un 308. Un fetch que arranca en www y termina en el apex
+     cruza de origen: el servidor ejecuta la funcion y loguea el 200, pero
+     el navegador no le entrega el cuerpo al JS y tira "Failed to fetch".
+     Los archivos estaticos no sufrian esto porque Vercel ya les pone
+     Access-Control-Allow-Origin; la funcion no lo traia.
+     No abrimos a "*": la respuesta lleva los minimos, que no son para
+     publicar. Solo se refleja el origen si es uno de los nuestros. */
+  var ORIGENES = [
+    'https://plasmartcba.com',
+    'https://www.plasmartcba.com',
+    'https://plasmart-website.vercel.app'
+  ];
+  var origen = req.headers.origin;
+  if (origen && (ORIGENES.indexOf(origen) >= 0 || /^https:\/\/plasmart-website-[\w-]+\.vercel\.app$/.test(origen))) {
+    res.setHeader('Access-Control-Allow-Origin', origen);
+    res.setHeader('Vary', 'Origin');
+  }
+
   /* Un 200 en los logs no dice si salio precio o "consultar". Esta linea
      si, y es lo unico que permite diagnosticar el estimador sin adivinar. */
   function log(o) {
