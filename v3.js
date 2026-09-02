@@ -290,16 +290,25 @@
     var triggers = document.querySelectorAll('[data-cotizador]');
     if (!triggers.length) return;
 
-    var modal = null, listo = false;
+    var modal = null, listo = false, bajando = false, espera = [];
 
+    /* Un doble clic en el CTA no puede inyectar el script dos veces: mientras
+       baja, los pedidos se encolan y se resuelven todos con la misma carga. */
     function assets(cb) {
       if (listo) { cb(); return; }
+      espera.push(cb);
+      if (bajando) return;
+      bajando = true;
       var css = document.createElement('link');
       css.rel = 'stylesheet'; css.href = '/cotizador.css';
       document.head.appendChild(css);
       var js = document.createElement('script');
       js.src = '/cotizador.js';
-      js.onload = function () { listo = true; cb(); };
+      js.onload = function () {
+        listo = true; bajando = false;
+        var fn = espera.pop(); espera = []; // con una apertura alcanza
+        if (fn) fn();
+      };
       js.onerror = function () { window.location.href = '/cotizador/'; }; // fallback duro
       document.body.appendChild(js);
     }

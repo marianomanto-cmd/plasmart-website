@@ -23,6 +23,7 @@
 
   var tarifa = null;                // lo que devuelve /api/tarifa
   var cargando = false;
+  var enEspera = [];                // mounts que pidieron la tarifa mientras bajaba
 
   /* ---------- helpers ---------- */
   function num(v) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; }
@@ -93,6 +94,18 @@
       minimoMonto: minimoAplicado === 'pedido' ? minPedido : minItem,
       iva: iva, ivaPct: (tarifa.iva_pct || 21), total: subtotal + iva
     };
+  }
+
+  /* ---------- gate del paso 1 ----------
+     Medidas o superficie en cero no son "sin tarifa": son un dato que
+     falta, y hay que decirlo aca y no en el paso 3 culpando al sistema. */
+  function faltaPieza(st) {
+    var f = [];
+    if (st.modo === 'medidas' && !(num(st.ancho) > 0 && num(st.largo) > 0)) f.push('el ancho y el largo');
+    if (st.modo === 'm2' && !(num(st.m2) > 0)) f.push('la superficie por pieza');
+    if (st.modo === 'dxf' && !st.dxfNombre) f.push('el archivo DXF');
+    if (!(Math.floor(num(st.cantidad)) >= 1)) f.push('una cantidad de 1 o más');
+    return f;
   }
 
   /* ---------- lead gate ----------
@@ -166,14 +179,23 @@
   }
 
   /* ---------- carga de tarifa ---------- */
+  /* Si el modal se abre, se cierra y se reabre antes de que responda la
+     API, el segundo mount espera al mismo fetch en vez de pintar "sin
+     precio" con tarifa vacia. */
   function cargarTarifa(cb) {
-    if (tarifa || cargando) { cb(); return; }
+    if (tarifa) { cb(); return; }
+    enEspera.push(cb);
+    if (cargando) return;
     cargando = true;
     fetch('/api/tarifa')
       .then(function (r) { return r.json(); })
       .then(function (t) { tarifa = t; })
       .catch(function () { tarifa = { precio_kg_sin_iva: null }; })
-      .then(function () { cargando = false; cb(); });
+      .then(function () {
+        cargando = false;
+        var fns = enEspera; enEspera = [];
+        fns.forEach(function (fn) { fn(); });
+      });
   }
 
   /* ---------- lector de DXF (se baja recien al elegir el modo) ---------- */
@@ -267,8 +289,8 @@
       '<p class="cot-note">El plegado y el calado <b>no están incluidos</b> en este estimado. ' +
       'Marcalos igual: viajan en la consulta y el vendedor los suma cuando arme el presupuesto final.</p>' +
 
-      (st.tocado && st.modo === 'dxf' && !st.dxfNombre
-        ? '<p class="cot-err" role="alert">Elegí un archivo DXF para seguir.</p>' : '') +
+      (st.tocado && faltaPieza(st).length
+        ? '<p class="cot-err" role="alert">Falta ' + faltaPieza(st).join(' y ') + '.</p>' : '') +
 
       '<p class="cot-note cot-note-alt">¿Inoxidable, aluminio u otro material? No los estimamos online porque ' +
       'el precio varía mucho según disponibilidad. ' +
@@ -358,8 +380,12 @@
 
       if (m.sinPrecio) {
         return '<div class="cot-est">' + filas + '</div>' +
-          '<div class="cot-warn"><b>No podemos mostrarte un precio ahora mismo.</b><br />' +
-          'Mandanos igual la consulta: ya lleva la pieza cargada y un asesor te pasa el número.</div>' +
+          '<div class="cot-warn"><b>' + (m.peso > 0
+            ? 'No podemos mostrarte un precio ahora mismo.'
+            : 'Con estas medidas la pieza no tiene peso.') + '</b><br />' +
+          (m.peso > 0
+            ? 'Mandanos igual la consulta: ya lleva la pieza cargada y un asesor te pasa el número.'
+            : 'Volvé al paso 1 y revisá el ancho, el largo o la superficie.') + '</div>' +
           canonica();
       }
 
@@ -473,7 +499,7 @@
 
       on('[data-nav="atras"]', 'click', function () { st.paso--; st.tocado = false; pintar(); scrollTop(); });
       on('[data-nav="seguir"]', 'click', function () {
-        if (st.paso === 1 && st.modo === 'dxf' && !st.dxfNombre) { st.tocado = true; pintar(); return; }
+        if (st.paso === 1 && faltaPieza(st).length) { st.tocado = true; pintar(); return; }
         if (st.paso === 2 && falta(st).length) { st.tocado = true; pintar(); return; }
         st.paso++;
         if (st.paso === 2) track('estimador_lead_form');

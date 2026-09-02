@@ -52,11 +52,16 @@
     var seccion = '', entidad = '', varName = '';
     var enBloques = false;
 
-    var insunits = null, measurement = null;
+    var insunits = null;
     var inserts = 0, abiertas = 0, cerradas = 0, conGeometria = 0;
     var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     var cx = null, cy = null, radio = null;
     var px = null, px2 = null; // X pendiente de su Y (codigos 10/20 y 11/21)
+    /* La spec dice que el codigo 70 de una polilinea es opcional y su
+       default es ABIERTA. Si la entidad termina sin haberlo visto, cuenta
+       como abierta: un contorno abierto que omite la bandera no puede
+       pasar como pieza cerrada. */
+    var polySin70 = false;
 
     function punto(x, y) {
       if (!isFinite(x) || !isFinite(y)) return;
@@ -80,12 +85,14 @@
       if (code === 0) {
         cerrarCirculo();
         px = px2 = null;
+        if (polySin70) { abiertas++; polySin70 = false; }
         if (val === 'SECTION') { seccion = ''; entidad = ''; continue; }
         if (val === 'ENDSEC') { seccion = ''; enBloques = false; entidad = ''; continue; }
         entidad = val;
         if (seccion === 'ENTITIES' && !enBloques) {
           if (val === 'INSERT') inserts++;
           if (GEOMETRIA.indexOf(val) >= 0) conGeometria++;
+          if (val === 'LWPOLYLINE' || val === 'POLYLINE') polySin70 = true;
         }
         continue;
       }
@@ -98,10 +105,7 @@
 
       if (seccion === 'HEADER') {
         if (code === 9) { varName = val; continue; }
-        if (code === 70) {
-          if (varName === '$INSUNITS') insunits = parseInt(val, 10);
-          if (varName === '$MEASUREMENT') measurement = parseInt(val, 10);
-        }
+        if (code === 70 && varName === '$INSUNITS') insunits = parseInt(val, 10);
         continue;
       }
 
@@ -111,6 +115,7 @@
 
       /* bit 1 del codigo 70 = polilinea cerrada */
       if (code === 70 && (entidad === 'LWPOLYLINE' || entidad === 'POLYLINE')) {
+        polySin70 = false;
         if (parseInt(val, 10) & 1) cerradas++; else abiertas++;
         continue;
       }
@@ -132,9 +137,10 @@
       }
     }
     cerrarCirculo();
+    if (polySin70) abiertas++;
 
     return {
-      insunits: insunits, measurement: measurement,
+      insunits: insunits,
       inserts: inserts, abiertas: abiertas, cerradas: cerradas,
       conGeometria: conGeometria,
       bbox: (isFinite(minX) && isFinite(maxX) && isFinite(minY) && isFinite(maxY))

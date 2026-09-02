@@ -32,6 +32,9 @@ module.exports = async function handler(req, res) {
   /* El estimador consulta esto una vez por sesion; la tarifa cambia una vez
      por mes. Cacheamos en el edge para no pegarle a la base en cada visita. */
   res.setHeader('Cache-Control', 's-maxage=21600, stale-while-revalidate=86400');
+  /* Es un endpoint interno del estimador, no una pagina: que ningun buscador
+     lo indexe con la tarifa adentro. */
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
 
   var base = {
     iva_pct: IVA_PCT,
