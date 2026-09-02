@@ -29,12 +29,17 @@ var ESPESORES = [0.7, 0.9, 1, 1.2, 1.5, 1.9, 2, 2.5, 3, 4, 4.75, 6, 8, 9.5, 12.7
 var DENSIDAD_ACERO = 7850; // kg/m3, chapa negra
 
 module.exports = async function handler(req, res) {
-  /* El estimador consulta esto una vez por sesion; la tarifa cambia una vez
-     por mes. Cacheamos en el edge para no pegarle a la base en cada visita. */
-  res.setHeader('Cache-Control', 's-maxage=21600, stale-while-revalidate=86400');
   /* Es un endpoint interno del estimador, no una pagina: que ningun buscador
      lo indexe con la tarifa adentro. */
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+
+  /* La tarifa cambia una vez por mes, asi que cachearla en el edge esta bien
+     y evita pegarle a la base en cada visita. Una respuesta SIN precio, no:
+     si se cachea un fallo (falta una env var, la base no contesta), ese nodo
+     sigue diciendo "no hay precio" durante horas aunque ya este resuelto.
+     Por eso el exito se cachea y el fallo no. */
+  function sinCache() { res.setHeader('Cache-Control', 'no-store'); }
+  function conCache() { res.setHeader('Cache-Control', 's-maxage=21600, stale-while-revalidate=86400'); }
 
   var base = {
     iva_pct: IVA_PCT,
@@ -49,6 +54,7 @@ module.exports = async function handler(req, res) {
 
   if (!url || !key) {
     /* Sin credenciales no inventamos un precio: el sitio pasa a "consultar". */
+    sinCache();
     return res.status(200).json(Object.assign({}, base, {
       precio_kg_sin_iva: null,
       motivo: 'sin_credenciales'
@@ -74,12 +80,14 @@ module.exports = async function handler(req, res) {
        junta al menos 5 items. Preferimos no mostrar numero antes que mostrar
        uno construido sobre dos cotizaciones sueltas. */
     if (!t || !t.precio_kg_sin_iva) {
+      sinCache();
       return res.status(200).json(Object.assign({}, base, {
         precio_kg_sin_iva: null,
         motivo: 'sin_datos_suficientes'
       }));
     }
 
+    conCache();
     return res.status(200).json(Object.assign({}, base, {
       precio_kg_sin_iva: Number(t.precio_kg_sin_iva),
       vigencia: t.vigencia,
@@ -89,6 +97,7 @@ module.exports = async function handler(req, res) {
   } catch (e) {
     /* Si la base no responde, el estimador no cae a un precio viejo: manda a
        consultar. Un numero desactualizado es peor que no tener numero. */
+    sinCache();
     return res.status(200).json(Object.assign({}, base, {
       precio_kg_sin_iva: null,
       motivo: 'base_no_disponible'

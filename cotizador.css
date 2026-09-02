@@ -137,10 +137,24 @@
 /* ---------- modal (usa .modal/.modal-card de v3.css) ---------- */
 .modal-card.cot-card { max-width: 620px; padding: clamp(26px, 4vw, 42px); }
 
-/* En /cotizador/ no hay burger ni menu: el CTA del nav es la unica salida
-   ademas del flotante, asi que no se esconde en celular como en el home. */
+/* Vuelta al sitio desde el pie: en celular la lectura termina abajo, no
+   arriba en el nav. */
+.cot-volver { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
+.cot-volver a {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); transition: color .3s;
+  display: inline-block; padding: 10px 0; min-height: 40px;
+}
+.cot-volver a:hover { color: var(--text); }
+
+/* En /cotizador/ no hay burger: los links del nav se muestran siempre (mas
+   chicos en celular) y el CTA no se esconde, porque son la unica salida. */
+@media (max-width: 900px) {
+  .cot-page-nav .cot-page-links { display: flex; gap: 18px; }
+}
 @media (max-width: 560px) {
-  .cot-page-nav .nav-cta { display: inline-block; }
+  .cot-page-nav .nav-cta { display: inline-block; font-size: 11px; }
+  .cot-page-nav .cot-page-links { display: none; }
 }
 
 @media (max-width: 640px) {
