@@ -50,11 +50,18 @@ module.exports = async function handler(req, res) {
     densidad: DENSIDAD_ACERO
   };
 
+  /* Un 200 en los logs no dice si salio precio o "consultar". Esta linea
+     si, y es lo unico que permite diagnosticar el estimador sin adivinar. */
+  function log(o) {
+    try { console.log('[tarifa] ' + JSON.stringify(o)); } catch (e) {}
+  }
+
   var url = process.env.SUPABASE_URL;
   var key = process.env.SUPABASE_API_KEY;
 
   if (!url || !key) {
     /* Sin credenciales no inventamos un precio: el sitio pasa a "consultar". */
+    log({ precio: null, motivo: 'sin_credenciales', url: !!url, key: !!key });
     return res.status(200).json(Object.assign({}, base, {
       precio_kg_sin_iva: null,
       motivo: 'sin_credenciales'
@@ -80,21 +87,24 @@ module.exports = async function handler(req, res) {
        junta al menos 5 items. Preferimos no mostrar numero antes que mostrar
        uno construido sobre dos cotizaciones sueltas. */
     if (!t || !t.precio_kg_sin_iva) {
-        return res.status(200).json(Object.assign({}, base, {
+        log({ precio: null, motivo: 'sin_datos_suficientes', items: t && t.items });
+      return res.status(200).json(Object.assign({}, base, {
         precio_kg_sin_iva: null,
         motivo: 'sin_datos_suficientes'
       }));
     }
 
+    log({ precio: Number(t.precio_kg_sin_iva), items: t.items, ventana: t.ventana });
     return res.status(200).json(Object.assign({}, base, {
       precio_kg_sin_iva: Number(t.precio_kg_sin_iva),
       vigencia: t.vigencia,
-      mes_base: t.mes_base,
+      ventana: t.ventana,
       items_base: t.items
     }));
   } catch (e) {
     /* Si la base no responde, el estimador no cae a un precio viejo: manda a
        consultar. Un numero desactualizado es peor que no tener numero. */
+    log({ precio: null, motivo: 'base_no_disponible', error: String(e && e.message || e) });
     return res.status(200).json(Object.assign({}, base, {
       precio_kg_sin_iva: null,
       motivo: 'base_no_disponible'

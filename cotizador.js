@@ -162,7 +162,7 @@
     } else {
       L.push('— Estimado —');
       L.push('$/kg aplicado: ' + Math.round(m.precioKg).toLocaleString('es-AR') +
-             (tarifa.vigencia ? '  (vigencia ' + tarifa.vigencia + ')' : ''));
+             (tarifa.vigencia ? '  (tarifa al ' + tarifa.vigencia + ')' : ''));
       L.push('Subtotal s/IVA: ' + money(m.subtotal));
       L.push('Minimo: ' + (m.minimoAplicado
         ? 'se aplico el minimo por ' + m.minimoAplicado + ' (' + money(m.minimoMonto) + ')'
