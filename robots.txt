@@ -3,6 +3,8 @@
 
 User-agent: *
 Allow: /
+# La tarifa del estimador no es contenido para indexar
+Disallow: /api/
 
 # Motores de respuesta / búsqueda con IA — bienvenidos (citación en respuestas)
 User-agent: OAI-SearchBot

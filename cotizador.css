@@ -137,6 +137,12 @@
 /* ---------- modal (usa .modal/.modal-card de v3.css) ---------- */
 .modal-card.cot-card { max-width: 620px; padding: clamp(26px, 4vw, 42px); }
 
+/* En /cotizador/ no hay burger ni menu: el CTA del nav es la unica salida
+   ademas del flotante, asi que no se esconde en celular como en el home. */
+@media (max-width: 560px) {
+  .cot-page-nav .nav-cta { display: inline-block; }
+}
+
 @media (max-width: 640px) {
   .cot-grid { grid-template-columns: 1fr; gap: 16px; }
   .cot-foot { flex-direction: row-reverse; }

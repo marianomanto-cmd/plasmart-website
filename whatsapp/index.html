@@ -67,8 +67,15 @@ src="https://www.facebook.com/tr?id=2982494008617961&ev=PageView&noscript=1"
     // PASO 1: construir la URL de WhatsApp y cablear la UI — SIEMPRE, antes de validar
     var params = new URLSearchParams(window.location.search);
     var waSource = params.get('src') || 'unknown';
-    var waUrl = 'https://wa.me/5493513820321?text=' +
-      encodeURIComponent('Hola Plasmart, vengo desde la web y me interesa pedir un presupuesto.');
+    // El texto prellenado cambia segun de donde viene: el que llega desde el
+    // estimador pidiendo otro material no tiene que volver a explicarlo.
+    var waText = 'Hola Plasmart, vengo desde la web y me interesa pedir un presupuesto.';
+    if (waSource === 'cotizador-material') {
+      waText = 'Hola Plasmart, vengo del estimador de la web. Necesito cotizar en inoxidable, aluminio u otro material que no sea chapa negra.';
+    } else if (waSource.indexOf('cotizador') === 0) {
+      waText = 'Hola Plasmart, vengo del estimador de la web y prefiero hablar con un asesor para cotizar.';
+    }
+    var waUrl = 'https://wa.me/5493513820321?text=' + encodeURIComponent(waText);
     var manual = document.getElementById('waManual');
     if (manual) manual.href = waUrl;
 
