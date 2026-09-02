@@ -95,6 +95,10 @@
 }
 .cot-ok b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
 
+.cot-diag {
+  display: block; margin-top: 10px; font-size: 11px; letter-spacing: .04em;
+  color: var(--faint); word-break: break-word;
+}
 .cot-warn ul { margin: 8px 0 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
 .cot-warn li { font-size: 13.5px; color: var(--text); }
 

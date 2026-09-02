@@ -22,6 +22,7 @@
   var MATERIAL = 'Chapa negra';     // el sitio solo estima negra
 
   var tarifa = null;                // lo que devuelve /api/tarifa
+  var tarifaDiag = null;            // por que no hay precio, si no lo hay
   var cargando = false;
   var enEspera = [];                // mounts que pidieron la tarifa mientras bajaba
 
@@ -191,9 +192,20 @@
        servir en lugar de la respuesta real. */
     var mes = new Date().toISOString().slice(0, 7);
     fetch('/api/tarifa?m=' + mes)
-      .then(function (r) { return r.json(); })
-      .then(function (t) { tarifa = t; })
-      .catch(function () { tarifa = { precio_kg_sin_iva: null }; })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (t) {
+        tarifa = t;
+        tarifaDiag = t && t.precio_kg_sin_iva
+          ? null
+          : 'la tarifa llego sin precio' + (t && t.motivo ? ' (' + t.motivo + ')' : '');
+      })
+      .catch(function (e) {
+        tarifa = { precio_kg_sin_iva: null };
+        tarifaDiag = 'no se pudo leer la tarifa: ' + String(e && e.message || e);
+      })
       .then(function () {
         cargando = false;
         var fns = enEspera; enEspera = [];
@@ -386,7 +398,10 @@
             : 'Con estas medidas la pieza no tiene peso.') + '</b><br />' +
           (m.peso > 0
             ? 'Mandanos igual la consulta: ya lleva la pieza cargada y un asesor te pasa el número.'
-            : 'Volvé al paso 1 y revisá el ancho, el largo o la superficie.') + '</div>' +
+            : 'Volvé al paso 1 y revisá el ancho, el largo o la superficie.') +
+          (m.peso > 0 && tarifaDiag
+            ? '<span class="cot-diag mono">' + esc(tarifaDiag) + '</span>' : '') +
+          '</div>' +
           canonica();
       }
 
