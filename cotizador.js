@@ -185,7 +185,12 @@
     enEspera.push(cb);
     if (cargando) return;
     cargando = true;
-    fetch('/api/tarifa')
+    /* El mes en la URL no es un truco anti-cache al azar: la tarifa cambia
+       una vez por mes, asi que esa es su clave natural. De paso evita que
+       una copia guardada de un mes anterior (o de un fallo viejo) se pueda
+       servir en lugar de la respuesta real. */
+    var mes = new Date().toISOString().slice(0, 7);
+    fetch('/api/tarifa?m=' + mes)
       .then(function (r) { return r.json(); })
       .then(function (t) { tarifa = t; })
       .catch(function () { tarifa = { precio_kg_sin_iva: null }; })
