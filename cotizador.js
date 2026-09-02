@@ -48,7 +48,6 @@
       dxfNombre: null, dxfOk: false, dxfMotivos: null, dxfLeyendo: false,
       cantidad: 10,
       plegado: false, pliegues: 2,
-      calado: false,
       nombre: '', telefono: '', email: '', ciudad: '',
       tocado: false,
       ref: 'EST-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' +
@@ -58,8 +57,8 @@
 
   /* ---------- calculo ----------
      Peso = superficie x espesor x densidad x cantidad. El precio es
-     peso x $/kg y nada mas: plegado y calado NO estan contemplados,
-     los suma el vendedor. Despues se aplican los minimos. */
+     peso x $/kg y nada mas: el plegado NO esta contemplado, lo suma el
+     vendedor. Despues se aplican los minimos. */
   function calc(st) {
     var areaPieza = st.modo === 'm2' ? num(st.m2) : (num(st.ancho) * num(st.largo)) / 1e6;
     var cant = Math.max(1, Math.floor(num(st.cantidad)) || 1);
@@ -149,7 +148,6 @@
     L.push('Plegado: ' + (st.plegado
       ? 'si, ' + Math.max(1, Math.floor(num(st.pliegues)) || 1) + ' pliegues (NO incluido en el precio)'
       : 'no'));
-    L.push('Calado/perforado: ' + (st.calado ? 'si (NO incluido en el precio)' : 'no'));
     L.push('Peso estimado: ' + kg(m.peso));
     L.push('');
 
@@ -282,12 +280,10 @@
           ? '<div class="mf-row cot-inline"><label for="cot-pl">Pliegues</label>' +
             '<input id="cot-pl" type="number" inputmode="numeric" min="1" step="1" value="' + esc(st.pliegues) + '" /></div>'
           : '') +
-        '<button type="button" class="cot-chk' + (st.calado ? ' on' : '') + '" data-op="calado" aria-pressed="' + st.calado + '">' +
-          '<span class="cot-box"></span>Es calada o perforada</button>' +
       '</div>' +
 
-      '<p class="cot-note">El plegado y el calado <b>no están incluidos</b> en este estimado. ' +
-      'Marcalos igual: viajan en la consulta y el vendedor los suma cuando arme el presupuesto final.</p>' +
+      '<p class="cot-note">El plegado <b>no está incluido</b> en este estimado. ' +
+      'Marcalo igual: viaja en la consulta y el vendedor lo suma cuando arme el presupuesto final.</p>' +
 
       (st.tocado && faltaPieza(st).length
         ? '<p class="cot-err" role="alert">Falta ' + faltaPieza(st).join(' y ') + '.</p>' : '') +
@@ -396,10 +392,9 @@
       filas += fila('Total', money(m.total), 'No incluye flete.', true);
 
       return '<div class="cot-est">' + filas + '</div>' +
-        (st.plegado || st.calado
-          ? '<p class="cot-note">Este total <b>no incluye ' +
-            (st.plegado && st.calado ? 'el plegado ni el calado' : st.plegado ? 'el plegado' : 'el calado') +
-            '</b>. El vendedor lo suma al armar el presupuesto final.</p>'
+        (st.plegado
+          ? '<p class="cot-note">Este total <b>no incluye el plegado</b>. ' +
+            'El vendedor lo suma al armar el presupuesto final.</p>'
           : '') +
         canonica();
     }
