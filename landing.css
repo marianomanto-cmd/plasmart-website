@@ -87,7 +87,10 @@
 /* ---------- Proyectos: carrusel horizontal con auto-scroll (reusa .wcard de v3.css) ----------
    El movimiento (auto + wrap sin corte) lo maneja v3.js. Acá sólo el layout horizontal.
    Sigue siendo deslizable a mano y pausa al pasar el mouse. */
-.proj-marquee { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-inline: calc(var(--pad) * -1); padding: 10px var(--pad) 16px; }
+/* Sin margen negativo: el unico contenedor donde vive (.work) ya es de ancho
+   completo, asi que el sangrado empujaba el carrusel 20px fuera de la
+   pantalla y dejaba la pagina con scroll horizontal en celular. */
+.proj-marquee { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 10px var(--pad) 16px; }
 .proj-marquee::-webkit-scrollbar { display: none; }
 .pm-track { display: flex; gap: clamp(16px, 2vw, 28px); width: max-content; }
 .pm-track .wcard { flex: 0 0 clamp(250px, 31vw, 380px); }

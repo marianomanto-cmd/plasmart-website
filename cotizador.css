@@ -198,6 +198,147 @@
 .cot-back:hover { color: var(--text); }
 .cot-foot .btn { height: 52px; padding: 0 26px; }
 
+/* ---------- paso 1: el formulario y la chapa, juntos ----------
+   La chapa no es decoracion: es lo que engancha. Verla llenarse mientras
+   se cambian cantidades y medidas es la razon por la que alguien se queda
+   cargando piezas. Asi que tiene que estar a la vista SIEMPRE, sin
+   scrollear: en escritorio a la derecha y fija; en celular pegada arriba
+   y recortada a lo indispensable (dibujo, chapa elegida y aprovechamiento).
+   El DOM la pone primera a proposito: en celular ese es su lugar, y en
+   escritorio grid-template-areas la manda a la columna derecha. */
+.cot-p1 { display: flex; flex-direction: column; gap: 20px; }
+
+/* .cot-body separaba los bloques del paso 1 con su propio gap; ahora que
+   viven dentro de .cot-p1-form, el gap se reconstruye aca. */
+.cot-p1-form { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cot-p1-vista { min-width: 0; }
+
+/* Dentro del panel la linea de separacion la pone el panel, no el bloque. */
+.cot-p1-vista .cot-nesting { margin-top: 0; border-top: 0; padding-top: 0; }
+
+/* ---- escritorio: columna derecha fija ---- */
+@media (min-width: 1000px) {
+  /* El paso 1 necesita mas ancho que los otros dos; el titulo, el pie y la
+     vuelta al sitio se quedan en la medida de lectura para que nada salte
+     al cambiar de paso. */
+  .cot-page-inner:has(.cot-p1) { max-width: 1140px; }
+  .cot-page-inner:has(.cot-p1) .cot-head,
+  .cot-page-inner:has(.cot-p1) .cot-foot,
+  .cot-page-inner:has(.cot-p1) .cot-volver { max-width: 760px; }
+
+  .cot-p1 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    grid-template-areas: 'form vista';
+    gap: clamp(28px, 3.2vw, 46px);
+    align-items: start;
+  }
+  .cot-p1-form { grid-area: form; }
+  .cot-p1-vista {
+    grid-area: vista;
+    position: sticky;
+    top: 104px; /* alto del nav fijo (88px) + aire */
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    /* --bg-2 y no --panel: el fondo de la chapa dibujada es --panel y sobre
+       si mismo la chapa se perdia, solo la delataba el trazo. */
+    background: var(--bg-2);
+  }
+  .cot-p1-vista .cot-nesting-hd { flex-direction: column; align-items: stretch; gap: 14px; }
+  .cot-p1-vista .cot-nesting-sel { min-width: 0; }
+}
+
+/* ---- celular: pegada arriba y compacta ----
+   El bloque completo mide ~470px: la mitad de la pantalla de un telefono.
+   Pegado arriba en ese tamano tapaba el formulario, asi que en celular se
+   muestra solo lo que se mira de reojo. La nota de estimacion no se pierde:
+   esta completa en el paso 3, junto al numero. */
+@media (max-width: 999px) {
+  .cot-p1-vista {
+    position: sticky;
+    top: 88px; /* alto del nav fijo */
+    z-index: 6;
+    /* sangra hasta el borde para que el contenido no se vea pasar por los
+       costados mientras se scrollea debajo */
+    margin-inline: calc(var(--pad) * -1);
+    padding: 10px var(--pad) 11px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    /* la sombra deja claro que el formulario pasa por debajo */
+    box-shadow: 0 12px 20px -14px rgba(0, 0, 0, .95);
+  }
+  .cot-p1-vista .cot-nesting { gap: 9px; }
+  /* una sola fila: titulo a la izquierda, chapa elegida a la derecha */
+  .cot-p1-vista .cot-nesting-hd { align-items: center; gap: 12px; flex-wrap: nowrap; }
+  /* 16px en el select a proposito: por debajo iOS hace zoom al enfocarlo.
+     El ancho tiene que dar para "1200 x 2400 mm" completo. */
+  .cot-p1-vista .cot-nesting-sel { min-width: 0; width: 174px; flex: none; }
+  .cot-p1-vista .cot-nesting-sel .cot-select { padding-right: 20px; }
+  .cot-p1-vista .cot-h3 { font-size: 13.5px; }
+  .cot-p1-vista .cot-chapa { gap: 5px; }
+  .cot-p1-vista .cot-chapa svg { max-height: 20vh; }
+  /* lo que se repite abajo del dibujo o mas adelante en el flujo se saca:
+     el pie de la figura ya dice "Chapa 1/N", la medida y el % ocupado, y la
+     nota de estimacion esta completa en el paso 3, al lado del numero. */
+  .cot-p1-vista .cot-nesting-res,
+  .cot-p1-vista .cot-nesting-nota { display: none; }
+  /* con un solo item los colores se explican solos */
+  .cot-p1-vista .cot-legend:not(:has(.cot-legend-i + .cot-legend-i)) { display: none; }
+}
+
+/* El nav de esta pagina no se opaca al scrollear (no carga v3.js) y aca hay
+   un panel pegado abajo suyo: sin fondo propio se leian los dos encimados. */
+.cot-page-nav {
+  mix-blend-mode: normal;
+  background: rgba(8, 9, 11, .82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---------- paso 2: lo que ya sabemos, al costado ----------
+   Peso y chapas, nunca el precio: la puerta sigue cerrada. */
+.cot-previo { border-top: 0; margin-bottom: 4px; }
+.cot-previo .cot-row:first-child { padding-top: 0; }
+.cot-previo .cot-v { font-size: 15px; }
+
+@media (max-width: 999px) {
+  /* en el panel pegado los dos datos van en una linea, no apilados */
+  .cot-p1-vista .cot-previo { display: flex; gap: 20px; margin-bottom: 0; }
+  .cot-p1-vista .cot-previo .cot-row {
+    display: block; border-bottom: 0; padding: 0;
+  }
+  .cot-p1-vista .cot-previo .cot-k { font-size: 10px; }
+  .cot-p1-vista .cot-previo .cot-v { font-size: 14px; text-align: left; }
+  /* con el resumen arriba, el titulo del bloque de chapa sobra */
+  .cot-p1-vista .cot-previo + .cot-nesting .cot-h3 { display: none; }
+}
+
+/* ---------- celular: la accion siempre a mano ----------
+   Con el formulario largo, "Seguir" quedaba a 1400px del arranque: habia
+   que scrollear todo el item para encontrar el boton que ya se podia
+   apretar. Sticky no sirve porque .cot-foot es el ultimo hijo y no tiene
+   lugar donde pegarse; va fija. Solo en /cotizador/. */
+@media (max-width: 999px) {
+  .cot-page .cot-foot {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 350;
+    margin-top: 0; padding: 12px var(--pad) calc(12px + env(safe-area-inset-bottom));
+    background: rgba(8, 9, 11, .94);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+    flex-direction: row-reverse;
+  }
+  .cot-page .cot-foot .btn { flex: 1; justify-content: center; }
+  /* aire para que la barra no tape el "volver al sitio" */
+  .cot-page .cot-page-inner { padding-bottom: 96px; }
+  /* El globo de WhatsApp se va: subido queda encima del dibujo de la chapa,
+     y en el paso 3 compite con "Enviar al vendedor" — que hace lo mismo pero
+     con el estimado adentro. La salida para el que prefiere hablar sigue
+     estando arriba, fija: "Hablar con un asesor" en el nav. */
+  .cot-page ~ .wa-float { display: none; }
+}
+
 /* ---------- pagina standalone /cotizador/ ---------- */
 .cot-page { padding-block: clamp(110px, 16vh, 190px) clamp(70px, 10vh, 120px); }
 .cot-page-inner { max-width: 760px; }
