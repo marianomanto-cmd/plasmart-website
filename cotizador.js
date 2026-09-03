@@ -435,7 +435,7 @@
      grandes; el resto se resume en una linea. */
   var MAX_CHAPAS = 4;
 
-  function svgChapas(t, items) {
+  function svgChapas(t, items, compacto) {
     if (!t.nest || !t.nest.chapas) return '';
     var n = t.nest, ch = n.chapa;
     var h = '<div class="cot-chapas">';
@@ -450,7 +450,7 @@
     });
     h += '</div>';
 
-    var mostrar = Math.min(n.chapas, MAX_CHAPAS);
+    var mostrar = compacto ? 1 : Math.min(n.chapas, MAX_CHAPAS);
     for (var c = 0; c < mostrar; c++) {
       var puestos = n.puestosPorChapa[c] || [];
       var piezas = '';
@@ -527,7 +527,7 @@
        Va en el paso 1 (en vivo, mientras se cargan las piezas) y otra vez
        en el estimado. Ver la ocupacion es lo que engancha: esconderlo
        detras del pedido de datos era desperdiciarlo. */
-    function bloqueNesting(t) {
+    function bloqueNesting(t, compacto) {
       if (!t.nest || !t.nest.chapas) return '';
       var chapaOpts = CHAPAS.map(function (c) {
         return '<option value="' + c.key + '"' + (st.chapa === c.key ? ' selected' : '') + '>' + c.label + '</option>';
@@ -543,7 +543,7 @@
           '<div class="mf-row cot-nesting-sel"><label for="cot-chapa">Chapa</label>' +
             '<select id="cot-chapa" class="cot-select">' + chapaOpts + '</select></div>' +
         '</div>' +
-        svgChapas(t, st.items) +
+        svgChapas(t, st.items, compacto) +
         '<p class="cot-note cot-nesting-nota">Es una estimación: el nesting real anida las piezas ' +
         'y suele aprovechar más. Se confirma con los planos antes de producir.</p>' +
       '</div>';
@@ -556,26 +556,29 @@
 
     /* ---- Paso 1: las piezas (acordeon) ---- */
     function paso1() {
-      var h = '<div class="cot-items">';
-      st.items.forEach(function (it, i) { h += tarjetaItem(it, i); });
-      h += '</div>';
-
-      h += '<button type="button" class="cot-add" data-add="1">' +
-             '<span aria-hidden="true">+</span> Agregar otra pieza</button>';
-
-      h += bloqueNesting(calcTotal(st));
-
-      h += '<p class="cot-note">El plegado <b>no está incluido</b> en este estimado. ' +
-           'Marcalo igual: viaja en la consulta y el vendedor lo suma cuando arme el presupuesto final.</p>';
-
+      /* Dos columnas en escritorio: el formulario a la izquierda y la chapa
+         a la derecha, fija, para verla llenarse mientras se cambian
+         cantidades y medidas sin tener que scrollear. En celular no hay
+         lado derecho: la chapa va arriba, pegada, y compacta. */
       var f = st.tocado && faltaPiezas(st);
-      if (f) h += '<p class="cot-err" role="alert">En el ítem ' + (f.idx + 1) +
-                  ' falta ' + f.falta.join(' y ') + '.</p>';
 
-      h += '<p class="cot-note cot-note-alt">¿Inoxidable, aluminio u otro material? No los estimamos online porque ' +
-           'el precio varía mucho según disponibilidad. ' +
-           '<a href="/whatsapp/?src=cotizador-material" target="_blank" rel="noopener">Consultanos directo</a>.</p>';
-      return h;
+      var form = '<div class="cot-items">';
+      st.items.forEach(function (it, i) { form += tarjetaItem(it, i); });
+      form += '</div>';
+      form += '<button type="button" class="cot-add" data-add="1">' +
+                '<span aria-hidden="true">+</span> Agregar otra pieza</button>';
+      form += '<p class="cot-note">El plegado <b>no está incluido</b> en este estimado. ' +
+              'Marcalo igual: viaja en la consulta y el vendedor lo suma cuando arme el presupuesto final.</p>';
+      if (f) form += '<p class="cot-err" role="alert">En el ítem ' + (f.idx + 1) +
+                     ' falta ' + f.falta.join(' y ') + '.</p>';
+      form += '<p class="cot-note cot-note-alt">¿Inoxidable, aluminio u otro material? No los estimamos online porque ' +
+              'el precio varía mucho según disponibilidad. ' +
+              '<a href="/whatsapp/?src=cotizador-material" target="_blank" rel="noopener">Consultanos directo</a>.</p>';
+
+      return '<div class="cot-p1">' +
+        '<aside class="cot-p1-vista">' + bloqueNesting(calcTotal(st), true) + '</aside>' +
+        '<div class="cot-p1-form">' + form + '</div>' +
+      '</div>';
     }
 
     function resumenItem(it) {
@@ -938,41 +941,23 @@
       });
     }
 
-    /* Redibuja solo el bloque de chapa, sin tocar el resto del DOM: asi el
+    /* Redibuja solo el panel de la chapa, sin tocar el resto del DOM: asi el
        input que se esta tipeando conserva el foco y el cursor. */
     var redibujando = null;
     function redibujarChapa() {
       if (redibujando) clearTimeout(redibujando);
       redibujando = setTimeout(function () {
         redibujando = null;
-        var viejo = root.querySelector('.cot-nesting');
-        var html = bloqueNesting(calcTotal(st));
-        var cont = root.querySelector('.cot-body');
-        if (!cont) return;
-        if (viejo) {
-          var aviso = viejo.nextElementSibling;
-          if (aviso && aviso.classList.contains('cot-warn')) aviso.remove();
-          if (!html) { viejo.remove(); return; }
-          var tmp = document.createElement('div');
-          tmp.innerHTML = html;
-          viejo.replaceWith.apply(viejo, Array.prototype.slice.call(tmp.childNodes));
-        } else if (html) {
-          /* No estaba (por ejemplo se paso de m² a medidas): va donde
-             corresponde, justo despues del boton de agregar. */
-          var add = root.querySelector('.cot-add');
-          if (!add) return;
-          var tmp2 = document.createElement('div');
-          tmp2.innerHTML = html;
-          var nodos = Array.prototype.slice.call(tmp2.childNodes);
-          nodos.reverse().forEach(function (n) { add.after(n); });
-        }
-        var sel = root.querySelector('#cot-chapa');
+        var panel = root.querySelector('.cot-p1-vista');
+        if (!panel) return;
+        panel.innerHTML = bloqueNesting(calcTotal(st), true);
+        var sel = panel.querySelector('#cot-chapa');
         if (sel) sel.addEventListener('change', function (e) {
           st.chapa = e.target.value;
           track('estimador_chapa', { chapa: st.chapa });
           pintar();
         });
-      }, 220);
+      }, 200);
     }
 
     function arriba() {
