@@ -6,15 +6,19 @@
    asi que la tarifa no queda publicada para la competencia.
 
    El $/kg NO esta escrito aca: sale de Plasmart OT, de la funcion
-   public.tarifa_web() — promedio de chapa negra del mes anterior + 10%.
+   public.tarifa_web() — promedio limpio de las cotizaciones confirmadas
+   de los ultimos 30 dias en chapa negra, sin recargo.
 
    Variables de entorno (Vercel · Settings > Environment Variables):
      SUPABASE_URL      https://xgoopnjklodmqxopjafv.supabase.co
-     SUPABASE_API_KEY  key publicable del proyecto Plasmart OT
+     SUPABASE_API_KEY  key de servicio del proyecto Plasmart OT
 
-   Alcanza con la publicable, no hace falta service_role: tarifa_web() es
-   security definer y solo puede devolver el promedio agregado. Aun asi las
-   leemos desde el servidor, no desde el navegador.
+   A esta funcion sola le alcanzaria la publicable —tarifa_web() es
+   security definer y solo devuelve el promedio agregado— pero la MISMA
+   variable la usa /api/lead para escribir en cotizaciones_web, que tiene
+   RLS activo y ninguna policy para anon. Si se cambia por la publicable,
+   la tarifa sigue andando y los leads dejan de guardarse en silencio.
+   En los dos casos se lee desde el servidor, nunca desde el navegador.
    ============================================================ */
 'use strict';
 
