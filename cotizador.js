@@ -387,6 +387,111 @@
      Si el modal se abre, se cierra y se reabre antes de que responda la
      API, el segundo mount espera al mismo fetch en vez de pintar "sin
      precio" con tarifa vacia. */
+  /* =========================================================
+     GUARDAR LA CONSULTA
+
+     El lead se escribe en Plasmart OT (cotizaciones_web) apenas se cruza
+     la puerta de datos, ANTES de abrir WhatsApp. Si el visitante se cae
+     ahi —y muchos se caen ahi— el contacto igual queda y ventas lo puede
+     levantar. Despues, si aprieta "Enviar al vendedor", la misma fila
+     pasa a 'enviado_wa': asi se distingue el que se fue del que llego.
+
+     Nada de esto puede romperle el estimado a nadie: se manda y se
+     olvida, sin await, sin bloquear la pantalla y sin mostrar errores.
+     ========================================================= */
+  var lead = { id: null, token: null, guardando: false };
+
+  function nuevoToken() {
+    try {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      if (window.crypto && crypto.getRandomValues) {
+        var a = new Uint8Array(16); crypto.getRandomValues(a);
+        return Array.prototype.map.call(a, function (b) {
+          return ('0' + b.toString(16)).slice(-2);
+        }).join('');
+      }
+    } catch (e) {}
+    return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+  }
+
+  /* text/plain a proposito: evita el preflight OPTIONS, que no sigue el
+     308 de www -> apex. Ver el comentario largo en api/lead.js. */
+  function postLead(payload) {
+    try {
+      fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(payload),
+        keepalive: true
+      }).then(function (r) { return r.json(); })
+        .then(function (r) { if (r && r.ok && r.id) lead.id = r.id; })
+        .catch(function () {});
+    } catch (e) {}
+  }
+
+  function guardarConsulta(st, t) {
+    if (lead.id || lead.guardando) return;   // una fila por sesion del estimador
+    if (!st.nombre || (!st.telefono && !st.email)) return;
+    lead.guardando = true;
+    lead.token = lead.token || nuevoToken();
+
+    var prom = null;
+    if (t.nest && t.nest.aprovechamiento.length) {
+      prom = t.nest.aprovechamiento.reduce(function (a, v) { return a + v; }, 0) /
+             t.nest.aprovechamiento.length;
+      prom = Math.round(prom * 10) / 10;
+    }
+
+    postLead({
+      accion: 'estimado',
+      token: lead.token,
+      nombre: st.nombre,
+      telefono: st.telefono,
+      mail: st.email,
+      ciudad: st.ciudad,
+      material: MATERIAL,
+      items: st.items.map(function (it, i) {
+        var m = t.items[i] || {};
+        return {
+          modo: it.modo,
+          espesor_mm: num(it.espesor),
+          ancho_mm: it.modo === 'm2' ? 0 : num(it.ancho),
+          largo_mm: it.modo === 'm2' ? 0 : num(it.largo),
+          m2: it.modo === 'm2' ? num(it.m2) : 0,
+          cantidad: m.cantidad,
+          plegado: !!it.plegado,
+          pliegues: it.plegado ? num(it.pliegues) : 0,
+          dxf: it.dxfNombre || null,
+          peso_kg: m.peso || 0,
+          subtotal: m.subtotal || 0,
+          revision: !!m.revision
+        };
+      }),
+      peso_total_kg: t.peso || 0,
+      chapa: chapaDe(st.chapa).label,
+      chapas: t.chapas || 0,
+      aprovechamiento_pct: prom,
+      precio_kg: t.precioKg || 0,
+      total_sin_iva: t.total || 0,
+      minimo_aplicado: !!t.minimoPedido || (t.items || []).some(function (m) { return m.minimoItem; }),
+      requiere_revision: !!t.revision || !!t.sinPrecio,
+      origen: origenSrc()
+    });
+  }
+
+  function marcarEnviado() {
+    if (!lead.id || !lead.token) return;
+    postLead({ accion: 'enviado_wa', id: lead.id, token: lead.token });
+  }
+
+  /* De donde vino: el ?src= que traen los CTA del sitio. */
+  function origenSrc() {
+    try {
+      var v = new URLSearchParams(location.search).get('src');
+      return v ? String(v).slice(0, 80) : null;
+    } catch (e) { return null; }
+  }
+
   function cargarTarifa(cb) {
     if (tarifa) { cb(); return; }
     enEspera.push(cb);
@@ -685,9 +790,31 @@
     }
 
     /* ---- Paso 2: lead gate ---- */
+    /* ---- Paso 2: la puerta ----
+       El visitante viene mirando la chapa llenarse y engancha justo aca. Si
+       la puerta es una pantalla en blanco pidiendo datos, se lee como
+       "empeza de nuevo". Con lo que ya sabemos al costado —peso, chapas,
+       ocupacion; el precio no— se lee como el ultimo campo antes del
+       numero. Los datos que se muestran no son el total: la puerta sigue
+       cerrada. */
     function paso2() {
       var f = falta(st);
-      return '' +
+      var t = calcTotal(st);
+
+      var vista = '';
+      if (t.peso > 0) {
+        vista += '<div class="cot-est cot-previo">' +
+          '<div class="cot-row"><span class="cot-k">Peso total</span>' +
+            '<span class="cot-v">' + kg(t.peso) + '</span></div>' +
+          (t.chapas
+            ? '<div class="cot-row"><span class="cot-k">Chapas</span>' +
+              '<span class="cot-v">' + t.chapas + '</span></div>'
+            : '') +
+        '</div>';
+      }
+      vista += bloqueNesting(t, true);
+
+      var form = '' +
       '<div class="mf-row"><label for="cot-nom">Nombre o empresa</label>' +
         '<input id="cot-nom" type="text" autocomplete="organization" value="' + esc(st.nombre) + '" /></div>' +
       '<div class="cot-grid">' +
@@ -702,6 +829,12 @@
       (st.tocado && f.length
         ? '<p class="cot-err" role="alert">Falta ' + f.join(', ') + '.</p>'
         : '');
+
+      if (!vista) return form;
+      return '<div class="cot-p1">' +
+        '<aside class="cot-p1-vista">' + vista + '</aside>' +
+        '<div class="cot-p1-form">' + form + '</div>' +
+      '</div>';
     }
 
     /* ---- Paso 3: el estimado ---- */
@@ -933,11 +1066,15 @@
         if (st.paso === 3) {
           var t = calcTotal(st);
           track(t.sinPrecio ? 'estimador_sin_precio' : 'estimador_total', { items: st.items.length });
+          /* Aca, y no en el boton de WhatsApp: el que ve el numero y se va
+             tambien es un lead. */
+          guardarConsulta(st, t);
         }
         pintar(); arriba();
       });
       on('[data-nav="wa"]', 'click', function () {
         track('estimador_whatsapp', { items: st.items.length });
+        marcarEnviado();
       });
     }
 
