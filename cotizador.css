@@ -145,6 +145,7 @@
   border-top: 1px solid var(--line); padding-top: 22px; }
 .cot-nesting-hd { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
 .cot-nesting-sel { min-width: 190px; }
+.cot-nesting-res { font-size: 11px; letter-spacing: .1em; color: var(--accent); margin-top: 5px; }
 .cot-nesting-nota { color: var(--faint); }
 
 .cot-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; }

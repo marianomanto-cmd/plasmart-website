@@ -523,6 +523,37 @@
       '</div>';
     }
 
+    /* ---- Como entra en la chapa ----
+       Va en el paso 1 (en vivo, mientras se cargan las piezas) y otra vez
+       en el estimado. Ver la ocupacion es lo que engancha: esconderlo
+       detras del pedido de datos era desperdiciarlo. */
+    function bloqueNesting(t) {
+      if (!t.nest || !t.nest.chapas) return '';
+      var chapaOpts = CHAPAS.map(function (c) {
+        return '<option value="' + c.key + '"' + (st.chapa === c.key ? ' selected' : '') + '>' + c.label + '</option>';
+      }).join('');
+      var prom = t.nest.aprovechamiento.reduce(function (a, v) { return a + v; }, 0) / t.nest.aprovechamiento.length;
+      var h = '<div class="cot-nesting">' +
+        '<div class="cot-nesting-hd">' +
+          '<div>' +
+            '<h3 class="cot-h3">Cómo entra en la chapa</h3>' +
+            '<p class="cot-nesting-res mono">' + t.nest.chapas + ' chapa' + (t.nest.chapas === 1 ? '' : 's') +
+              ' · ' + Math.round(prom) + '% de aprovechamiento</p>' +
+          '</div>' +
+          '<div class="mf-row cot-nesting-sel"><label for="cot-chapa">Chapa</label>' +
+            '<select id="cot-chapa" class="cot-select">' + chapaOpts + '</select></div>' +
+        '</div>' +
+        svgChapas(t, st.items) +
+        '<p class="cot-note cot-nesting-nota">Es una estimación: el nesting real anida las piezas ' +
+        'y suele aprovechar más. Se confirma con los planos antes de producir.</p>' +
+      '</div>';
+      if (t.nest.noEntra.length) {
+        h += '<div class="cot-warn"><b>Hay piezas que no entran en la chapa elegida.</b><br />' +
+             'Probá una chapa más grande o consultanos: puede ir en varias partes.</div>';
+      }
+      return h;
+    }
+
     /* ---- Paso 1: las piezas (acordeon) ---- */
     function paso1() {
       var h = '<div class="cot-items">';
@@ -531,6 +562,8 @@
 
       h += '<button type="button" class="cot-add" data-add="1">' +
              '<span aria-hidden="true">+</span> Agregar otra pieza</button>';
+
+      h += bloqueNesting(calcTotal(st));
 
       h += '<p class="cot-note">El plegado <b>no está incluido</b> en este estimado. ' +
            'Marcalo igual: viaja en la consulta y el vendedor lo suma cuando arme el presupuesto final.</p>';
@@ -701,27 +734,7 @@
         '</div>';
       });
 
-      /* Como se acomoda TODO el pedido en chapa. Va despues de los items
-         porque mezcla piezas de varios, no de uno solo. */
-      if (t.nest && t.nest.chapas) {
-        var chapaOpts = CHAPAS.map(function (c) {
-          return '<option value="' + c.key + '"' + (st.chapa === c.key ? ' selected' : '') + '>' + c.label + '</option>';
-        }).join('');
-        h += '<div class="cot-nesting">' +
-          '<div class="cot-nesting-hd">' +
-            '<h3 class="cot-h3">Cómo entra en la chapa</h3>' +
-            '<div class="mf-row cot-nesting-sel"><label for="cot-chapa">Chapa</label>' +
-              '<select id="cot-chapa" class="cot-select">' + chapaOpts + '</select></div>' +
-          '</div>' +
-          svgChapas(t, st.items) +
-          '<p class="cot-note cot-nesting-nota">Es una estimación: el nesting real anida las piezas ' +
-          'y suele aprovechar más. Se confirma con los planos antes de producir.</p>' +
-        '</div>';
-      }
-      if (t.nest && t.nest.noEntra.length) {
-        h += '<div class="cot-warn"><b>Hay piezas que no entran en la chapa elegida.</b><br />' +
-             'Probá una chapa más grande o consultanos: puede ir en varias partes.</div>';
-      }
+      h += bloqueNesting(t);
 
       if (t.revision) {
         return h + '<div class="cot-warn"><b>No te mostramos un precio porque hay un plano a revisar.</b><br />' +
@@ -793,11 +806,14 @@
       function todos(sel, ev, fn) { root.querySelectorAll(sel).forEach(function (el) { el.addEventListener(ev, fn); }); }
 
       /* Campos de item: se guardan sin repintar, para no perder el foco
-         mientras se escribe. El resumen del encabezado se actualiza al
-         cerrar la tarjeta o al cambiar de paso. */
+         mientras se escribe. Pero en el paso 1 la chapa se dibuja en vivo,
+         asi que se redibuja SOLO esa parte — repintar todo tiraria el foco
+         del input a mitad de un numero. */
       todos('[data-f]', 'input', function (e) {
         var it = itemPorId(parseInt(e.target.getAttribute('data-id'), 10));
-        if (it) it[e.target.getAttribute('data-f')] = e.target.value;
+        if (!it) return;
+        it[e.target.getAttribute('data-f')] = e.target.value;
+        if (st.paso === 1) redibujarChapa();
       });
       todos('select[data-f]', 'change', function (e) {
         var it = itemPorId(parseInt(e.target.getAttribute('data-id'), 10));
@@ -920,6 +936,43 @@
       on('[data-nav="wa"]', 'click', function () {
         track('estimador_whatsapp', { items: st.items.length });
       });
+    }
+
+    /* Redibuja solo el bloque de chapa, sin tocar el resto del DOM: asi el
+       input que se esta tipeando conserva el foco y el cursor. */
+    var redibujando = null;
+    function redibujarChapa() {
+      if (redibujando) clearTimeout(redibujando);
+      redibujando = setTimeout(function () {
+        redibujando = null;
+        var viejo = root.querySelector('.cot-nesting');
+        var html = bloqueNesting(calcTotal(st));
+        var cont = root.querySelector('.cot-body');
+        if (!cont) return;
+        if (viejo) {
+          var aviso = viejo.nextElementSibling;
+          if (aviso && aviso.classList.contains('cot-warn')) aviso.remove();
+          if (!html) { viejo.remove(); return; }
+          var tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          viejo.replaceWith.apply(viejo, Array.prototype.slice.call(tmp.childNodes));
+        } else if (html) {
+          /* No estaba (por ejemplo se paso de m² a medidas): va donde
+             corresponde, justo despues del boton de agregar. */
+          var add = root.querySelector('.cot-add');
+          if (!add) return;
+          var tmp2 = document.createElement('div');
+          tmp2.innerHTML = html;
+          var nodos = Array.prototype.slice.call(tmp2.childNodes);
+          nodos.reverse().forEach(function (n) { add.after(n); });
+        }
+        var sel = root.querySelector('#cot-chapa');
+        if (sel) sel.addEventListener('change', function (e) {
+          st.chapa = e.target.value;
+          track('estimador_chapa', { chapa: st.chapa });
+          pintar();
+        });
+      }, 220);
     }
 
     function arriba() {
