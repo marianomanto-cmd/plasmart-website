@@ -102,6 +102,70 @@
 .cot-warn ul { margin: 8px 0 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
 .cot-warn li { font-size: 13.5px; color: var(--text); }
 
+/* ---------- items del paso 1 (acordeon) ---------- */
+.cot-items { display: flex; flex-direction: column; gap: 10px; }
+.cot-item { border: 1px solid var(--line); border-radius: 6px; background: var(--bg-2); overflow: hidden; }
+.cot-item.abierto { border-color: var(--line-2); }
+.cot-item-hd { display: flex; align-items: stretch; }
+.cot-item-tog {
+  flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: flex-start;
+  border: 0; background: transparent; color: var(--text); cursor: pointer;
+  padding: 14px 16px; min-height: 56px; text-align: left; font-family: var(--display);
+}
+.cot-item-n { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.cot-item-res { font-size: 13.5px; font-weight: 300; color: var(--muted); }
+.cot-item.abierto .cot-item-res { color: var(--text); }
+.cot-item-del {
+  border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--faint);
+  cursor: pointer; width: 48px; font-size: 14px; transition: color .3s, background .3s;
+}
+.cot-item-del:hover { color: #ff8a9b; background: rgba(255,138,155,.06); }
+.cot-item-body {
+  display: flex; flex-direction: column; gap: 18px;
+  padding: 4px 16px 18px; border-top: 1px solid var(--line);
+}
+.cot-add {
+  display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
+  border: 1px dashed var(--line-2); border-radius: 100px; background: transparent;
+  color: var(--muted); cursor: pointer; padding: 0 22px; min-height: 46px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  transition: color .3s, border-color .3s;
+}
+.cot-add:hover { color: var(--text); border-color: var(--accent); }
+.cot-add span { font-size: 16px; line-height: 1; }
+
+/* ---------- resultado por item ---------- */
+.cot-res-item { border-top: 1px solid var(--line); padding-top: 16px; }
+.cot-res-hd { display: flex; flex-direction: column; gap: 3px; margin-bottom: 4px; }
+.cot-res-desc { font-size: 13.5px; font-weight: 300; color: var(--muted); }
+.cot-h3 { font-size: 15px; font-weight: 500; letter-spacing: 0; }
+
+/* ---------- nesting: como entra en la chapa ---------- */
+.cot-nesting { display: flex; flex-direction: column; gap: 16px; margin-top: 8px;
+  border-top: 1px solid var(--line); padding-top: 22px; }
+.cot-nesting-hd { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.cot-nesting-sel { min-width: 190px; }
+.cot-nesting-nota { color: var(--faint); }
+
+.cot-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.cot-legend-i {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted);
+}
+.cot-legend-i i { width: 11px; height: 11px; border-radius: 2px; flex: none; }
+
+.cot-chapas { display: flex; flex-direction: column; gap: 18px; }
+.cot-chapa { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.cot-chapa svg { width: 100%; height: auto; display: block; border-radius: 3px; }
+.cot-chapa-bg { fill: var(--panel); stroke: var(--line-2); stroke-width: 4; }
+.cot-chapa-datos {
+  display: flex; flex-wrap: wrap; gap: 6px 16px;
+  font-size: 11px; letter-spacing: .08em; color: var(--faint);
+}
+
+.cot-total { border-top: 1px solid var(--line-2); margin-top: 8px; }
+.cot-iva b { color: var(--text); }
+
 /* ---------- el estimado ---------- */
 .cot-est { border-top: 1px solid var(--line); }
 .cot-row {
@@ -135,11 +199,8 @@
 
 /* ---------- pagina standalone /cotizador/ ---------- */
 .cot-page { padding-block: clamp(110px, 16vh, 190px) clamp(70px, 10vh, 120px); }
-.cot-page-inner { max-width: 620px; }
+.cot-page-inner { max-width: 760px; }
 .cot-page .cot-title { font-size: clamp(38px, 7vw, 78px); }
-
-/* ---------- modal (usa .modal/.modal-card de v3.css) ---------- */
-.modal-card.cot-card { max-width: 620px; padding: clamp(26px, 4vw, 42px); }
 
 /* Vuelta al sitio desde el pie: en celular la lectura termina abajo, no
    arriba en el nav. */
