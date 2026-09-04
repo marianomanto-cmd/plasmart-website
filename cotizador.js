@@ -632,7 +632,13 @@
 
   /* 4.75 -> "4,75 mm". El herrero lee coma decimal, no punto. */
   function espTexto(e) {
-    return num(e).toLocaleString('es-AR', { maximumFractionDigits: 2 }) + ' mm';
+    return espNum(e) + ' mm';
+  }
+  /* Sin unidad, para las pills: son quince y repetir "mm" en cada una las
+     hacia el doble de anchas y las tiraba a tres filas. La unidad va una
+     sola vez, en la etiqueta del grupo. */
+  function espNum(e) {
+    return num(e).toLocaleString('es-AR', { maximumFractionDigits: 2 });
   }
 
   /* =========================================================
@@ -715,13 +721,14 @@
          nativos, y con el catalogo completo de OT una lista de pills se
          escanea mas rapido que un desplegable. */
       var esp = (tarifa && tarifa.espesores) || [1.2, 2, 3, 4.75, 6, 9.5];
-      h += grupo('Espesor',
-        '<div class="est-pills" role="radiogroup" aria-label="Espesor">' +
+      h += grupo('Espesor (mm)',
+        '<div class="est-pills est-pills-num" role="radiogroup" aria-label="Espesor en milímetros">' +
           esp.map(function (e) {
             var on = num(it.espesor) === e;
             return '<button type="button" class="est-pill' + (on ? ' on' : '') + '" role="radio" ' +
-              'aria-checked="' + on + '" data-f="espesor" data-v="' + e + '" data-id="' + it.id + '">' +
-              espTexto(e) + '</button>';
+              'aria-checked="' + on + '" aria-label="' + espTexto(e) + '" ' +
+              'data-f="espesor" data-v="' + e + '" data-id="' + it.id + '">' +
+              espNum(e) + '</button>';
           }).join('') +
         '</div>');
 

@@ -124,21 +124,24 @@
 .est-grupo { display: flex; flex-direction: column; gap: 12px; }
 
 /* ---------- pills ---------- */
-.est-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.est-pills { display: flex; flex-wrap: wrap; gap: 7px; }
 .est-pill {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 44px;  /* mínimo táctil */
-  font-family: var(--display); font-weight: 200; font-size: 17px;
+  min-height: 36px;
+  font-family: var(--display); font-weight: 200; font-size: 15px;
   color: var(--muted); background: transparent;
   border: 1px solid var(--line); border-radius: 100px;
-  padding: 8px 20px; cursor: pointer;
+  padding: 6px 14px; cursor: pointer;
   transition: color .3s var(--ease), border-color .3s var(--ease), background .3s var(--ease);
 }
+/* Los quince espesores, del mismo ancho: leídos en grilla se escanean de
+   un golpe en vez de fila por fila. */
+.est-pills-num .est-pill { min-width: 54px; padding: 6px 10px; }
 .est-pill:hover { border-color: var(--accent); color: var(--text); }
 .est-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 /* único relleno claro de la pantalla: marca el estado activo */
 .est-pill.on { background: var(--text); border-color: var(--text); color: var(--bg); }
-.est-pill-sm { font-size: 14px; padding: 8px 16px; }
+.est-pill-sm { font-size: 13px; padding: 6px 14px; }
 
 /* ---------- campos numéricos ---------- */
 .est-medidas { display: flex; flex-wrap: wrap; gap: 28px; }
@@ -314,7 +317,16 @@
 }
 
 /* ---------- página /cotizador/ ---------- */
-.cot-page { padding-block: clamp(110px, 15vh, 170px) clamp(60px, 9vh, 110px); }
+/* Más ancha que el resto del sitio a propósito: esta no es una página de
+   lectura, es una herramienta, y el ancho extra se lo lleva el nesting,
+   que con más lugar muestra más chapas sin scroll horizontal. El margen
+   lateral también se achica (56px contra los 80px del sitio) — el mismo
+   valor va en el nav para que el logo siga alineado con el contenido. */
+.cot-page, .cot-page-nav { --pad: clamp(20px, 3vw, 56px); }
+.cot-page {
+  max-width: 2000px;
+  padding-block: clamp(100px, 13vh, 150px) clamp(60px, 9vh, 110px);
+}
 .cot-page-inner { max-width: 100%; }
 
 .cot-volver { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
@@ -349,6 +361,13 @@
 }
 .cot-warn a { color: var(--text); border-bottom: 1px solid var(--accent); }
 
+/* En pantallas grandes el ancho de más se lo lleva el nesting, no el
+   formulario: una fila de carga más ancha no sirve de nada, una chapa más
+   a la vista sí. */
+@media (min-width: 1600px) {
+  .est { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+}
+
 /* ---------- una columna ----------
    El nesting NO se esconde: es el diferencial. Baja, no desaparece. */
 @media (max-width: 1024px) {
@@ -367,10 +386,6 @@
   .est-n { order: 1; }
   .est-sub { order: 1; margin-left: auto; }
   .est-edit { display: none; }
-  /* tres pills por fila en vez de dos: el catálogo completo de espesores
-     son once y en dos columnas ocupaba media pantalla */
-  .est-pill { padding: 8px 14px; font-size: 15px; }
-  .est-pill-sm { font-size: 13px; padding: 8px 13px; }
   .est-medidas { gap: 18px; }
   .est-campo input { width: 100%; font-size: 26px; }
   .est-campo { flex: 1 1 130px; }
@@ -398,6 +413,14 @@
      hace lo mismo pero con el estimado adentro. La salida para el que
      prefiere hablar sigue arriba, fija, en el nav. */
   .cot-page ~ .wa-float { display: none; }
+}
+
+/* ---------- mínimo táctil ----------
+   Con el dedo son 44px; con mouse no hace falta y las pills ocupaban tres
+   filas de alto para nada. Va al final del archivo a propósito: varias de
+   estas reglas declaran 40px más abajo y por orden le ganaban. */
+@media (pointer: coarse) {
+  .est-pill, .est-chip, .est-listo, .est-borrar, .cot-volver a { min-height: 44px; }
 }
 
 /* ---------- movimiento ---------- */
