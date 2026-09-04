@@ -188,6 +188,38 @@
     };
   }
 
+  /* Una chapa no mezcla espesores: el 3 mm y el 8 mm no comparten placa.
+     Es una restriccion fisica, no una preferencia, y hasta ahora el dibujo
+     la ignoraba: metia todo en la misma placa y mostraba menos chapas de
+     las que el pedido realmente necesita. Se anida cada espesor por
+     separado, del mas fino al mas grueso, y despues se juntan los
+     resultados. */
+  function nestPedido(entradas, chapa) {
+    var porEsp = {};
+    entradas.forEach(function (e) {
+      var k = String(e.espesor || 0);
+      if (!porEsp[k]) porEsp[k] = [];
+      porEsp[k].push(e);
+    });
+    var claves = Object.keys(porEsp).sort(function (a, b) { return Number(a) - Number(b); });
+
+    var out = { chapa: chapa, puestosPorChapa: [], chapas: 0,
+                aprovechamiento: [], espesores: [], noEntra: [] };
+    claves.forEach(function (k) {
+      var n = nestGrupo(porEsp[k], chapa);
+      n.puestosPorChapa.forEach(function (puestos, i) {
+        out.puestosPorChapa.push(puestos);
+        out.aprovechamiento.push(n.aprovechamiento[i]);
+        out.espesores.push(Number(k));
+      });
+      out.chapas += n.chapas;
+      n.noEntra.forEach(function (id) {
+        if (out.noEntra.indexOf(id) < 0) out.noEntra.push(id);
+      });
+    });
+    return out;
+  }
+
   /* ---------- estado ---------- */
   function nuevoItem() {
     return {
@@ -238,6 +270,7 @@
 
     var m = {
       id: it.id, cantidad: cant, areaPieza: areaPieza, peso: peso,
+      espesor: num(it.espesor),
       anchoP: anchoP, largoP: largoP, esM2: esM2,
       revision: revision, sinPrecio: sinPrecio
     };
@@ -275,10 +308,10 @@
     var entradas = [];
     ms.forEach(function (m, i) {
       if (!m.nesteable) return;
-      entradas.push({ id: m.id, color: COLORES[i % COLORES.length],
+      entradas.push({ id: m.id, color: COLORES[i % COLORES.length], espesor: m.espesor,
                       ancho: m.anchoP, largo: m.largoP, cantidad: m.cantidad });
     });
-    t.nest = entradas.length ? nestGrupo(entradas, chapaDe(st.chapa)) : null;
+    t.nest = entradas.length ? nestPedido(entradas, chapaDe(st.chapa)) : null;
     t.chapas = t.nest ? t.nest.chapas : 0;
     if (algunoSinPrecio) return t;
 
@@ -574,13 +607,15 @@
       });
       h += '<figure class="cot-chapa">' +
         '<svg viewBox="0 0 ' + ch.largo + ' ' + ch.ancho + '" preserveAspectRatio="xMidYMid meet" ' +
-          'role="img" aria-label="Chapa ' + (c + 1) + ' de ' + n.chapas + ', ' +
+          'role="img" aria-label="Chapa ' + (c + 1) + ' de ' + n.chapas +
+          (n.espesores && n.espesores[c] ? ', ' + n.espesores[c] + ' milimetros' : '') + ', ' +
           Math.round(n.aprovechamiento[c]) + ' por ciento ocupada">' +
           '<rect x="0" y="0" width="' + ch.largo + '" height="' + ch.ancho + '" class="cot-chapa-bg" />' +
           piezas +
         '</svg>' +
         '<figcaption class="cot-chapa-datos mono">' +
           '<span>Chapa ' + (c + 1) + '/' + n.chapas + '</span>' +
+          (n.espesores && n.espesores[c] ? '<span>' + esc(n.espesores[c]) + ' mm</span>' : '') +
           '<span>' + esc(ch.label) + '</span>' +
           '<span>' + Math.round(n.aprovechamiento[c]) + '% ocupado</span>' +
         '</figcaption>' +
