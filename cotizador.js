@@ -345,7 +345,7 @@
   function falta(st) {
     var f = [];
     if (!st.nombre.trim()) f.push('tu nombre');
-    if (!st.telefono.trim() && !st.email.trim()) f.push('un telefono o un email');
+    if (!st.telefono.trim() && !st.email.trim()) f.push('un teléfono o un email');
     if (!st.ciudad.trim()) f.push('la ciudad de entrega');
     return f;
   }
@@ -398,6 +398,15 @@
       var prom = t.nest.aprovechamiento.reduce(function (a, v) { return a + v; }, 0) / t.nest.aprovechamiento.length;
       L.push('Nesting estimado: ' + t.nest.chapas + ' chapa(s) de ' + t.nest.chapa.label +
              ' · ' + Math.round(prom) + '% de aprovechamiento promedio');
+      /* Desglose por espesor: es lo que el vendedor tiene que pedir a
+         compras, y una chapa no mezcla espesores. */
+      if (t.nest.espesores && t.nest.espesores.length) {
+        var porEsp = {};
+        t.nest.espesores.forEach(function (e) { porEsp[e] = (porEsp[e] || 0) + 1; });
+        var det = Object.keys(porEsp).sort(function (a, b) { return Number(a) - Number(b); })
+          .map(function (e) { return porEsp[e] + ' de ' + e + ' mm'; });
+        if (det.length > 1) L.push('Por espesor: ' + det.join(', '));
+      }
       if (t.nest.noEntra.length) L.push('OJO: hay piezas que no entran en esa chapa.');
     }
     if (t.revision) {
@@ -567,28 +576,21 @@
   }
 
   /* ---------- dibujo de las chapas ----------
-     Cada chapa a escala con las piezas donde el nesting las puso. Es la
-     misma salida que usa el calculo, asi que lo que se ve es lo que se
-     cuenta. Se dibujan hasta MAX_CHAPAS para no volar el DOM en pedidos
+     Cada chapa a escala, en vertical y en fila horizontal: asi entran
+     varias a la vez y se comparan de un vistazo. El empaquetador trabaja
+     con x sobre el largo e y sobre el ancho; al dibujar se intercambian
+     los ejes para que la placa quede parada como en el taller.
+     Es la misma salida que usa el calculo, asi que lo que se ve es lo que
+     se cuenta. Se dibujan hasta MAX_CHAPAS para no volar el DOM en pedidos
      grandes; el resto se resume en una linea. */
-  var MAX_CHAPAS = 4;
+  var MAX_CHAPAS = 6;
 
-  function svgChapas(t, items, compacto) {
+  function svgChapas(t) {
     if (!t.nest || !t.nest.chapas) return '';
     var n = t.nest, ch = n.chapa;
-    var h = '<div class="cot-chapas">';
+    var mostrar = Math.min(n.chapas, MAX_CHAPAS);
+    var h = '<div class="est-chapas" data-n="' + n.chapas + '">';
 
-    /* Referencia de colores: sin esto la chapa es un mosaico sin sentido. */
-    h += '<div class="cot-legend">';
-    items.forEach(function (it, i) {
-      var m = t.items[i];
-      if (!m.nesteable) return;
-      h += '<span class="cot-legend-i"><i style="background:' + COLORES[i % COLORES.length] + '"></i>' +
-           'Ítem ' + (i + 1) + '</span>';
-    });
-    h += '</div>';
-
-    var mostrar = compacto ? 1 : Math.min(n.chapas, MAX_CHAPAS);
     for (var c = 0; c < mostrar; c++) {
       var puestos = n.puestosPorChapa[c] || [];
       var piezas = '';
@@ -596,39 +598,54 @@
         var dib = 0;
         for (var r = 0; r < p.ny && dib < p.count; r++) {
           for (var k = 0; k < p.nx && dib < p.count; k++) {
-            var x = MARGEN_MM + p.x + k * (p.pw + SEPARACION_MM);
-            var y = MARGEN_MM + p.y + r * (p.ph + SEPARACION_MM);
-            piezas += '<rect x="' + x + '" y="' + y + '" width="' + p.pw + '" height="' + p.ph +
-                      '" fill="' + p.color + '" fill-opacity="0.32" stroke="' + p.color +
-                      '" stroke-width="4" />';
+            /* ejes intercambiados: la placa se dibuja parada */
+            var x = MARGEN_MM + p.y + r * (p.ph + SEPARACION_MM);
+            var y = MARGEN_MM + p.x + k * (p.pw + SEPARACION_MM);
+            piezas += '<rect x="' + x + '" y="' + y + '" width="' + p.ph + '" height="' + p.pw +
+                      '" fill="' + p.color + '" fill-opacity="0.22" stroke="' + p.color +
+                      '" stroke-width="5" />';
             dib++;
           }
         }
       });
-      h += '<figure class="cot-chapa">' +
-        '<svg viewBox="0 0 ' + ch.largo + ' ' + ch.ancho + '" preserveAspectRatio="xMidYMid meet" ' +
+      var esp = n.espesores && n.espesores[c];
+      h += '<figure class="est-chapa">' +
+        '<svg viewBox="0 0 ' + ch.ancho + ' ' + ch.largo + '" preserveAspectRatio="xMidYMid meet" ' +
           'role="img" aria-label="Chapa ' + (c + 1) + ' de ' + n.chapas +
-          (n.espesores && n.espesores[c] ? ', ' + n.espesores[c] + ' milimetros' : '') + ', ' +
+          (esp ? ', ' + esp + ' milimetros' : '') + ', ' +
           Math.round(n.aprovechamiento[c]) + ' por ciento ocupada">' +
-          '<rect x="0" y="0" width="' + ch.largo + '" height="' + ch.ancho + '" class="cot-chapa-bg" />' +
+          '<rect x="0" y="0" width="' + ch.ancho + '" height="' + ch.largo + '" class="est-chapa-bg" />' +
           piezas +
         '</svg>' +
-        '<figcaption class="cot-chapa-datos mono">' +
-          '<span>Chapa ' + (c + 1) + '/' + n.chapas + '</span>' +
-          (n.espesores && n.espesores[c] ? '<span>' + esc(n.espesores[c]) + ' mm</span>' : '') +
-          '<span>' + esc(ch.label) + '</span>' +
-          '<span>' + Math.round(n.aprovechamiento[c]) + '% ocupado</span>' +
+        '<figcaption class="est-chapa-pie mono">' +
+          'Chapa ' + String(c + 1).padStart(2, '0') + (esp ? ' · ' + espTexto(esp) : '') + '<br />' +
+          '<b>' + Math.round(n.aprovechamiento[c]) + '%</b> ocupado' +
         '</figcaption>' +
       '</figure>';
     }
     if (n.chapas > mostrar) {
-      h += '<p class="cot-hint mono">+ ' + (n.chapas - mostrar) + ' chapa(s) más con el mismo criterio.</p>';
+      h += '<p class="est-chapa-mas mono">+ ' + (n.chapas - mostrar) + '<br />chapa' +
+           (n.chapas - mostrar === 1 ? '' : 's') + '<br />más</p>';
     }
     return h + '</div>';
   }
 
+  /* 4.75 -> "4,75 mm". El herrero lee coma decimal, no punto. */
+  function espTexto(e) {
+    return num(e).toLocaleString('es-AR', { maximumFractionDigits: 2 }) + ' mm';
+  }
+
   /* =========================================================
      RENDER
+
+     Una sola pantalla. La lista de piezas ES la progresion: se abre una
+     fila, se edita en el lugar, se cierra. No hay pasos.
+
+     La puerta de datos sigue en pie — es regla comercial, no adorno: sin
+     nombre + (telefono o email) + ciudad el monto no se muestra y el
+     boton de WhatsApp no se habilita. Lo que si se ve desde el arranque
+     es el peso, las chapas y el dibujo: eso es lo que engancha y es lo
+     que se gana el dato de contacto.
      ========================================================= */
   function mount(root) {
     var st = nuevoEstado();
@@ -638,161 +655,147 @@
     function pintar() {
       var t = calcTotal(st);
       root.innerHTML =
-        head() +
-        '<div class="cot-body">' +
-          (st.paso === 1 ? paso1() : st.paso === 2 ? paso2() : paso3(t)) +
-        '</div>' +
-        pie(t);
+        '<div class="est">' +
+          '<span class="est-glow" aria-hidden="true"></span>' +
+          '<div class="est-col est-col-piezas">' + columnaPiezas(t) + '</div>' +
+          '<aside class="est-col est-col-nest">' + columnaNesting(t) + '</aside>' +
+        '</div>';
       wire();
     }
 
-    function head() {
-      var titulos = ['Tus piezas', 'Tus datos', 'Tu estimado'];
-      var subs = [
-        'Chapa negra, corte láser. Podés cargar varias.',
-        'Para poder pasarte el número.',
-        'Orientativo, para arrancar.'
-      ];
-      var bar = '';
-      for (var i = 1; i <= 3; i++) bar += '<span class="cot-dot' + (i <= st.paso ? ' on' : '') + '"></span>';
-      return '<div class="cot-head">' +
-        '<div class="cot-steps"><span class="mono">Paso ' + st.paso + '/3</span>' +
-        '<div class="cot-bar">' + bar + '</div></div>' +
-        '<h2 class="cot-title">' + titulos[st.paso - 1] + '</h2>' +
-        '<p class="cot-sub">' + subs[st.paso - 1] + '</p>' +
-      '</div>';
-    }
+    /* ---------------- columna izquierda ---------------- */
 
-    /* ---- Como entra en la chapa ----
-       Va en el paso 1 (en vivo, mientras se cargan las piezas) y otra vez
-       en el estimado. Ver la ocupacion es lo que engancha: esconderlo
-       detras del pedido de datos era desperdiciarlo. */
-    function bloqueNesting(t, compacto) {
-      if (!t.nest || !t.nest.chapas) return '';
-      var chapaOpts = CHAPAS.map(function (c) {
-        return '<option value="' + c.key + '"' + (st.chapa === c.key ? ' selected' : '') + '>' + c.label + '</option>';
-      }).join('');
-      var prom = t.nest.aprovechamiento.reduce(function (a, v) { return a + v; }, 0) / t.nest.aprovechamiento.length;
-      var h = '<div class="cot-nesting">' +
-        '<div class="cot-nesting-hd">' +
-          '<div>' +
-            '<h3 class="cot-h3">Cómo entra en la chapa</h3>' +
-            '<p class="cot-nesting-res mono">' + t.nest.chapas + ' chapa' + (t.nest.chapas === 1 ? '' : 's') +
-              ' · ' + Math.round(prom) + '% de aprovechamiento</p>' +
-          '</div>' +
-          '<div class="mf-row cot-nesting-sel"><label for="cot-chapa">Chapa</label>' +
-            '<select id="cot-chapa" class="cot-select">' + chapaOpts + '</select></div>' +
-        '</div>' +
-        svgChapas(t, st.items, compacto) +
-        '<p class="cot-note cot-nesting-nota">Es una estimación: el nesting real anida las piezas ' +
-        'y suele aprovechar más. Se confirma con los planos antes de producir.</p>' +
+    function columnaPiezas(t) {
+      var h = '<div class="est-hd">' +
+        '<span class="est-kicker mono"><i aria-hidden="true"></i>Corte láser · chapa negra</span>' +
+        '<h2 class="est-h1">Cargá tus piezas y mirá el <span>precio.</span></h2>' +
       '</div>';
-      if (t.nest.noEntra.length) {
-        h += '<div class="cot-warn"><b>Hay piezas que no entran en la chapa elegida.</b><br />' +
-             'Probá una chapa más grande o consultanos: puede ir en varias partes.</div>';
-      }
+
+      h += '<div class="est-lista">';
+      st.items.forEach(function (it, i) { h += fila(it, i, t); });
+      h += '<button type="button" class="est-fila est-fila-add" data-add="1">' +
+             '<span class="est-n mono" aria-hidden="true">+</span>' +
+             '<span class="est-desc">Agregar otra pieza</span>' +
+           '</button>';
+      h += '</div>';
+
+      h += datos(t);
+      h += total(t);
       return h;
     }
 
-    /* ---- Paso 1: las piezas (acordeon) ---- */
-    function paso1() {
-      /* Dos columnas en escritorio: el formulario a la izquierda y la chapa
-         a la derecha, fija, para verla llenarse mientras se cambian
-         cantidades y medidas sin tener que scrollear. En celular no hay
-         lado derecho: la chapa va arriba, pegada, y compacta. */
-      var f = st.tocado && faltaPiezas(st);
+    /* ---- una pieza: resumen o editor, nunca los dos ---- */
+    function fila(it, i, t) {
+      var m = t.items[i] || {};
+      var n = String(i + 1).padStart(2, '0');
+      if (st.abierto !== it.id) {
+        return '<button type="button" class="est-fila" data-abrir="' + it.id + '">' +
+          '<span class="est-n mono">' + n + '</span>' +
+          '<span class="est-desc">' + resumenItem(it) + '</span>' +
+          '<span class="est-sub mono">' + (m.revision ? 'a revisar' : m.subtotal ? money(m.subtotal) : '—') + '</span>' +
+          '<span class="est-edit mono" aria-hidden="true">editar ↗</span>' +
+        '</button>';
+      }
+      return '<div class="est-fila est-fila-ed" data-item="' + it.id + '">' +
+        '<span class="est-guia" aria-hidden="true"></span>' +
+        '<div class="est-ed">' + editor(it, n, m) + '</div>' +
+      '</div>';
+    }
 
-      var form = '<div class="cot-items">';
-      st.items.forEach(function (it, i) { form += tarjetaItem(it, i); });
-      form += '</div>';
-      form += '<button type="button" class="cot-add" data-add="1">' +
-                '<span aria-hidden="true">+</span> Agregar otra pieza</button>';
-      form += '<p class="cot-note">El plegado <b>no está incluido</b> en este estimado. ' +
-              'Marcalo igual: viaja en la consulta y el vendedor lo suma cuando arme el presupuesto final.</p>';
-      if (f) form += '<p class="cot-err" role="alert">En el ítem ' + (f.idx + 1) +
-                     ' falta ' + f.falta.join(' y ') + '.</p>';
-      form += '<p class="cot-note cot-note-alt">¿Inoxidable, aluminio u otro material? No los estimamos online porque ' +
-              'el precio varía mucho según disponibilidad. ' +
-              '<a href="/whatsapp/?src=cotizador-material" target="_blank" rel="noopener">Consultanos directo</a>.</p>';
+    function editor(it, n, m) {
+      var h = '<div class="est-ed-hd">' +
+        '<span class="mono est-ed-n">Ítem ' + n + '</span>' +
+        '<span class="mono est-ed-unit">' +
+          (m.revision ? 'sin precio hasta revisar el plano'
+            : m.subtotal ? money(m.subtotal / m.cantidad) + ' / u' : '') +
+        '</span>' +
+      '</div>';
 
-      return '<div class="cot-p1">' +
-        '<aside class="cot-p1-vista">' + bloqueNesting(calcTotal(st), true) + '</aside>' +
-        '<div class="cot-p1-form">' + form + '</div>' +
+      /* Espesor en pills. Nunca un <select>: el sistema no usa dropdowns
+         nativos, y con el catalogo completo de OT una lista de pills se
+         escanea mas rapido que un desplegable. */
+      var esp = (tarifa && tarifa.espesores) || [1.2, 2, 3, 4.75, 6, 9.5];
+      h += grupo('Espesor',
+        '<div class="est-pills" role="radiogroup" aria-label="Espesor">' +
+          esp.map(function (e) {
+            var on = num(it.espesor) === e;
+            return '<button type="button" class="est-pill' + (on ? ' on' : '') + '" role="radio" ' +
+              'aria-checked="' + on + '" data-f="espesor" data-v="' + e + '" data-id="' + it.id + '">' +
+              espTexto(e) + '</button>';
+          }).join('') +
+        '</div>');
+
+      h += grupo('Cómo lo das',
+        '<div class="est-pills" role="radiogroup" aria-label="Cómo das la medida">' +
+          [['medidas', 'Por medidas'], ['m2', 'Por m²'], ['dxf', 'Plano DXF']].map(function (o) {
+            var on = it.modo === o[0];
+            return '<button type="button" class="est-pill est-pill-sm' + (on ? ' on' : '') + '" role="radio" ' +
+              'aria-checked="' + on + '" data-modo="' + o[0] + '" data-id="' + it.id + '">' + o[1] + '</button>';
+          }).join('') +
+        '</div>');
+
+      if (it.modo === 'medidas') {
+        h += '<div class="est-medidas">' +
+          campo('an-' + it.id, 'Ancho (mm)', it.ancho, 'ancho', it.id) +
+          campo('la-' + it.id, 'Largo (mm)', it.largo, 'largo', it.id) +
+        '</div>';
+      } else if (it.modo === 'm2') {
+        h += '<div class="est-medidas">' +
+          campo('m2-' + it.id, 'Superficie por pieza (m²)', it.m2, 'm2', it.id, '0.01') +
+        '</div>';
+      } else {
+        h += bloqueDxf(it);
+      }
+
+      /* Cantidad con − / +: en celular un stepper de 44px se usa con el
+         pulgar; el spinner nativo de <input type=number> no. */
+      h += grupo('Cantidad',
+        '<div class="est-step">' +
+          '<button type="button" class="est-stepb" data-step="-1" data-id="' + it.id + '" aria-label="Quitar una unidad">−</button>' +
+          '<input id="cant-' + it.id + '" class="est-stepi" type="text" inputmode="numeric" ' +
+            'aria-label="Cantidad" data-f="cantidad" data-id="' + it.id + '" value="' + esc(it.cantidad) + '" />' +
+          '<button type="button" class="est-stepb" data-step="1" data-id="' + it.id + '" aria-label="Sumar una unidad">+</button>' +
+        '</div>');
+
+      h += '<div class="est-acciones">' +
+        '<button type="button" class="est-chip' + (it.plegado ? ' on' : '') + '" data-op="plegado" ' +
+          'data-id="' + it.id + '" aria-pressed="' + it.plegado + '">' +
+          (it.plegado ? '✓ Lleva plegado — lo suma el vendedor' : 'Lleva plegado') + '</button>' +
+        (it.plegado
+          ? '<div class="est-pliegues">' +
+              campo('pl-' + it.id, 'Pliegues', it.pliegues, 'pliegues', it.id, '1', true) +
+            '</div>'
+          : '') +
+        '<button type="button" class="est-listo mono" data-cerrar="1">Listo</button>' +
+        (st.items.length > 1
+          ? '<button type="button" class="est-borrar mono" data-del="' + it.id + '">Eliminar</button>'
+          : '') +
+      '</div>';
+
+      var f = st.tocado ? faltaItem(it) : [];
+      if (f.length) h += '<p class="est-err mono" role="alert">Falta ' + f.join(' y ') + '.</p>';
+      return h;
+    }
+
+    function grupo(label, contenido) {
+      return '<div class="est-grupo"><span class="est-lbl mono">' + label + '</span>' + contenido + '</div>';
+    }
+    function campo(id, label, valor, f, itemId, step, chico) {
+      return '<div class="est-campo' + (chico ? ' est-campo-sm' : '') + '">' +
+        '<label class="est-lbl mono" for="' + id + '">' + label + '</label>' +
+        '<input id="' + id + '" type="text" inputmode="' + (step === '0.01' ? 'decimal' : 'numeric') + '" ' +
+          'data-f="' + f + '" data-id="' + itemId + '" value="' + esc(valor) + '" />' +
       '</div>';
     }
 
     function resumenItem(it) {
-      var partes = [esc(it.espesor) + ' mm'];
+      var partes = [espTexto(it.espesor)];
       if (it.modo === 'm2') partes.push(mm(it.m2) + ' m²');
       else if (it.modo === 'dxf') partes.push(it.dxfNombre ? esc(it.dxfNombre) : 'plano sin cargar');
-      else partes.push(mm(it.ancho) + ' × ' + mm(it.largo) + ' mm');
-      partes.push(Math.max(1, Math.floor(num(it.cantidad)) || 1) + ' u');
-      if (it.plegado) partes.push('plegado');
-      return partes.join(' · ');
-    }
-
-    function tarjetaItem(it, i) {
-      var abierto = st.abierto === it.id;
-      var h = '<div class="cot-item' + (abierto ? ' abierto' : '') + '" data-item="' + it.id + '">' +
-        '<div class="cot-item-hd">' +
-          '<button type="button" class="cot-item-tog" data-toggle="' + it.id + '" aria-expanded="' + abierto + '">' +
-            '<span class="cot-item-n mono">Ítem ' + (i + 1) + '</span>' +
-            '<span class="cot-item-res">' + resumenItem(it) + '</span>' +
-          '</button>' +
-          (st.items.length > 1
-            ? '<button type="button" class="cot-item-del" data-del="' + it.id + '" ' +
-              'aria-label="Quitar ítem ' + (i + 1) + '">✕</button>'
-            : '') +
-        '</div>';
-
-      if (!abierto) return h + '</div>';
-
-      var esp = (tarifa && tarifa.espesores) || [1.2, 2, 3, 4.75, 6, 9.5];
-      var opts = esp.map(function (e) {
-        return '<option value="' + e + '"' + (num(it.espesor) === e ? ' selected' : '') + '>' + e + ' mm</option>';
-      }).join('');
-
-      h += '<div class="cot-item-body">' +
-        '<div class="cot-grid">' +
-          '<div class="mf-row"><label for="esp-' + it.id + '">Espesor</label>' +
-            '<select id="esp-' + it.id + '" class="cot-select" data-f="espesor" data-id="' + it.id + '">' + opts + '</select></div>' +
-          '<div class="mf-row"><label for="cant-' + it.id + '">Cantidad (u)</label>' +
-            '<input id="cant-' + it.id + '" type="number" inputmode="numeric" min="1" step="1" ' +
-            'data-f="cantidad" data-id="' + it.id + '" value="' + esc(it.cantidad) + '" /></div>' +
-        '</div>' +
-
-        '<div class="cot-seg" role="group" aria-label="Cómo das la medida">' +
-          '<button type="button" class="cot-segb' + (it.modo === 'medidas' ? ' on' : '') + '" data-modo="medidas" data-id="' + it.id + '">Por medidas</button>' +
-          '<button type="button" class="cot-segb' + (it.modo === 'm2' ? ' on' : '') + '" data-modo="m2" data-id="' + it.id + '">Por m²</button>' +
-          '<button type="button" class="cot-segb' + (it.modo === 'dxf' ? ' on' : '') + '" data-modo="dxf" data-id="' + it.id + '">Plano DXF</button>' +
-        '</div>' +
-
-        (it.modo === 'medidas'
-          ? '<div class="cot-grid">' +
-              '<div class="mf-row"><label for="an-' + it.id + '">Ancho (mm)</label>' +
-                '<input id="an-' + it.id + '" type="number" inputmode="numeric" min="1" ' +
-                'data-f="ancho" data-id="' + it.id + '" value="' + esc(it.ancho) + '" /></div>' +
-              '<div class="mf-row"><label for="la-' + it.id + '">Largo (mm)</label>' +
-                '<input id="la-' + it.id + '" type="number" inputmode="numeric" min="1" ' +
-                'data-f="largo" data-id="' + it.id + '" value="' + esc(it.largo) + '" /></div>' +
-            '</div>'
-          : it.modo === 'm2'
-          ? '<div class="mf-row"><label for="m2-' + it.id + '">Superficie por pieza (m²)</label>' +
-              '<input id="m2-' + it.id + '" type="number" inputmode="decimal" min="0.01" step="0.01" ' +
-              'data-f="m2" data-id="' + it.id + '" value="' + esc(it.m2) + '" /></div>'
-          : bloqueDxf(it)) +
-
-        '<div class="cot-ops">' +
-          '<button type="button" class="cot-chk' + (it.plegado ? ' on' : '') + '" data-op="plegado" data-id="' + it.id + '" aria-pressed="' + it.plegado + '">' +
-            '<span class="cot-box"></span>Lleva plegado</button>' +
-          (it.plegado
-            ? '<div class="mf-row cot-inline"><label for="pl-' + it.id + '">Pliegues</label>' +
-              '<input id="pl-' + it.id + '" type="number" inputmode="numeric" min="1" step="1" ' +
-              'data-f="pliegues" data-id="' + it.id + '" value="' + esc(it.pliegues) + '" /></div>'
-            : '') +
-        '</div>' +
-      '</div>';
-      return h + '</div>';
+      else partes.push(mm(it.ancho) + ' × ' + mm(it.largo));
+      var q = '<em>' + Math.max(1, Math.floor(num(it.cantidad)) || 1) + ' u</em>';
+      if (it.plegado) q += ' <em>· plegado</em>';
+      return partes.join(' · ') + ' · ' + q;
     }
 
     /* ---- Bloque DXF ----
@@ -800,227 +803,224 @@
        segundo caso el estimador ya no va a mostrar precio, y conviene
        decirlo aca y no al final. */
     function bloqueDxf(it) {
-      var h = '<div class="cot-file">' +
+      var h = '<div class="est-file">' +
         '<input id="dxf-' + it.id + '" type="file" accept=".dxf,application/dxf,image/vnd.dxf" data-dxf="' + it.id + '" />' +
-        '<label class="cot-filebtn" for="dxf-' + it.id + '">' +
-          '<span>' + (it.dxfNombre ? 'Elegir otro plano' : 'Elegir archivo DXF') + '</span>' +
-        '</label>' +
-        (it.dxfNombre ? '<span class="cot-filename mono">' + esc(it.dxfNombre) + '</span>' : '') +
+        '<label class="est-pill est-pill-sm" for="dxf-' + it.id + '">' +
+          (it.dxfNombre ? 'Elegir otro plano' : 'Elegir archivo DXF') + '</label>' +
+        (it.dxfNombre ? '<span class="est-filename mono">' + esc(it.dxfNombre) + '</span>' : '') +
       '</div>';
 
-      if (it.dxfLeyendo) return h + '<p class="cot-hint mono">Leyendo el plano…</p>';
+      if (it.dxfLeyendo) return h + '<p class="est-nota mono">Leyendo el plano…</p>';
 
       if (it.dxfOk) {
-        h += '<div class="cot-ok"><b>Leímos ' + mm(it.ancho) + ' × ' + mm(it.largo) + ' mm</b>' +
-             '<br />Si no coincide con tu pieza, cargala por medidas.</div>';
+        h += '<p class="est-ok mono"><b>Leímos ' + mm(it.ancho) + ' × ' + mm(it.largo) + ' mm.</b> ' +
+             'Si no coincide con tu pieza, cargala por medidas.</p>';
       } else if (it.dxfMotivos) {
-        h += '<div class="cot-warn"><b>No podemos estimar este plano con confianza.</b><ul>';
-        it.dxfMotivos.forEach(function (x) { h += '<li>' + esc(x) + '</li>'; });
-        h += '</ul>Podés seguir igual: mandamos la consulta con el plano marcado ' +
+        h += '<div class="est-warn"><b>No podemos estimar este plano con confianza.</b><ul>' +
+             it.dxfMotivos.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
+             '</ul>Podés seguir igual: la consulta viaja con el plano marcado ' +
              'para que un asesor lo revise y te pase el número.</div>';
       } else {
-        h += '<p class="cot-hint mono">DXF en milímetros, contornos cerrados, sin bloques.</p>';
+        h += '<p class="est-nota mono">DXF en milímetros, contornos cerrados, sin bloques.</p>';
       }
       return h;
     }
 
-    /* ---- Paso 2: lead gate ---- */
-    /* ---- Paso 2: la puerta ----
-       El visitante viene mirando la chapa llenarse y engancha justo aca. Si
-       la puerta es una pantalla en blanco pidiendo datos, se lee como
-       "empeza de nuevo". Con lo que ya sabemos al costado —peso, chapas,
-       ocupacion; el precio no— se lee como el ultimo campo antes del
-       numero. Los datos que se muestran no son el total: la puerta sigue
-       cerrada. */
-    function paso2() {
+    /* ---- la puerta ----
+       Regla comercial: sin nombre + (telefono o email) + ciudad no se
+       muestra el total ni se habilita WhatsApp. Va aca abajo, pegada al
+       numero, para que se lea como el ultimo campo del pedido y no como
+       un formulario aparte. */
+    function datos(t) {
       var f = falta(st);
-      var t = calcTotal(st);
-
-      var vista = '';
-      if (t.peso > 0) {
-        vista += '<div class="cot-est cot-previo">' +
-          '<div class="cot-row"><span class="cot-k">Peso total</span>' +
-            '<span class="cot-v">' + kg(t.peso) + '</span></div>' +
-          (t.chapas
-            ? '<div class="cot-row"><span class="cot-k">Chapas</span>' +
-              '<span class="cot-v">' + t.chapas + '</span></div>'
-            : '') +
-        '</div>';
-      }
-      vista += bloqueNesting(t, true);
-
-      var form = '' +
-      '<div class="mf-row"><label for="cot-nom">Nombre o empresa</label>' +
-        '<input id="cot-nom" type="text" autocomplete="organization" value="' + esc(st.nombre) + '" /></div>' +
-      '<div class="cot-grid">' +
-        '<div class="mf-row"><label for="cot-tel">Teléfono</label>' +
-          '<input id="cot-tel" type="tel" inputmode="tel" autocomplete="tel" value="' + esc(st.telefono) + '" /></div>' +
-        '<div class="mf-row"><label for="cot-mail">Email</label>' +
-          '<input id="cot-mail" type="email" inputmode="email" autocomplete="email" value="' + esc(st.email) + '" /></div>' +
-      '</div>' +
-      '<p class="cot-hint mono">Con uno de los dos alcanza.</p>' +
-      '<div class="mf-row"><label for="cot-ciu">Ciudad de entrega</label>' +
-        '<input id="cot-ciu" type="text" autocomplete="address-level2" value="' + esc(st.ciudad) + '" /></div>' +
-      (st.tocado && f.length
-        ? '<p class="cot-err" role="alert">Falta ' + f.join(', ') + '.</p>'
-        : '');
-
-      if (!vista) return form;
-      return '<div class="cot-p1">' +
-        '<aside class="cot-p1-vista">' + vista + '</aside>' +
-        '<div class="cot-p1-form">' + form + '</div>' +
+      var listo = !f.length;
+      return '<div class="est-datos' + (listo ? ' listo' : '') + '">' +
+        '<span class="est-lbl mono est-datos-lbl">' +
+          (listo ? '✓ Tus datos' : 'Tus datos — para mostrarte el número') + '</span>' +
+        '<div class="est-datos-campos">' +
+          '<div class="est-campo est-campo-ancho">' +
+            '<label class="est-lbl mono" for="cot-nom">Nombre o empresa</label>' +
+            '<input id="cot-nom" type="text" autocomplete="organization" data-d="nombre" value="' + esc(st.nombre) + '" /></div>' +
+          '<div class="est-campo">' +
+            '<label class="est-lbl mono" for="cot-tel">Teléfono</label>' +
+            '<input id="cot-tel" type="tel" inputmode="tel" autocomplete="tel" data-d="telefono" value="' + esc(st.telefono) + '" /></div>' +
+          '<div class="est-campo">' +
+            '<label class="est-lbl mono" for="cot-mail">Email</label>' +
+            '<input id="cot-mail" type="email" inputmode="email" autocomplete="email" data-d="email" value="' + esc(st.email) + '" /></div>' +
+          '<div class="est-campo est-campo-ancho">' +
+            '<label class="est-lbl mono" for="cot-ciu">Ciudad de entrega</label>' +
+            '<input id="cot-ciu" type="text" autocomplete="address-level2" data-d="ciudad" value="' + esc(st.ciudad) + '" /></div>' +
+        '</div>' +
+        '<p class="est-nota mono">Con el teléfono o el email alcanza. Es para que el vendedor pueda responderte.</p>' +
       '</div>';
     }
 
-    /* ---- Paso 3: el estimado ---- */
-    function paso3(t) {
-      function fila(k, v, nota, fuerte) {
-        return '<div class="cot-row' + (fuerte ? ' strong' : '') + '">' +
-          '<span class="cot-k">' + k + '</span>' +
-          '<span class="cot-v">' + v + '</span>' +
-          (nota ? '<span class="cot-n">' + nota + '</span>' : '') + '</div>';
-      }
+    /* ---- total y salida ---- */
+    function total(t) {
+      var f = falta(st);
+      var abierto = !f.length;
+      var piezas = st.items.length;
 
-      var h = '';
+      var meta = [piezas + ' ítem' + (piezas === 1 ? '' : 's')];
+      if (t.peso > 0) meta.push(kg(t.peso));
+      if (t.chapas) meta.push(t.chapas + ' chapa' + (t.chapas === 1 ? '' : 's'));
 
-      /* Un bloque por item: que se ve, cuanto pesa, como se acomoda. */
-      st.items.forEach(function (it, i) {
-        var m = t.items[i];
-        h += '<div class="cot-res-item">' +
-          '<div class="cot-res-hd">' +
-            '<span class="cot-item-n mono">Ítem ' + (i + 1) + '</span>' +
-            '<span class="cot-res-desc">' + esc(MATERIAL) + ' · ' + resumenItem(it) + '</span>' +
-          '</div>' +
-          '<div class="cot-est">' +
-            fila('Peso estimado', m.revision ? '—' : kg(m.peso)) +
-            (!t.sinPrecio && m.subtotal
-              ? fila('Subtotal', money(m.subtotal), m.minimoItem ? 'Se aplicó el mínimo por ítem.' : null)
-              : '') +
-          '</div>' +
-          (m.revision
-            ? '<div class="cot-warn"><b>Este plano necesita que lo revise un asesor.</b><ul>' +
-              (it.dxfMotivos || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
-              '</ul></div>'
-            : '') +
-        '</div>';
-      });
+      var h = '<div class="est-total">' +
+        '<span class="est-lbl mono est-total-lbl">Estimado orientativo · ' + meta.join(' · ') + '</span>';
 
-      h += bloqueNesting(t);
-
+      /* monto + boton juntos: en celular este bloque se despega y queda
+         fijo abajo, para que el numero y la salida esten siempre a mano */
+      var monto, avisos = '';
       if (t.revision) {
-        return h + '<div class="cot-warn"><b>No te mostramos un precio porque hay un plano a revisar.</b><br />' +
-          'Preferimos no darte un número que después no se sostenga. Mandá la consulta y te lo devolvemos revisado.</div>' +
-          canonica();
-      }
-
-      if (t.sinPrecio) {
-        return h + '<div class="cot-warn"><b>' + (t.peso > 0
+        monto = '<p class="est-monto est-monto-off">A revisar</p>';
+        avisos = '<div class="est-warn"><b>No te mostramos un precio porque hay un plano a revisar.</b><br />' +
+          'Preferimos no darte un número que después no se sostenga. Mandá la consulta y te lo devolvemos revisado.</div>';
+      } else if (t.sinPrecio) {
+        monto = '<p class="est-monto est-monto-off">' + (t.peso > 0 ? 'A cotizar' : '—') + '</p>';
+        avisos = '<div class="est-warn"><b>' + (t.peso > 0
             ? 'No podemos mostrarte un precio ahora mismo.'
             : 'Con estas medidas la pieza no tiene peso.') + '</b><br />' +
           (t.peso > 0
             ? 'Mandanos igual la consulta: ya lleva las piezas cargadas y un asesor te pasa el número.'
-            : 'Volvé al paso 1 y revisá el ancho, el largo o la superficie.') +
-          (t.peso > 0 && tarifaDiag
-            ? '<span class="cot-diag mono">' + esc(tarifaDiag) + '</span>' : '') +
-          '</div>' + canonica();
+            : 'Revisá el ancho, el largo o la superficie.') +
+          (t.peso > 0 && tarifaDiag ? '<span class="est-diag mono">' + esc(tarifaDiag) + '</span>' : '') +
+          '</div>';
+      } else if (!abierto) {
+        monto = '<p class="est-monto est-monto-off" aria-label="El precio se muestra al completar tus datos">' +
+            '$&nbsp;<span class="est-tapado">•••.•••</span></p>';
+        avisos = '<p class="est-abrir mono">Completá ' + f.join(', ') + ' y te mostramos el número.</p>';
+      } else {
+        monto = '<p class="est-monto">' + money(t.total) + '<span class="est-punto">.</span></p>';
+        if (t.minimoPedido) {
+          avisos = '<p class="est-nota mono">El pedido queda por debajo del mínimo: se aplicó el mínimo de ' +
+            money(t.minimoPedidoMonto) + '.</p>';
+        } else if (t.items.some(function (m) { return m.minimoItem; })) {
+          avisos = '<p class="est-nota mono">Hay ítems por debajo del mínimo por ítem: se aplicó el mínimo en esos.</p>';
+        }
       }
 
-      h += '<div class="cot-est cot-total">' +
-        fila('Peso total', kg(t.peso) + (t.chapas ? ' · ' + t.chapas + ' chapa' + (t.chapas === 1 ? '' : 's') : '')) +
-        (t.minimoPedido
-          ? fila('Mínimo de pedido', money(t.minimoPedidoMonto), 'El pedido queda por debajo del mínimo.')
-          : '') +
-        fila('Total', money(t.total), null, true) +
+      h += '<div class="est-accion">' + monto + cta(t, abierto) + '</div>' + avisos;
+
+      /* Letra chica. El orden importa: primero lo que cambia el numero
+         (IVA, plegado), despues la frase canonica. */
+      h += '<div class="est-legal">' +
+        '<p><b>IVA no incluido en el precio cotizado.</b> Se agrega al precio final luego de la consulta con el vendedor.</p>' +
+        (st.items.some(function (it) { return it.plegado; })
+          ? '<p>El plegado <b>no está incluido</b> en este estimado: viaja en la consulta y el vendedor lo suma al armar el presupuesto final.</p>'
+          : '<p>El plegado no está incluido · inoxidable y aluminio se cotizan a mano.</p>') +
+        '<p>' + canonica() + '</p>' +
       '</div>';
 
-      h += '<p class="cot-note cot-iva"><b>IVA no incluido en el precio cotizado.</b> ' +
-           'Se agrega al precio final luego de la consulta con el vendedor.</p>';
+      return h + '</div>';
+    }
 
-      if (st.items.some(function (it) { return it.plegado; })) {
-        h += '<p class="cot-note">Este total <b>no incluye el plegado</b>. ' +
-             'El vendedor lo suma al armar el presupuesto final.</p>';
+    function cta(t, abierto) {
+      var ico = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="est-wa">' +
+        '<path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zM6.597 20.13c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.042z"/></svg>';
+      if (!abierto) {
+        return '<button type="button" class="btn btn-solid est-cta" data-cta="1">' +
+          ico + '<span>Mandar al vendedor</span><span class="fill"></span></button>';
       }
-
-      return h + canonica();
+      var href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(waMessage(st, t));
+      return '<a class="btn btn-solid est-cta" href="' + href + '" target="_blank" rel="noopener" data-nav="wa">' +
+        ico + '<span>Mandar al vendedor</span><span class="fill"></span></a>';
     }
 
     function canonica() {
-      return '<p class="cot-legal">Precio orientativo. No es un presupuesto cerrado. Se confirma con plano, ' +
-        'nesting real y disponibilidad. Puede variar según forma, calados, piercing y aprovechamiento de chapa.</p>';
+      return 'Precio orientativo. No es un presupuesto cerrado. Se confirma con plano, ' +
+        'nesting real y disponibilidad. Puede variar según forma, calados, piercing y aprovechamiento de chapa.';
     }
 
-    /* ---- pie con navegacion ---- */
-    function pie(t) {
-      if (st.paso < 3) {
-        return '<div class="cot-foot">' +
-          (st.paso > 1 ? '<button type="button" class="cot-back mono" data-nav="atras">← Atrás</button>' : '<span></span>') +
-          '<button type="button" class="btn btn-solid" data-nav="seguir"><span>' +
-          (st.paso === 2 ? 'Ver mi estimado' : 'Seguir') +
-          '</span><span class="fill"></span></button>' +
-        '</div>';
+    /* ---------------- columna derecha: el nesting ---------------- */
+
+    function columnaNesting(t) {
+      var res = '—';
+      if (t.nest && t.nest.chapas) {
+        var prom = t.nest.aprovechamiento.reduce(function (a, v) { return a + v; }, 0) /
+                   t.nest.aprovechamiento.length;
+        res = t.nest.chapas + ' chapa' + (t.nest.chapas === 1 ? '' : 's') + ' · ' + Math.round(prom) + '% ocupado';
       }
-      var href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(waMessage(st, t));
-      return '<div class="cot-foot">' +
-        '<button type="button" class="cot-back mono" data-nav="atras">← Atrás</button>' +
-        '<a class="btn btn-solid" href="' + href + '" target="_blank" rel="noopener" data-nav="wa">' +
-        '<span>Enviar al vendedor</span><span class="fill"></span></a>' +
+
+      /* Envuelto para poder pegarlo: en escritorio el panel sigue a la
+         vista mientras se scrollea la lista de piezas, que es larga. */
+      var h = '<div class="est-nest-in">' +
+        '<div class="est-nest-hd">' +
+          '<span class="est-lbl mono">Nesting</span>' +
+          '<span class="est-nest-res mono">' + res + '</span>' +
+        '</div>';
+
+      if (t.nest && t.nest.chapas) {
+        h += svgChapas(t);
+        h += leyenda(t);
+      } else {
+        h += '<p class="est-nest-vacio mono">Cargá medidas y cantidad y acá vas a ver ' +
+             'cómo entran tus piezas en la chapa.</p>';
+      }
+
+      if (t.nest && t.nest.noEntra.length) {
+        h += '<div class="est-warn"><b>Hay piezas que no entran en la chapa elegida.</b><br />' +
+             'Probá una chapa más grande o consultanos: puede ir en varias partes.</div>';
+      }
+
+      h += '<div class="est-nest-pie">' +
+        '<span class="est-lbl mono">Chapa</span>' +
+        '<div class="est-pills" role="radiogroup" aria-label="Medida de chapa">' +
+          CHAPAS.map(function (c) {
+            var on = st.chapa === c.key;
+            return '<button type="button" class="est-pill est-pill-sm' + (on ? ' on' : '') + '" ' +
+              'role="radio" aria-checked="' + on + '" data-chapa="' + c.key + '">' + c.label + '</button>';
+          }).join('') +
+        '</div>' +
       '</div>';
+
+      h += '<p class="est-nest-nota mono">' +
+        'Una chapa por espesor: el 3 mm y el 8 mm no comparten placa.<br />' +
+        'Estimación de anidado — el taller optimiza y suele entrar más.' +
+      '</p>';
+      return h + '</div>';
     }
 
-    /* ---- eventos ---- */
+    function leyenda(t) {
+      var chips = [];
+      st.items.forEach(function (it, i) {
+        var m = t.items[i];
+        if (!m || !m.nesteable) return;
+        chips.push('<span class="est-leg-i mono"><i style="background:' + COLORES[i % COLORES.length] + '"></i>' +
+                   String(i + 1).padStart(2, '0') + '</span>');
+      });
+      if (chips.length < 2) return '';
+      return '<div class="est-leg">' + chips.join('') + '</div>';
+    }
+
+    /* ---------------- eventos ---------------- */
+
     function itemPorId(id) {
       for (var i = 0; i < st.items.length; i++) if (st.items[i].id === id) return st.items[i];
       return null;
     }
+
     function wire() {
       function on(sel, ev, fn) { var el = root.querySelector(sel); if (el) el.addEventListener(ev, fn); }
       function todos(sel, ev, fn) { root.querySelectorAll(sel).forEach(function (el) { el.addEventListener(ev, fn); }); }
 
-      /* Campos de item: se guardan sin repintar, para no perder el foco
-         mientras se escribe. Pero en el paso 1 la chapa se dibuja en vivo,
-         asi que se redibuja SOLO esa parte — repintar todo tiraria el foco
-         del input a mitad de un numero. */
-      todos('[data-f]', 'input', function (e) {
+      /* Campos de item: se guardan sin repintar todo, para no perder el
+         foco a mitad de un numero. Solo se redibuja lo que depende del
+         valor: la chapa, el resumen de la fila y el monto. */
+      todos('input[data-f]', 'input', function (e) {
         var it = itemPorId(parseInt(e.target.getAttribute('data-id'), 10));
         if (!it) return;
         it[e.target.getAttribute('data-f')] = e.target.value;
-        if (st.paso === 1) redibujarChapa();
+        refrescar();
       });
-      todos('select[data-f]', 'change', function (e) {
-        var it = itemPorId(parseInt(e.target.getAttribute('data-id'), 10));
+
+      /* Pills de espesor y de modo */
+      todos('[data-f="espesor"]', 'click', function (e) {
+        var b = e.currentTarget;
+        var it = itemPorId(parseInt(b.getAttribute('data-id'), 10));
         if (!it) return;
-        it[e.target.getAttribute('data-f')] = e.target.value;
-        if (e.target.getAttribute('data-f') === 'chapa') pintar();
-      });
-
-      /* Datos de contacto */
-      [['#cot-nom', 'nombre'], ['#cot-tel', 'telefono'], ['#cot-mail', 'email'], ['#cot-ciu', 'ciudad']]
-        .forEach(function (p) {
-          on(p[0], 'input', function (e) { st[p[1]] = e.target.value; });
-        });
-
-      todos('[data-toggle]', 'click', function (e) {
-        var id = parseInt(e.currentTarget.getAttribute('data-toggle'), 10);
-        st.abierto = (st.abierto === id) ? null : id;
+        it.espesor = num(b.getAttribute('data-v'));
         pintar();
       });
-      todos('[data-del]', 'click', function (e) {
-        var id = parseInt(e.currentTarget.getAttribute('data-del'), 10);
-        st.items = st.items.filter(function (x) { return x.id !== id; });
-        if (st.abierto === id) st.abierto = st.items.length ? st.items[0].id : null;
-        pintar();
-      });
-      on('[data-add]', 'click', function () {
-        var it = nuevoItem();
-        st.items.push(it);
-        st.abierto = it.id;
-        st.tocado = false;
-        track('estimador_item_agregado', { items: st.items.length });
-        pintar();
-        var nuevo = root.querySelector('.cot-item.abierto');
-        if (nuevo && nuevo.scrollIntoView) nuevo.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
-
       todos('[data-modo]', 'click', function (e) {
         var b = e.currentTarget;
         var it = itemPorId(parseInt(b.getAttribute('data-id'), 10));
@@ -1036,6 +1036,56 @@
           return;
         }
         it.modo = modo; pintar();
+      });
+
+      /* Stepper de cantidad */
+      todos('[data-step]', 'click', function (e) {
+        var b = e.currentTarget;
+        var it = itemPorId(parseInt(b.getAttribute('data-id'), 10));
+        if (!it) return;
+        var v = Math.max(1, Math.floor(num(it.cantidad)) || 1) + parseInt(b.getAttribute('data-step'), 10);
+        it.cantidad = Math.min(500, Math.max(1, v));
+        var campo = root.querySelector('#cant-' + it.id);
+        if (campo) campo.value = it.cantidad;
+        refrescar();
+      });
+
+      /* Abrir / cerrar la fila. Una sola abierta a la vez. */
+      todos('[data-abrir]', 'click', function (e) {
+        var id = parseInt(e.currentTarget.getAttribute('data-abrir'), 10);
+        var f = faltaPiezas(st);
+        if (f && st.items[f.idx].id !== id) { st.tocado = true; }
+        st.abierto = id;
+        pintar();
+      });
+      todos('[data-cerrar]', 'click', function () {
+        var f = faltaPiezas(st);
+        if (f) { st.tocado = true; st.abierto = st.items[f.idx].id; pintar(); return; }
+        st.abierto = null; st.tocado = false; pintar();
+      });
+      todos('[data-del]', 'click', function (e) {
+        var id = parseInt(e.currentTarget.getAttribute('data-del'), 10);
+        st.items = st.items.filter(function (x) { return x.id !== id; });
+        if (st.abierto === id) st.abierto = null;
+        pintar();
+      });
+      on('[data-add]', 'click', function () {
+        var it = nuevoItem();
+        st.items.push(it);
+        st.abierto = it.id;
+        st.tocado = false;
+        track('estimador_item_agregado', { items: st.items.length });
+        pintar();
+        var nuevo = root.querySelector('.est-fila-ed');
+        if (nuevo && nuevo.scrollIntoView) nuevo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      todos('[data-op]', 'click', function (e) {
+        var b = e.currentTarget;
+        var it = itemPorId(parseInt(b.getAttribute('data-id'), 10));
+        if (!it) return;
+        it[b.getAttribute('data-op')] = !it[b.getAttribute('data-op')];
+        pintar();
       });
 
       /* Lectura del plano: pase lo que pase, el resultado se guarda en el
@@ -1072,68 +1122,114 @@
         fr.readAsText(file);
       });
 
-      todos('[data-op]', 'click', function (e) {
-        var b = e.currentTarget;
-        var it = itemPorId(parseInt(b.getAttribute('data-id'), 10));
-        if (!it) return;
-        var k = b.getAttribute('data-op');
-        it[k] = !it[k];
-        pintar();
-      });
-
-      on('#cot-chapa', 'change', function (e) {
-        st.chapa = e.target.value;
+      todos('[data-chapa]', 'click', function (e) {
+        st.chapa = e.currentTarget.getAttribute('data-chapa');
         track('estimador_chapa', { chapa: st.chapa });
         pintar();
       });
 
-      on('[data-nav="atras"]', 'click', function () {
-        st.paso--; st.tocado = false; pintar(); arriba();
-      });
-      on('[data-nav="seguir"]', 'click', function () {
-        if (st.paso === 1) {
-          var f = faltaPiezas(st);
-          if (f) { st.tocado = true; st.abierto = st.items[f.idx].id; pintar(); return; }
+      /* Datos de contacto: al completarse la puerta hay que repintar para
+         destapar el monto y habilitar el boton, pero repintar en cada
+         tecla tira el foco. Se repinta solo cuando cambia el estado de la
+         puerta (cerrada -> abierta o al reves). */
+      todos('input[data-d]', 'input', function (e) {
+        var antes = !falta(st).length;
+        st[e.target.getAttribute('data-d')] = e.target.value;
+        var ahora = !falta(st).length;
+        if (antes !== ahora) {
+          var id = e.target.id, pos = e.target.selectionStart;
+          pintar();
+          var vuelto = root.querySelector('#' + id);
+          if (vuelto) {
+            vuelto.focus();
+            try { vuelto.setSelectionRange(pos, pos); } catch (err) {}
+          }
+          if (ahora) {
+            track('estimador_total', { items: st.items.length });
+            guardarConsulta(st, calcTotal(st));
+          }
+        } else {
+          refrescar();
         }
-        if (st.paso === 2 && falta(st).length) { st.tocado = true; pintar(); return; }
-        st.paso++;
-        if (st.paso === 2) track('estimador_lead_form', { items: st.items.length });
-        if (st.paso === 3) {
-          var t = calcTotal(st);
-          track(t.sinPrecio ? 'estimador_sin_precio' : 'estimador_total', { items: st.items.length });
-          /* Aca, y no en el boton de WhatsApp: el que ve el numero y se va
-             tambien es un lead. */
-          guardarConsulta(st, t);
-        }
-        pintar(); arriba();
       });
+
+      /* Boton apagado: en vez de no hacer nada, lleva a lo que falta. */
+      on('[data-cta]', 'click', function () {
+        var el = root.querySelector('.est-datos input');
+        if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        var caja = root.querySelector('.est-datos');
+        if (caja) { caja.classList.remove('pide'); void caja.offsetWidth; caja.classList.add('pide'); }
+      });
+
       on('[data-nav="wa"]', 'click', function () {
         track('estimador_whatsapp', { items: st.items.length });
+        guardarConsulta(st, calcTotal(st));
         marcarEnviado();
       });
     }
 
-    /* Redibuja solo el panel de la chapa, sin tocar el resto del DOM: asi el
-       input que se esta tipeando conserva el foco y el cursor. */
-    var redibujando = null;
-    function redibujarChapa() {
-      if (redibujando) clearTimeout(redibujando);
-      redibujando = setTimeout(function () {
-        redibujando = null;
-        var panel = root.querySelector('.cot-p1-vista');
-        if (!panel) return;
-        panel.innerHTML = bloqueNesting(calcTotal(st), true);
-        var sel = panel.querySelector('#cot-chapa');
-        if (sel) sel.addEventListener('change', function (e) {
-          st.chapa = e.target.value;
-          track('estimador_chapa', { chapa: st.chapa });
-          pintar();
-        });
-      }, 200);
-    }
+    /* Repinta lo que depende de los numeros sin tocar los campos que se
+       estan tipeando: el dibujo de la chapa, el resumen de cada fila
+       cerrada y el bloque del total. */
+    var pendiente = null;
+    function refrescar() {
+      if (pendiente) clearTimeout(pendiente);
+      pendiente = setTimeout(function () {
+        pendiente = null;
+        var t = calcTotal(st);
 
-    function arriba() {
-      if (root.scrollIntoView) root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var nest = root.querySelector('.est-col-nest');
+        if (nest) {
+          nest.innerHTML = columnaNesting(t);
+          nest.querySelectorAll('[data-chapa]').forEach(function (b) {
+            b.addEventListener('click', function () {
+              st.chapa = b.getAttribute('data-chapa');
+              track('estimador_chapa', { chapa: st.chapa });
+              pintar();
+            });
+          });
+        }
+
+        var viejo = root.querySelector('.est-total');
+        if (viejo) {
+          var tmp = document.createElement('div');
+          tmp.innerHTML = total(t);
+          viejo.replaceWith(tmp.firstChild);
+          var cta = root.querySelector('[data-cta]');
+          if (cta) cta.addEventListener('click', function () {
+            var el = root.querySelector('.est-datos input');
+            if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+          });
+          var wa = root.querySelector('[data-nav="wa"]');
+          if (wa) wa.addEventListener('click', function () {
+            track('estimador_whatsapp', { items: st.items.length });
+            guardarConsulta(st, calcTotal(st));
+            marcarEnviado();
+          });
+        }
+
+        /* el resumen de las filas cerradas tambien cambia */
+        st.items.forEach(function (it, i) {
+          if (st.abierto === it.id) return;
+          var b = root.querySelector('[data-abrir="' + it.id + '"]');
+          if (!b) return;
+          var m = t.items[i] || {};
+          var d = b.querySelector('.est-desc');
+          var s = b.querySelector('.est-sub');
+          if (d) d.innerHTML = resumenItem(it);
+          if (s) s.textContent = m.revision ? 'a revisar' : m.subtotal ? money(m.subtotal) : '—';
+        });
+
+        /* y el precio unitario del item abierto */
+        var abierto = st.items.filter(function (x) { return x.id === st.abierto; })[0];
+        if (abierto) {
+          var idx = st.items.indexOf(abierto);
+          var m2 = t.items[idx] || {};
+          var u = root.querySelector('.est-ed-unit');
+          if (u) u.textContent = m2.revision ? 'sin precio hasta revisar el plano'
+            : m2.subtotal ? money(m2.subtotal / m2.cantidad) + ' / u' : '';
+        }
+      }, 90);
     }
   }
 

@@ -1,351 +1,322 @@
 /* ============================================================
-   PLASMART — Estimador (modo rapido)
-   Usa los tokens de v3.css. No define colores ni tipografias
-   propias: hereda --bg/--text/--accent/--display/--mono/--ease.
-   Reusa .mf-row (inputs), .btn/.btn-solid y .modal-* del sitio.
+   PLASMART — Estimador de corte láser
+
+   Una sola pantalla: a la izquierda la lista de piezas editable en
+   línea, a la derecha el nesting, abajo el total y la salida.
+
+   Sin cajas grises: la estructura son hairlines y grilla, como el resto
+   del sitio. Sin controles nativos a la vista: ni select, ni checkbox,
+   ni spinner de number. Sin sombras: el único glow es indigo.
+
+   Todo sale de los tokens de v3.css. No hay un color ni una tipografía
+   propia de este archivo.
    ============================================================ */
 
-/* ---------- cabecera del wizard ---------- */
-.cot-head { border-bottom: 1px solid var(--line); padding-bottom: 18px; margin-bottom: 26px; }
-.cot-steps { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-.cot-bar { display: flex; gap: 6px; }
-.cot-dot { width: 26px; height: 2px; background: var(--line-2); border-radius: 2px; transition: background .35s var(--ease); }
-.cot-dot.on { background: var(--accent); box-shadow: 0 0 8px var(--accent-soft); }
-.cot-title { font-size: clamp(30px, 4.4vw, 52px); font-weight: 200; letter-spacing: -.03em; line-height: 1.02; }
-.cot-sub { color: var(--muted); font-size: 15px; font-weight: 300; margin-top: 8px; }
+/* ---------- contenedor ---------- */
+.est {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  /* clip y no hidden: "hidden" convierte al contenedor en un scroller y le
+     rompe el position:sticky al panel de nesting. "clip" recorta igual sin
+     crear contexto de scroll. */
+  overflow: clip;
+  background: var(--bg);
+}
+/* wash indigo de fondo: da profundidad sin una sola sombra.
+   Con su propio radio, por si el navegador no soporta overflow:clip. */
+.est-glow {
+  position: absolute; inset: 0; pointer-events: none; border-radius: 4px;
+  background: radial-gradient(120% 70% at 30% -10%, rgba(110, 123, 255, .10), transparent 60%);
+}
+.est-col { position: relative; display: flex; flex-direction: column; min-width: 0; }
+.est-col-piezas { padding: clamp(28px, 3vw, 52px); gap: clamp(22px, 2.6vh, 34px); }
+.est-col-nest {
+  border-left: 1px solid var(--line);
+  background: var(--bg-2);
+}
+/* El panel se pega mientras se scrollea la lista de piezas: verlo llenarse
+   al cambiar cantidades y medidas es lo que engancha, y la columna
+   izquierda es larga. El padding vive acá adentro para que el fondo y la
+   línea de la columna sigan llegando hasta abajo. */
+.est-nest-in {
+  position: sticky; top: 104px;
+  display: flex; flex-direction: column; gap: 22px;
+  padding: clamp(24px, 2.6vw, 40px);
+}
 
-/* ---------- cuerpo ---------- */
-.cot-body { display: flex; flex-direction: column; gap: 20px; }
-.cot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.cot-load { padding: 40px 0; color: var(--muted); }
+.cot-load { padding: 60px 0; color: var(--muted); }
 
-/* select con el mismo trazo que los inputs de .mf-row */
-.cot-select {
+/* ---------- encabezado ---------- */
+.est-hd { display: flex; flex-direction: column; gap: 12px; }
+.est-kicker {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--muted);
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.est-kicker i {
+  width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: var(--accent); box-shadow: 0 0 10px var(--accent);
+}
+.est-h1 {
+  font-weight: 200; font-size: clamp(34px, 3.6vw, 56px);
+  line-height: .94; letter-spacing: -.045em; margin: 0; max-width: 16ch;
+}
+.est-h1 span { color: var(--accent); }
+
+/* ---------- etiquetas mono ---------- */
+.est-lbl {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--muted); display: block;
+}
+
+/* ---------- lista de piezas ---------- */
+.est-lista { display: flex; flex-direction: column; }
+
+/* La fila colapsada es un botón: se abre con click, Enter o Espacio. */
+.est-fila {
+  display: flex; align-items: center; gap: 18px; width: 100%;
+  padding: 20px 0; text-align: left; cursor: pointer;
+  background: transparent; border: 0; border-top: 1px solid var(--line);
+  color: var(--text); font-family: var(--display);
+  transition: padding-left .4s var(--ease);
+}
+.est-lista > .est-fila:last-child { border-bottom: 1px solid var(--line); }
+.est-fila:hover { padding-left: 14px; }
+.est-fila:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+.est-n {
+  font-family: var(--mono); font-size: 12px; color: var(--faint);
+  width: 26px; flex: none;
+}
+.est-desc {
+  flex: 1; min-width: 0; font-weight: 200;
+  font-size: clamp(19px, 1.6vw, 26px); letter-spacing: -.02em; line-height: 1.15;
+}
+.est-desc em { font-style: normal; color: var(--muted); }
+.est-sub {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); white-space: nowrap;
+}
+.est-edit { font-family: var(--mono); font-size: 10px; color: var(--faint); white-space: nowrap; }
+
+.est-fila-add { color: var(--faint); }
+.est-fila-add .est-desc { color: var(--faint); }
+.est-fila-add:hover { color: var(--text); }
+.est-fila-add:hover .est-desc { color: var(--text); }
+
+/* ---------- fila en edición ---------- */
+.est-fila-ed { position: relative; padding: 22px 0 26px; border-top: 1px solid var(--line); }
+.est-guia {
+  position: absolute; left: -1px; top: 22px; bottom: 26px; width: 1px;
+  background: var(--accent); box-shadow: 0 0 8px var(--accent-soft);
+}
+.est-ed { padding-left: 14px; display: flex; flex-direction: column; gap: 22px; }
+.est-ed-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.est-ed-n {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent);
+}
+.est-ed-unit { font-family: var(--mono); font-size: 10px; color: var(--faint); text-align: right; }
+
+.est-grupo { display: flex; flex-direction: column; gap: 12px; }
+
+/* ---------- pills ---------- */
+.est-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.est-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px;  /* mínimo táctil */
+  font-family: var(--display); font-weight: 200; font-size: 17px;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--line); border-radius: 100px;
+  padding: 8px 20px; cursor: pointer;
+  transition: color .3s var(--ease), border-color .3s var(--ease), background .3s var(--ease);
+}
+.est-pill:hover { border-color: var(--accent); color: var(--text); }
+.est-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* único relleno claro de la pantalla: marca el estado activo */
+.est-pill.on { background: var(--text); border-color: var(--text); color: var(--bg); }
+.est-pill-sm { font-size: 14px; padding: 8px 16px; }
+
+/* ---------- campos numéricos ---------- */
+.est-medidas { display: flex; flex-wrap: wrap; gap: 28px; }
+.est-campo { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.est-campo input {
+  width: 130px; max-width: 100%; min-height: 44px;
   background: transparent; border: 0; border-bottom: 1px solid var(--line-2);
-  color: var(--text); font-family: var(--display); font-size: 16px; font-weight: 300;
-  padding: 9px 2px; transition: border-color .3s; appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-                    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: right 10px center, right 5px center;
-  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+  color: var(--text); font-family: var(--display); font-weight: 200;
+  font-size: 30px; letter-spacing: -.03em; padding: 0 0 8px;
+  transition: border-color .3s var(--ease);
 }
-.cot-select:focus { outline: none; border-color: var(--accent); }
-.cot-select option { background: var(--panel); color: var(--text); }
+.est-campo input:focus { outline: none; border-bottom-color: var(--accent); }
+.est-campo-sm input { width: 90px; font-size: 22px; }
 
-/* ---------- segmentado medidas / m2 ---------- */
-.cot-seg { display: flex; gap: 0; border: 1px solid var(--line-2); border-radius: 100px; padding: 3px; align-self: flex-start; }
-.cot-segb {
-  border: 0; background: transparent; color: var(--muted); cursor: pointer;
-  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  padding: 10px 18px; border-radius: 100px; transition: color .3s, background .3s var(--ease);
-  min-height: 40px;
+/* ---------- stepper de cantidad ---------- */
+.est-step { display: flex; align-items: center; gap: 12px; }
+.est-stepb {
+  width: 44px; height: 44px; flex: none;
+  display: grid; place-items: center;
+  background: transparent; border: 1px solid var(--line-2); border-radius: 100px;
+  color: var(--muted); font-family: var(--display); font-weight: 200; font-size: 20px;
+  cursor: pointer; transition: color .3s var(--ease), border-color .3s var(--ease);
 }
-.cot-segb.on { background: var(--text); color: var(--bg); }
+.est-stepb:hover { border-color: var(--accent); color: var(--text); }
+.est-stepb:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.est-stepi {
+  width: 64px; min-height: 44px; text-align: center;
+  background: transparent; border: 0; color: var(--text);
+  font-family: var(--display); font-weight: 200; font-size: 30px; letter-spacing: -.03em;
+}
+.est-stepi:focus { outline: none; }
 
-/* ---------- toggles de operaciones ---------- */
-.cot-ops { display: flex; flex-direction: column; gap: 12px; }
-.cot-chk {
-  display: inline-flex; align-items: center; gap: 12px; align-self: flex-start;
-  border: 0; background: transparent; color: var(--muted); cursor: pointer;
-  font-family: var(--display); font-size: 15px; font-weight: 300;
-  padding: 6px 0; min-height: 40px; transition: color .3s;
+/* ---------- acciones de la fila ---------- */
+.est-acciones { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.est-chip {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted);
+  background: transparent; border: 1px solid var(--line); border-radius: 100px;
+  padding: 9px 18px; cursor: pointer; min-height: 40px;
+  transition: color .3s var(--ease), border-color .3s var(--ease);
 }
-.cot-box { width: 18px; height: 18px; border: 1px solid var(--line-2); border-radius: 3px; transition: .25s var(--ease); position: relative; flex: none; }
-.cot-chk.on { color: var(--text); }
-.cot-chk.on .cot-box { background: var(--accent); border-color: var(--accent); }
-.cot-chk.on .cot-box::after {
-  content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px;
-  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+.est-chip:hover { border-color: var(--accent); color: var(--text); }
+.est-chip.on { color: var(--accent); border-color: rgba(110, 123, 255, .5); }
+.est-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.est-listo, .est-borrar {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+  background: transparent; border: 0; cursor: pointer; padding: 10px 0; min-height: 40px;
+  transition: color .3s;
 }
-.cot-inline { max-width: 140px; }
+.est-listo { color: var(--text); border-bottom: 1px solid var(--line-2); }
+.est-borrar { color: var(--faint); }
+.est-borrar:hover { color: var(--text); }
+.est-listo:focus-visible, .est-borrar:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-/* ---------- notas y avisos ---------- */
-.cot-note { font-size: 13.5px; line-height: 1.55; color: var(--muted); font-weight: 300; }
-.cot-note b { color: var(--text); font-weight: 500; }
-.cot-note-alt { padding-top: 14px; border-top: 1px solid var(--line); }
-.cot-note-alt a { color: var(--text); border-bottom: 1px solid var(--accent); padding-bottom: 1px; }
-.cot-hint { font-size: 11px; letter-spacing: .1em; color: var(--faint); margin-top: -12px; }
-.cot-err { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: #ff8a9b; }
-.cot-warn {
-  border: 1px solid var(--line-2); border-left: 2px solid var(--accent);
-  border-radius: 4px; padding: 16px 18px; font-size: 14px; font-weight: 300;
-  line-height: 1.6; color: var(--muted); background: var(--bg-2);
+/* ---------- avisos y notas ---------- */
+.est-nota, .est-abrir, .est-err, .est-ok, .est-diag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em; line-height: 1.7;
+  color: var(--faint); margin: 0;
 }
-.cot-warn b { color: var(--text); font-weight: 500; }
+.est-ok { color: var(--muted); }
+.est-ok b { color: var(--text); }
+.est-abrir { color: var(--muted); }
+.est-err { color: var(--accent); }
+.est-diag { display: block; margin-top: 8px; color: var(--faint); word-break: break-word; }
+.est-warn {
+  border: 1px solid rgba(110, 123, 255, .35); border-radius: 4px;
+  padding: 14px 16px; font-size: 13px; line-height: 1.6;
+  color: var(--muted); font-weight: 300;
+}
+.est-warn b { color: var(--text); font-weight: 500; }
+.est-warn ul { margin: 8px 0; padding-left: 18px; }
+.est-warn li { margin: 3px 0; }
 
-/* ---------- carga de plano DXF ---------- */
-.cot-file { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; position: relative; }
-.cot-file input[type="file"] {
-  position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;
-}
-.cot-filebtn {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px;
-  border: 1px dashed var(--line-2); border-radius: 100px; cursor: pointer;
-  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--muted); transition: color .3s, border-color .3s;
-}
-.cot-filebtn:hover { color: var(--text); border-color: var(--accent); }
-.cot-file input:focus-visible + .cot-filebtn { outline: 2px solid var(--accent); outline-offset: 3px; }
-.cot-filename { font-size: 12px; color: var(--text); word-break: break-all; }
+/* ---------- DXF ---------- */
+.est-file { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.est-file input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.est-file label { display: inline-block; }
+.est-file input[type="file"]:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 3px; }
+.est-filename { font-family: var(--mono); font-size: 11px; color: var(--muted); word-break: break-all; }
 
-.cot-ok {
-  border: 1px solid var(--line-2); border-left: 2px solid var(--accent);
-  border-radius: 4px; padding: 14px 16px; font-size: 14px; font-weight: 300;
-  line-height: 1.55; color: var(--muted); background: var(--bg-2);
+/* ---------- la puerta ---------- */
+.est-datos {
+  display: flex; flex-direction: column; gap: 16px;
+  border-top: 1px solid var(--line); padding-top: 22px;
 }
-.cot-ok b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+.est-datos-lbl { color: var(--muted); transition: color .4s var(--ease); }
+.est-datos.listo .est-datos-lbl { color: var(--accent); }
+.est-datos-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; }
+.est-campo-ancho { grid-column: 1 / -1; }
+.est-datos-campos input {
+  width: 100%; min-height: 44px;
+  background: transparent; border: 0; border-bottom: 1px solid var(--line-2);
+  color: var(--text); font-family: var(--display); font-weight: 200;
+  font-size: 20px; letter-spacing: -.02em; padding: 0 0 8px;
+  transition: border-color .3s var(--ease);
+}
+.est-datos-campos input:focus { outline: none; border-bottom-color: var(--accent); }
+/* el botón apagado llama acá; el parpadeo dice dónde mirar */
+@keyframes est-pide { 0%, 100% { border-color: var(--line); } 40% { border-color: var(--accent); } }
+.est-datos.pide { animation: est-pide .9s var(--ease) 2; }
 
-.cot-diag {
-  display: block; margin-top: 10px; font-size: 11px; letter-spacing: .04em;
-  color: var(--faint); word-break: break-word;
+/* ---------- total y salida ---------- */
+.est-total {
+  margin-top: auto; display: flex; flex-direction: column; gap: 14px;
+  border-top: 1px solid var(--line-2); padding-top: 22px;
 }
-.cot-warn ul { margin: 8px 0 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
-.cot-warn li { font-size: 13.5px; color: var(--text); }
+.est-total-lbl { letter-spacing: .2em; }
+.est-accion { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+.est-monto {
+  margin: 0; font-weight: 200; font-size: clamp(36px, 4vw, 60px);
+  letter-spacing: -.045em; line-height: 1; font-variant-numeric: tabular-nums;
+}
+.est-monto-off { color: var(--faint); }
+.est-tapado { letter-spacing: -.02em; }
+.est-punto { color: var(--accent); }
+.est-cta { height: 56px; padding: 0 26px; gap: 10px; }
 
-/* ---------- items del paso 1 (acordeon) ---------- */
-.cot-items { display: flex; flex-direction: column; gap: 10px; }
-.cot-item { border: 1px solid var(--line); border-radius: 6px; background: var(--bg-2); overflow: hidden; }
-.cot-item.abierto { border-color: var(--line-2); }
-.cot-item-hd { display: flex; align-items: stretch; }
-.cot-item-tog {
-  flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: flex-start;
-  border: 0; background: transparent; color: var(--text); cursor: pointer;
-  padding: 14px 16px; min-height: 56px; text-align: left; font-family: var(--display);
+.est-legal {
+  display: flex; flex-direction: column; gap: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+  line-height: 1.7; color: var(--faint);
 }
-.cot-item-n { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
-.cot-item-res { font-size: 13.5px; font-weight: 300; color: var(--muted); }
-.cot-item.abierto .cot-item-res { color: var(--text); }
-.cot-item-del {
-  border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--faint);
-  cursor: pointer; width: 48px; font-size: 14px; transition: color .3s, background .3s;
-}
-.cot-item-del:hover { color: #ff8a9b; background: rgba(255,138,155,.06); }
-.cot-item-body {
-  display: flex; flex-direction: column; gap: 18px;
-  padding: 4px 16px 18px; border-top: 1px solid var(--line);
-}
-.cot-add {
-  display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
-  border: 1px dashed var(--line-2); border-radius: 100px; background: transparent;
-  color: var(--muted); cursor: pointer; padding: 0 22px; min-height: 46px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  transition: color .3s, border-color .3s;
-}
-.cot-add:hover { color: var(--text); border-color: var(--accent); }
-.cot-add span { font-size: 16px; line-height: 1; }
+.est-legal p { margin: 0; }
+.est-legal b { color: var(--muted); font-weight: 500; }
 
-/* ---------- resultado por item ---------- */
-.cot-res-item { border-top: 1px solid var(--line); padding-top: 16px; }
-.cot-res-hd { display: flex; flex-direction: column; gap: 3px; margin-bottom: 4px; }
-.cot-res-desc { font-size: 13.5px; font-weight: 300; color: var(--muted); }
-.cot-h3 { font-size: 15px; font-weight: 500; letter-spacing: 0; }
+/* ---------- columna del nesting ---------- */
+.est-nest-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.est-nest-res { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--accent); }
+.est-nest-vacio {
+  font-family: var(--mono); font-size: 11px; line-height: 1.8; color: var(--faint);
+  margin: 0; padding: 40px 0;
+}
 
-/* ---------- nesting: como entra en la chapa ---------- */
-.cot-nesting { display: flex; flex-direction: column; gap: 16px; margin-top: 8px;
-  border-top: 1px solid var(--line); padding-top: 22px; }
-.cot-nesting-hd { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-.cot-nesting-sel { min-width: 190px; }
-.cot-nesting-res { font-size: 11px; letter-spacing: .1em; color: var(--accent); margin-top: 5px; }
-.cot-nesting-nota { color: var(--faint); }
+/* Las chapas van paradas y en fila: así entran varias y se comparan. */
+.est-chapas {
+  display: flex; align-items: flex-start; gap: 18px;
+  overflow-x: auto; padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+.est-chapa { margin: 0; display: flex; flex-direction: column; gap: 10px; flex: none; }
+.est-chapa svg {
+  height: clamp(240px, 34vh, 320px); width: auto; display: block;
+  border: 1px solid var(--line-2); border-radius: 2px;
+}
+/* una sola chapa no tiene con quién compararse: que se vea grande */
+.est-chapas[data-n="1"] .est-chapa svg { height: clamp(300px, 46vh, 440px); }
+.est-chapa-bg { fill: var(--bg-2); }
+.est-chapa-pie {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); line-height: 1.7;
+}
+.est-chapa-pie b { color: var(--accent); font-weight: 500; }
+.est-chapa-mas {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--faint); line-height: 1.7;
+  align-self: center; margin: 0; flex: none;
+}
 
-.cot-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; }
-.cot-legend-i {
+.est-leg { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.est-leg-i {
   display: inline-flex; align-items: center; gap: 7px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted);
+  font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--muted);
 }
-.cot-legend-i i { width: 11px; height: 11px; border-radius: 2px; flex: none; }
+.est-leg-i i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
 
-.cot-chapas { display: flex; flex-direction: column; gap: 18px; }
-.cot-chapa { margin: 0; display: flex; flex-direction: column; gap: 8px; }
-.cot-chapa svg { width: 100%; height: auto; display: block; border-radius: 3px; }
-.cot-chapa-bg { fill: var(--panel); stroke: var(--line-2); stroke-width: 4; }
-.cot-chapa-datos {
-  display: flex; flex-wrap: wrap; gap: 6px 16px;
-  font-size: 11px; letter-spacing: .08em; color: var(--faint);
+.est-nest-pie {
+  display: flex; flex-direction: column; gap: 12px;
+  border-top: 1px solid var(--line); padding-top: 18px;
 }
-
-.cot-total { border-top: 1px solid var(--line-2); margin-top: 8px; }
-.cot-iva b { color: var(--text); }
-
-/* ---------- el estimado ---------- */
-.cot-est { border-top: 1px solid var(--line); }
-.cot-row {
-  display: grid; grid-template-columns: 1fr auto; gap: 4px 20px; align-items: baseline;
-  padding: 14px 0; border-bottom: 1px solid var(--line);
-}
-.cot-k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.cot-v { font-family: var(--display); font-size: 17px; font-weight: 300; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
-.cot-n { grid-column: 1 / -1; font-size: 12px; color: var(--faint); font-weight: 300; }
-.cot-row.strong { border-bottom: 0; padding-top: 20px; }
-.cot-row.strong .cot-k { color: var(--text); }
-.cot-row.strong .cot-v { font-size: clamp(28px, 5vw, 40px); font-weight: 200; letter-spacing: -.03em; }
-
-.cot-legal {
-  font-size: 12px; line-height: 1.6; color: var(--faint); font-weight: 300;
-  border-top: 1px solid var(--line); padding-top: 16px;
+.est-nest-nota {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  line-height: 1.7; color: var(--faint); margin: 0;
 }
 
-/* ---------- pie ---------- */
-.cot-foot {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line);
-}
-.cot-back {
-  border: 0; background: transparent; color: var(--muted); cursor: pointer;
-  font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
-  padding: 10px 0; min-height: 40px; transition: color .3s;
-}
-.cot-back:hover { color: var(--text); }
-.cot-foot .btn { height: 52px; padding: 0 26px; }
+/* ---------- página /cotizador/ ---------- */
+.cot-page { padding-block: clamp(110px, 15vh, 170px) clamp(60px, 9vh, 110px); }
+.cot-page-inner { max-width: 100%; }
 
-/* ---------- paso 1: el formulario y la chapa, juntos ----------
-   La chapa no es decoracion: es lo que engancha. Verla llenarse mientras
-   se cambian cantidades y medidas es la razon por la que alguien se queda
-   cargando piezas. Asi que tiene que estar a la vista SIEMPRE, sin
-   scrollear: en escritorio a la derecha y fija; en celular pegada arriba
-   y recortada a lo indispensable (dibujo, chapa elegida y aprovechamiento).
-   El DOM la pone primera a proposito: en celular ese es su lugar, y en
-   escritorio grid-template-areas la manda a la columna derecha. */
-.cot-p1 { display: flex; flex-direction: column; gap: 20px; }
-
-/* .cot-body separaba los bloques del paso 1 con su propio gap; ahora que
-   viven dentro de .cot-p1-form, el gap se reconstruye aca. */
-.cot-p1-form { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-.cot-p1-vista { min-width: 0; }
-
-/* Dentro del panel la linea de separacion la pone el panel, no el bloque. */
-.cot-p1-vista .cot-nesting { margin-top: 0; border-top: 0; padding-top: 0; }
-
-/* ---- escritorio: columna derecha fija ---- */
-@media (min-width: 1000px) {
-  /* El paso 1 necesita mas ancho que los otros dos; el titulo, el pie y la
-     vuelta al sitio se quedan en la medida de lectura para que nada salte
-     al cambiar de paso. */
-  .cot-page-inner:has(.cot-p1) { max-width: 1140px; }
-  .cot-page-inner:has(.cot-p1) .cot-head,
-  .cot-page-inner:has(.cot-p1) .cot-foot,
-  .cot-page-inner:has(.cot-p1) .cot-volver { max-width: 760px; }
-
-  .cot-p1 {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-    grid-template-areas: 'form vista';
-    gap: clamp(28px, 3.2vw, 46px);
-    align-items: start;
-  }
-  .cot-p1-form { grid-area: form; }
-  .cot-p1-vista {
-    grid-area: vista;
-    position: sticky;
-    top: 104px; /* alto del nav fijo (88px) + aire */
-    padding: 20px;
-    border: 1px solid var(--line);
-    border-radius: 5px;
-    /* --bg-2 y no --panel: el fondo de la chapa dibujada es --panel y sobre
-       si mismo la chapa se perdia, solo la delataba el trazo. */
-    background: var(--bg-2);
-  }
-  .cot-p1-vista .cot-nesting-hd { flex-direction: column; align-items: stretch; gap: 14px; }
-  .cot-p1-vista .cot-nesting-sel { min-width: 0; }
-}
-
-/* ---- celular: pegada arriba y compacta ----
-   El bloque completo mide ~470px: la mitad de la pantalla de un telefono.
-   Pegado arriba en ese tamano tapaba el formulario, asi que en celular se
-   muestra solo lo que se mira de reojo. La nota de estimacion no se pierde:
-   esta completa en el paso 3, junto al numero. */
-@media (max-width: 999px) {
-  .cot-p1-vista {
-    position: sticky;
-    top: 88px; /* alto del nav fijo */
-    z-index: 6;
-    /* sangra hasta el borde para que el contenido no se vea pasar por los
-       costados mientras se scrollea debajo */
-    margin-inline: calc(var(--pad) * -1);
-    padding: 10px var(--pad) 11px;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    /* la sombra deja claro que el formulario pasa por debajo */
-    box-shadow: 0 12px 20px -14px rgba(0, 0, 0, .95);
-  }
-  .cot-p1-vista .cot-nesting { gap: 9px; }
-  /* una sola fila: titulo a la izquierda, chapa elegida a la derecha */
-  .cot-p1-vista .cot-nesting-hd { align-items: center; gap: 12px; flex-wrap: nowrap; }
-  /* 16px en el select a proposito: por debajo iOS hace zoom al enfocarlo.
-     El ancho tiene que dar para "1200 x 2400 mm" completo. */
-  .cot-p1-vista .cot-nesting-sel { min-width: 0; width: 174px; flex: none; }
-  .cot-p1-vista .cot-nesting-sel .cot-select { padding-right: 20px; }
-  .cot-p1-vista .cot-h3 { font-size: 13.5px; }
-  .cot-p1-vista .cot-chapa { gap: 5px; }
-  .cot-p1-vista .cot-chapa svg { max-height: 20vh; }
-  /* lo que se repite abajo del dibujo o mas adelante en el flujo se saca:
-     el pie de la figura ya dice "Chapa 1/N", la medida y el % ocupado, y la
-     nota de estimacion esta completa en el paso 3, al lado del numero. */
-  .cot-p1-vista .cot-nesting-res,
-  .cot-p1-vista .cot-nesting-nota { display: none; }
-  /* con un solo item los colores se explican solos */
-  .cot-p1-vista .cot-legend:not(:has(.cot-legend-i + .cot-legend-i)) { display: none; }
-}
-
-/* El nav de esta pagina no se opaca al scrollear (no carga v3.js) y aca hay
-   un panel pegado abajo suyo: sin fondo propio se leian los dos encimados. */
-.cot-page-nav {
-  mix-blend-mode: normal;
-  background: rgba(8, 9, 11, .82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--line);
-}
-
-/* ---------- paso 2: lo que ya sabemos, al costado ----------
-   Peso y chapas, nunca el precio: la puerta sigue cerrada. */
-.cot-previo { border-top: 0; margin-bottom: 4px; }
-.cot-previo .cot-row:first-child { padding-top: 0; }
-.cot-previo .cot-v { font-size: 15px; }
-
-@media (max-width: 999px) {
-  /* en el panel pegado los dos datos van en una linea, no apilados */
-  .cot-p1-vista .cot-previo { display: flex; gap: 20px; margin-bottom: 0; }
-  .cot-p1-vista .cot-previo .cot-row {
-    display: block; border-bottom: 0; padding: 0;
-  }
-  .cot-p1-vista .cot-previo .cot-k { font-size: 10px; }
-  .cot-p1-vista .cot-previo .cot-v { font-size: 14px; text-align: left; }
-  /* con el resumen arriba, el titulo del bloque de chapa sobra */
-  .cot-p1-vista .cot-previo + .cot-nesting .cot-h3 { display: none; }
-}
-
-/* ---------- celular: la accion siempre a mano ----------
-   Con el formulario largo, "Seguir" quedaba a 1400px del arranque: habia
-   que scrollear todo el item para encontrar el boton que ya se podia
-   apretar. Sticky no sirve porque .cot-foot es el ultimo hijo y no tiene
-   lugar donde pegarse; va fija. Solo en /cotizador/. */
-@media (max-width: 999px) {
-  .cot-page .cot-foot {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 350;
-    margin-top: 0; padding: 12px var(--pad) calc(12px + env(safe-area-inset-bottom));
-    background: rgba(8, 9, 11, .94);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid var(--line);
-    flex-direction: row-reverse;
-  }
-  .cot-page .cot-foot .btn { flex: 1; justify-content: center; }
-  /* aire para que la barra no tape el "volver al sitio" */
-  .cot-page .cot-page-inner { padding-bottom: 96px; }
-  /* El globo de WhatsApp se va: subido queda encima del dibujo de la chapa,
-     y en el paso 3 compite con "Enviar al vendedor" — que hace lo mismo pero
-     con el estimado adentro. La salida para el que prefiere hablar sigue
-     estando arriba, fija: "Hablar con un asesor" en el nav. */
-  .cot-page ~ .wa-float { display: none; }
-}
-
-/* ---------- pagina standalone /cotizador/ ---------- */
-.cot-page { padding-block: clamp(110px, 16vh, 190px) clamp(70px, 10vh, 120px); }
-.cot-page-inner { max-width: 760px; }
-.cot-page .cot-title { font-size: clamp(38px, 7vw, 78px); }
-
-/* Vuelta al sitio desde el pie: en celular la lectura termina abajo, no
-   arriba en el nav. */
 .cot-volver { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
 .cot-volver a {
   font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
@@ -354,8 +325,15 @@
 }
 .cot-volver a:hover { color: var(--text); }
 
-/* En /cotizador/ no hay burger: los links del nav se muestran siempre (mas
-   chicos en celular) y el CTA no se esconde, porque son la unica salida. */
+/* El nav de esta página no se opaca al scrollear (no carga v3.js) y abajo
+   hay contenido denso: sin fondo propio se leían los dos encimados. */
+.cot-page-nav {
+  mix-blend-mode: normal;
+  background: rgba(8, 9, 11, .82);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+/* No hay burger acá: los links del nav son la única salida al sitio. */
 @media (max-width: 900px) {
   .cot-page-nav .cot-page-links { display: flex; gap: 18px; }
 }
@@ -364,10 +342,67 @@
   .cot-page-nav .cot-page-links { display: none; }
 }
 
+/* Fallback si el JS no carga */
+.cot-warn {
+  border: 1px solid rgba(110, 123, 255, .35); border-radius: 4px;
+  padding: 18px 20px; color: var(--muted); font-weight: 300;
+}
+.cot-warn a { color: var(--text); border-bottom: 1px solid var(--accent); }
+
+/* ---------- una columna ----------
+   El nesting NO se esconde: es el diferencial. Baja, no desaparece. */
+@media (max-width: 1024px) {
+  .est { grid-template-columns: 1fr; }
+  .est-col-nest { border-left: 0; border-top: 1px solid var(--line); }
+  .est-nest-in { position: static; }
+  .est-h1 { max-width: 20ch; }
+}
+
+/* ---------- celular ---------- */
 @media (max-width: 640px) {
-  .cot-grid { grid-template-columns: 1fr; gap: 16px; }
-  .cot-foot { flex-direction: row-reverse; }
-  .cot-foot .btn { flex: 1; justify-content: center; }
-  /* 16px evita el zoom automatico de iOS al enfocar un campo */
-  .mf-row input, .cot-select { font-size: 16px; }
+  .est-col-piezas { padding: 24px 20px 28px; }
+  .est-nest-in { padding: 22px 20px 26px; }
+  .est-fila { gap: 12px; padding: 18px 0; flex-wrap: wrap; }
+  .est-desc { flex: 1 1 100%; order: 2; font-size: 19px; }
+  .est-n { order: 1; }
+  .est-sub { order: 1; margin-left: auto; }
+  .est-edit { display: none; }
+  /* tres pills por fila en vez de dos: el catálogo completo de espesores
+     son once y en dos columnas ocupaba media pantalla */
+  .est-pill { padding: 8px 14px; font-size: 15px; }
+  .est-pill-sm { font-size: 13px; padding: 8px 13px; }
+  .est-medidas { gap: 18px; }
+  .est-campo input { width: 100%; font-size: 26px; }
+  .est-campo { flex: 1 1 130px; }
+  .est-step { width: 100%; justify-content: space-between; max-width: 220px; }
+  .est-datos-campos { grid-template-columns: 1fr; gap: 16px; }
+  /* 16px evita el zoom automático de iOS al enfocar un campo */
+  .est-datos-campos input, .est-stepi, .est-campo input { font-size: max(16px, 1em); }
+
+  /* El monto y la salida se despegan y quedan fijos abajo: sin esto hay
+     que scrollear todo el formulario para encontrar el botón. */
+  .est-accion {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 350;
+    flex-direction: row; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(8, 9, 11, .94);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+  }
+  .est-accion .est-monto { font-size: 26px; }
+  .est-accion .est-cta { height: 48px; padding: 0 18px; flex: none; }
+  .est-accion .est-cta span:not(.fill) { font-size: 12px; }
+  /* aire para que la barra fija no tape el final de la página */
+  .cot-page-inner { padding-bottom: 92px; }
+  /* El globo de WhatsApp se va: quedaría encima del botón, y ese botón
+     hace lo mismo pero con el estimado adentro. La salida para el que
+     prefiere hablar sigue arriba, fija, en el nav. */
+  .cot-page ~ .wa-float { display: none; }
+}
+
+/* ---------- movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .est-fila, .est-pill, .est-chip, .est-stepb, .est-campo input { transition: none; }
+  .est-fila:hover { padding-left: 0; }
+  .est-datos.pide { animation: none; }
 }
