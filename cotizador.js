@@ -1174,24 +1174,38 @@
       return h + '</div>';
     }
 
+    function pdfIco() {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M12 3v11M8 11l4 4 4-4M5 20h14"/></svg>';
+    }
+
     function cta(t, abierto) {
       var ico = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="est-wa">' +
         '<path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zM6.597 20.13c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.042z"/></svg>';
+      /* Con la puerta cerrada los dos botones se ven igual, apagados: si el
+         del PDF aparece recien junto con el numero, para el que todavia no
+         cargo sus datos la funcion no existe. Apretar cualquiera de los dos
+         lleva a los campos que faltan. */
       if (!abierto) {
-        return '<button type="button" class="btn btn-solid est-cta" data-cta="1">' +
-          ico + '<span>Mandar al vendedor</span><span class="fill"></span></button>';
+        return '<div class="est-botones">' +
+          '<button type="button" class="btn btn-solid est-cta" data-cta="1">' +
+            ico + '<span class="est-cta-largo">Mandar al vendedor</span>' +
+            '<span class="est-cta-corto">Enviar</span><span class="fill"></span></button>' +
+          '<button type="button" class="btn est-cta est-cta-pdf" data-cta="1" ' +
+            'aria-label="Descargar el estimado en PDF: completá tus datos primero">' +
+            pdfIco() + '<span class="est-cta-txt">Descargar PDF</span>' +
+            '<span class="fill"></span></button>' +
+        '</div>';
       }
       var href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(waMessage(st, t));
-      var pdf = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
-        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        '<path d="M12 3v11M8 11l4 4 4-4M5 20h14"/></svg>';
       return '<div class="est-botones">' +
         '<a class="btn btn-solid est-cta" href="' + href + '" target="_blank" rel="noopener" data-nav="wa">' +
           ico + '<span class="est-cta-largo">Mandar al vendedor</span>' +
           '<span class="est-cta-corto">Enviar</span><span class="fill"></span></a>' +
         '<button type="button" class="btn est-cta est-cta-pdf" data-nav="pdf" ' +
           'aria-label="Descargar el estimado en PDF">' +
-          pdf + '<span class="est-cta-txt">Descargar PDF</span><span class="fill"></span></button>' +
+          pdfIco() + '<span class="est-cta-txt">Descargar PDF</span><span class="fill"></span></button>' +
       '</div>';
     }
 
@@ -1418,7 +1432,7 @@
       });
 
       /* Boton apagado: en vez de no hacer nada, lleva a lo que falta. */
-      on('[data-cta]', 'click', function () {
+      todos('[data-cta]', 'click', function () {
         var el = root.querySelector('.est-datos input');
         if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         var caja = root.querySelector('.est-datos');
@@ -1498,10 +1512,13 @@
           var tmp = document.createElement('div');
           tmp.innerHTML = total(t);
           viejo.replaceWith(tmp.firstChild);
-          var cta = root.querySelector('[data-cta]');
-          if (cta) cta.addEventListener('click', function () {
-            var el = root.querySelector('.est-datos input');
-            if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+          root.querySelectorAll('[data-cta]').forEach(function (c) {
+            c.addEventListener('click', function () {
+              var el = root.querySelector('.est-datos input');
+              if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+              var caja = root.querySelector('.est-datos');
+              if (caja) { caja.classList.remove('pide'); void caja.offsetWidth; caja.classList.add('pide'); }
+            });
           });
           var wa = root.querySelector('[data-nav="wa"]');
           if (wa) wa.addEventListener('click', function () {
