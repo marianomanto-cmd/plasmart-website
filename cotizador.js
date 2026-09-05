@@ -493,9 +493,30 @@
         body: JSON.stringify(payload),
         keepalive: true
       }).then(function (r) { return r.json(); })
-        .then(function (r) { if (r && r.ok && r.id) lead.id = r.id; })
+        .then(function (r) {
+          if (r && r.ok && r.id) { lead.id = r.id; vaciarPendientes(); }
+        })
         .catch(function () {});
     } catch (e) {}
+  }
+
+  /* Marcar la fila necesita el id, y el id vuelve del insert. Si alguien
+     aprieta WhatsApp o PDF antes de que llegue, la marca se perdia en
+     silencio: ahora espera al id en vez de descartarse. */
+  var pendientes = [];
+  function marcar(accion) {
+    if (!lead.token) return;
+    if (!lead.id) {
+      if (pendientes.indexOf(accion) < 0) pendientes.push(accion);
+      return;
+    }
+    postLead({ accion: accion, id: lead.id, token: lead.token });
+  }
+  function vaciarPendientes() {
+    var cola = pendientes; pendientes = [];
+    cola.forEach(function (a) {
+      postLead({ accion: a, id: lead.id, token: lead.token });
+    });
   }
 
   function guardarConsulta(st, t) {
@@ -550,10 +571,11 @@
     });
   }
 
-  function marcarEnviado() {
-    if (!lead.id || !lead.token) return;
-    postLead({ accion: 'enviado_wa', id: lead.id, token: lead.token });
-  }
+  function marcarEnviado() { marcar('enviado_wa'); }
+
+  /* Descargar el PDF no cambia el estado de la fila: se puede bajar la hoja
+     sin mandar el WhatsApp y al reves, asi que va en su propia marca. */
+  function marcarPdf() { marcar('pdf'); }
 
   /* De donde vino: el ?src= que traen los CTA del sitio. */
   function origenSrc() {
@@ -685,6 +707,191 @@
      sola vez, en la etiqueta del grupo. */
   function espNum(e) {
     return num(e).toLocaleString('es-AR', { maximumFractionDigits: 2 });
+  }
+
+  /* =========================================================
+     LA HOJA IMPRIMIBLE
+
+     Se arma el mismo A4 que se aprobo en la maqueta y se manda a imprimir.
+     Todo pasa en el navegador: los datos del cliente no salen a ningun
+     lado para generar el PDF. El navegador ofrece "Guardar como PDF" en
+     el dialogo de impresion, que es como se descarga.
+
+     El dibujo de las chapas es el mismo SVG que se ve en pantalla, asi
+     que la hoja no puede contradecir lo que la persona vio.
+     ========================================================= */
+  /* La frase obligatoria, verbatim. Una sola copia en todo el archivo: la
+     usan la pantalla y la hoja imprimible. */
+  function canonica() {
+    return 'Precio orientativo. No es un presupuesto cerrado. Se confirma con plano, ' +
+      'nesting real y disponibilidad. Puede variar según forma, calados, piercing y aprovechamiento de chapa.';
+  }
+
+  function fechaLarga(d) {
+    var meses = ['enero','febrero','marzo','abril','mayo','junio','julio',
+                 'agosto','septiembre','octubre','noviembre','diciembre'];
+    return d.getDate() + ' de ' + meses[d.getMonth()] + ' de ' + d.getFullYear();
+  }
+
+  function svgChapaPdf(t, c) {
+    var n = t.nest, ch = n.chapa;
+    var puestos = n.puestosPorChapa[c] || [];
+    var piezas = '';
+    puestos.forEach(function (p) {
+      var dib = 0;
+      for (var r = 0; r < p.ny && dib < p.count; r++) {
+        for (var k = 0; k < p.nx && dib < p.count; k++) {
+          /* mismos ejes intercambiados que en pantalla: la placa va parada */
+          var x = MARGEN_MM + p.y + r * (p.ph + SEPARACION_MM);
+          var y = MARGEN_MM + p.x + k * (p.pw + SEPARACION_MM);
+          piezas += '<rect x="' + x + '" y="' + y + '" width="' + p.ph + '" height="' + p.pw +
+                    '" fill="#4a55d6" fill-opacity="0.20" stroke="#4a55d6" stroke-width="6" />';
+          dib++;
+        }
+      }
+    });
+    var esp = n.espesores && n.espesores[c];
+    var unidades = puestos.reduce(function (a, p) { return a + p.count; }, 0);
+    return '<figure class="pdf-chapa">' +
+      '<svg viewBox="0 0 ' + ch.ancho + ' ' + ch.largo + '" preserveAspectRatio="xMidYMid meet">' +
+        '<rect x="0" y="0" width="' + ch.ancho + '" height="' + ch.largo + '" fill="#fafbfc" />' +
+        piezas +
+      '</svg>' +
+      '<figcaption>Chapa ' + String(c + 1).padStart(2, '0') +
+        (esp ? ' · ' + espTexto(esp) : '') + '<br />' +
+        '<b>' + Math.round(n.aprovechamiento[c]) + '%</b> ocupado · ' + unidades + ' u' +
+      '</figcaption>' +
+    '</figure>';
+  }
+
+  function hojaPdf(st, t) {
+    var hoy = new Date();
+    var filas = '';
+    st.items.forEach(function (it, i) {
+      var m = t.items[i] || {};
+      var detalle = [MATERIAL];
+      /* Dos decimales y no uno: a 2,4 kg contra 2,36 kg le sobra medio kilo
+         cada diez piezas, y esta hoja se la lleva alguien a discutir. */
+      if (!m.revision && m.cantidad) {
+        detalle.push((m.peso / m.cantidad).toLocaleString('es-AR',
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kg por unidad');
+      }
+      if (it.plegado) detalle.push('lleva plegado');
+      filas += '<tr>' +
+        '<td class="pdf-idx">' + String(i + 1).padStart(2, '0') + '</td>' +
+        '<td class="pdf-pieza">' + resumenPdf(it) +
+          '<small>' + detalle.join(' · ') + '</small></td>' +
+        '<td class="pdf-num pdf-kg">' + m.cantidad + ' u</td>' +
+        '<td class="pdf-num pdf-kg">' + (m.revision ? '—' : kg(m.peso)) + '</td>' +
+        '<td class="pdf-num pdf-plata">' +
+          (m.revision ? 'a revisar' : m.subtotal ? money(m.subtotal) : '—') + '</td>' +
+      '</tr>';
+    });
+
+    var chapas = '';
+    if (t.nest && t.nest.chapas) {
+      var mostrar = Math.min(t.nest.chapas, 4);
+      for (var c = 0; c < mostrar; c++) chapas += svgChapaPdf(t, c);
+      if (t.nest.chapas > mostrar) {
+        chapas += '<p class="pdf-chapa-mas">+ ' + (t.nest.chapas - mostrar) +
+                  '<br />chapa' + (t.nest.chapas - mostrar === 1 ? '' : 's') + '<br />más</p>';
+      }
+    }
+
+    /* Con un plano a revisar no se imprime total ni subtotales: un numero
+       creible sobre un plano dudoso es peor que no tener numero. */
+    var bloqueTotal;
+    if (t.revision || t.sinPrecio) {
+      bloqueTotal =
+        '<div class="pdf-totales"><div class="pdf-resumen">' +
+          '<div><dt>Peso total</dt><dd>' + kg(t.peso) + '</dd></div>' +
+          (t.chapas ? '<div><dt>Chapas</dt><dd>' + t.chapas + '</dd></div>' : '') +
+        '</div><dl class="pdf-monto"><dt>Total estimado</dt>' +
+          '<dd class="pdf-sin">' + (t.revision ? 'A revisar' : 'A cotizar') + '</dd></dl></div>' +
+        '<p class="pdf-revision">' + (t.revision
+          ? 'No calculamos un precio porque hay un plano que necesita revisión. Un número construido sobre un plano dudoso no se sostiene: preferimos que lo mire un asesor y te lo pase revisado.'
+          : 'No pudimos calcular el precio en el momento. Contactanos con esta referencia y te lo pasamos.') + '</p>';
+    } else {
+      var minimo = '';
+      if (t.minimoPedido) {
+        minimo = '<p class="pdf-min">El pedido queda por debajo del mínimo: se aplicó el mínimo de ' +
+                 money(t.minimoPedidoMonto) + '.</p>';
+      } else if (t.items.some(function (m) { return m.minimoItem; })) {
+        minimo = '<p class="pdf-min">Hay ítems por debajo del mínimo por ítem: se aplicó el mínimo en esos.</p>';
+      }
+      bloqueTotal =
+        '<div class="pdf-totales"><div class="pdf-resumen">' +
+          '<div><dt>Peso total</dt><dd>' + kg(t.peso) + '</dd></div>' +
+          '<div><dt>Chapas</dt><dd>' + (t.chapas || '—') + '</dd></div>' +
+          '<div><dt>$/kg aplicado</dt><dd>$ ' + Math.round(t.precioKg).toLocaleString('es-AR') + '</dd></div>' +
+        '</div>' +
+        '<dl class="pdf-monto"><dt>Total estimado</dt>' +
+          '<dd>' + money(t.total) + '<i>.</i></dd>' +
+          '<span class="pdf-siniva">Sin IVA</span></dl></div>' + minimo;
+    }
+
+    return '<article class="pdf-hoja">' +
+      '<header class="pdf-membrete">' +
+        '<img src="/assets/plasmart-logo-negro.png" alt="Plasmart" />' +
+        '<address class="pdf-emisor"><b>Plasmart</b>' +
+          'Francisco de Arteaga 2895 · Córdoba, Argentina<br />' +
+          '(351) 382 0321 · ventasplasmart@transfil.com.ar<br />' +
+          'Lunes a viernes, 08 a 17 h · plasmartcba.com</address>' +
+      '</header>' +
+      '<div class="pdf-regla pdf-regla-fuerte"></div>' +
+
+      '<div class="pdf-cabeza">' +
+        '<h2>Estimado <span>preliminar</span></h2>' +
+        '<div class="pdf-ref"><b>' + esc(st.ref) + '</b><br />' +
+          fechaLarga(hoy) + '<br />Corte láser · chapa negra</div>' +
+      '</div>' +
+
+      '<dl class="pdf-cliente">' +
+        '<div><dt>Cliente</dt><dd>' + esc(st.nombre.trim()) + '</dd></div>' +
+        '<div><dt>Teléfono</dt><dd>' + (esc(st.telefono.trim()) || '—') + '</dd></div>' +
+        '<div><dt>Email</dt><dd>' + (esc(st.email.trim()) || '—') + '</dd></div>' +
+        '<div><dt>Ciudad de entrega</dt><dd>' + esc(st.ciudad.trim()) + '</dd></div>' +
+      '</dl>' +
+
+      '<div class="pdf-regla"></div>' +
+      '<p class="pdf-rotulo">Detalle de piezas</p>' +
+      '<table><thead><tr><th></th><th>Pieza</th>' +
+        '<th class="pdf-num">Cantidad</th><th class="pdf-num">Peso</th>' +
+        '<th class="pdf-num">Subtotal</th></tr></thead>' +
+        '<tbody>' + filas + '</tbody></table>' +
+
+      (chapas
+        ? '<div class="pdf-regla"></div>' +
+          '<p class="pdf-rotulo">Cómo entran en la chapa · ' + esc(t.nest.chapa.label) + '</p>' +
+          '<div class="pdf-chapas">' + chapas + '</div>' +
+          '<p class="pdf-nota-chapa">Una chapa nunca mezcla espesores. El anidado real del ' +
+          'taller suele aprovechar más que esta estimación.</p>'
+        : '') +
+
+      '<div class="pdf-regla"></div>' +
+      bloqueTotal +
+
+      '<div class="pdf-avisos">' +
+        '<div class="pdf-clave"><span class="pdf-marca">Precio preliminar</span>' +
+          '<p>Para una <b>oferta definitiva</b> contactá a nuestro vendedor <b>Santi</b>: ' +
+          '(351) 382 0321. Mostrale este número de referencia y retoma desde acá.</p></div>' +
+        '<div class="pdf-excluye"><span>No incluye plegado</span>' +
+          '<span>No incluye IVA</span><span>Flete a cotizar</span></div>' +
+        '<p class="pdf-legal">' + canonica() +
+          ' El valor por kilo es el vigente al ' + fechaLarga(hoy) + ' y se actualiza periódicamente.</p>' +
+        '<div class="pdf-pie"><span>Plasmart · corte y plegado de acero desde 2006</span>' +
+          '<span>' + esc(st.ref) + '</span></div>' +
+      '</div>' +
+    '</article>';
+  }
+
+  /* El resumen de la fila, sin el <em> de la cantidad que usa la pantalla. */
+  function resumenPdf(it) {
+    var p = [espTexto(it.espesor)];
+    if (it.modo === 'm2') p.push(mm(it.m2) + ' m² por pieza');
+    else if (it.modo === 'dxf') p.push(it.dxfNombre ? esc(it.dxfNombre) : 'plano sin cargar');
+    else p.push(mm(it.ancho) + ' × ' + mm(it.largo) + ' mm');
+    return p.join(' · ');
   }
 
   /* =========================================================
@@ -975,13 +1182,17 @@
           ico + '<span>Mandar al vendedor</span><span class="fill"></span></button>';
       }
       var href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(waMessage(st, t));
-      return '<a class="btn btn-solid est-cta" href="' + href + '" target="_blank" rel="noopener" data-nav="wa">' +
-        ico + '<span>Mandar al vendedor</span><span class="fill"></span></a>';
-    }
-
-    function canonica() {
-      return 'Precio orientativo. No es un presupuesto cerrado. Se confirma con plano, ' +
-        'nesting real y disponibilidad. Puede variar según forma, calados, piercing y aprovechamiento de chapa.';
+      var pdf = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M12 3v11M8 11l4 4 4-4M5 20h14"/></svg>';
+      return '<div class="est-botones">' +
+        '<a class="btn btn-solid est-cta" href="' + href + '" target="_blank" rel="noopener" data-nav="wa">' +
+          ico + '<span class="est-cta-largo">Mandar al vendedor</span>' +
+          '<span class="est-cta-corto">Enviar</span><span class="fill"></span></a>' +
+        '<button type="button" class="btn est-cta est-cta-pdf" data-nav="pdf" ' +
+          'aria-label="Descargar el estimado en PDF">' +
+          pdf + '<span class="est-cta-txt">Descargar PDF</span><span class="fill"></span></button>' +
+      '</div>';
     }
 
     /* ---------------- columna derecha: el nesting ---------------- */
@@ -1219,6 +1430,45 @@
         guardarConsulta(st, calcTotal(st));
         marcarEnviado();
       });
+      on('[data-nav="pdf"]', 'click', function () { bajarPdf(); });
+    }
+
+    /* Descargar la hoja. Guarda el lead igual que el WhatsApp: el que se
+       lleva el PDF muchas veces se lo pasa a SU cliente y no escribe nunca,
+       asi que si no lo registramos acá se pierde igual que antes.
+       El guardado es idempotente —una fila por sesion del estimador— y no
+       bloquea la impresion: si la base no responde, el PDF sale igual. */
+    function bajarPdf() {
+      var t = calcTotal(st);
+      if (falta(st).length) return;
+      track('estimador_pdf', datosConversion(t));
+      guardarConsulta(st, t);
+      marcarPdf();
+
+      var caja = document.getElementById('cot-pdf');
+      if (!caja) {
+        caja = document.createElement('div');
+        caja.id = 'cot-pdf';
+        caja.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(caja);
+      }
+      caja.innerHTML = hojaPdf(st, t);
+      document.documentElement.classList.add('cot-imprimiendo');
+
+      /* Un frame para que el navegador aplique los estilos y decodifique el
+         logo antes de abrir el dialogo; si no, sale la hoja sin membrete. */
+      var listo = function () {
+        window.print();
+        document.documentElement.classList.remove('cot-imprimiendo');
+      };
+      var img = caja.querySelector('img');
+      if (img && !img.complete) {
+        img.addEventListener('load', listo, { once: true });
+        img.addEventListener('error', listo, { once: true });
+        setTimeout(listo, 1500);   // si la imagen nunca resuelve, igual se imprime
+      } else {
+        requestAnimationFrame(function () { requestAnimationFrame(listo); });
+      }
     }
 
     /* Repinta lo que depende de los numeros sin tocar los campos que se
@@ -1259,6 +1509,8 @@
             guardarConsulta(st, calcTotal(st));
             marcarEnviado();
           });
+          var bpdf = root.querySelector('[data-nav="pdf"]');
+          if (bpdf) bpdf.addEventListener('click', function () { bajarPdf(); });
         }
 
         /* el resumen de las filas cerradas tambien cambia */

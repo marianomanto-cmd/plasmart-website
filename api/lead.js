@@ -9,6 +9,7 @@
    Tabla: public.cotizaciones_web
      accion 'estimado'   -> inserta la fila y devuelve { id }
      accion 'enviado_wa' -> marca esa fila como enviada (pide id + token)
+     accion 'pdf'        -> marca que se descargo el PDF (pide id + token)
 
    El token lo genera el navegador y viaja en el insert. Sin el no se
    puede tocar una fila: es lo unico que impide que cualquiera marque
@@ -145,21 +146,33 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    /* ---- marcar una consulta ya guardada como enviada por WhatsApp ---- */
-    if (body.accion === 'enviado_wa') {
+    /* ---- marcar algo sobre una consulta ya guardada ----
+       Las dos acciones tocan la misma fila y las dos piden el token: sin el,
+       cualquiera podria marcar como enviadas las consultas de otro.
+
+       WhatsApp mueve el estado y solo desde 'estimado', para no pisar una
+       fila que ventas ya atendio. El PDF no toca el estado: se puede
+       descargar la hoja sin mandar el WhatsApp, y al reves, asi que va en
+       su propia marca de tiempo. */
+    if (body.accion === 'enviado_wa' || body.accion === 'pdf') {
+      var esPdf = body.accion === 'pdf';
       var id = parseInt(body.id, 10);
       var token = texto(body.token, 64);
       if (!id || !token) return res.status(200).json({ ok: false, motivo: 'faltan_datos' });
 
       var q = base + '?id=eq.' + encodeURIComponent(id) +
-              '&token=eq.' + encodeURIComponent(token) + '&estado=eq.estimado';
+              '&token=eq.' + encodeURIComponent(token) +
+              (esPdf ? '' : '&estado=eq.estimado');
+      var cambio = esPdf
+        ? { pdf_descargado_at: new Date().toISOString() }
+        : { estado: 'enviado_wa', enviado_wa_at: new Date().toISOString() };
       var ru = await fetch(q, {
         method: 'PATCH',
         headers: Object.assign({}, headers, { 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({ estado: 'enviado_wa', enviado_wa_at: new Date().toISOString() })
+        body: JSON.stringify(cambio)
       });
       if (!ru.ok) throw new Error('patch ' + ru.status + ' ' + (await ru.text()).slice(0, 200));
-      log({ ok: true, accion: 'enviado_wa', id: id });
+      log({ ok: true, accion: body.accion, id: id });
       return res.status(200).json({ ok: true });
     }
 
