@@ -415,6 +415,102 @@
   .cot-page ~ .wa-float { display: none; }
 }
 
+/* ---------- contenido de la página ----------
+   Lo que hay debajo del estimador. Es contenido de verdad, no relleno:
+   responde lo que alguien pregunta antes de cargar una pieza. También es
+   lo único que puede leer un crawler que no ejecuta JavaScript, que es el
+   caso de varios motores de respuestas con IA. */
+
+/* El h1 real, que existe para lectores de pantalla y para crawlers: el
+   titular que se ve es el del estimador y lo dibuja el JS. */
+.solo-lectores {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  margin: -1px; padding: 0; border: 0;
+}
+
+.cot-doc {
+  max-width: 74ch;
+  margin-top: clamp(70px, 9vh, 120px);
+  display: flex; flex-direction: column; gap: clamp(46px, 6vh, 76px);
+}
+.cot-doc-sec { display: flex; flex-direction: column; gap: 16px; }
+.cot-doc h2 {
+  font-weight: 200; font-size: clamp(26px, 2.6vw, 38px);
+  letter-spacing: -.035em; line-height: 1.04; margin: 0;
+  padding-bottom: 18px; border-bottom: 1px solid var(--line);
+}
+.cot-doc p {
+  margin: 0; font-size: 15.5px; line-height: 1.7;
+  font-weight: 300; color: var(--muted); text-wrap: pretty;
+}
+.cot-doc strong { color: var(--text); font-weight: 500; }
+
+.cot-doc-formula {
+  font-family: var(--mono) !important; font-size: 12.5px !important;
+  letter-spacing: .04em; color: var(--accent) !important;
+  border-left: 1px solid var(--accent); padding: 4px 0 4px 16px;
+}
+
+.cot-doc-lista { margin: 0; padding: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 14px; }
+.cot-doc-lista li {
+  font-size: 15.5px; line-height: 1.7; font-weight: 300; color: var(--muted);
+  padding-left: 20px; position: relative;
+}
+.cot-doc-lista li::before {
+  content: ''; position: absolute; left: 0; top: 11px;
+  width: 6px; height: 1px; background: var(--accent);
+}
+.cot-doc-lista strong { color: var(--text); font-weight: 500; }
+
+.cot-doc-legal {
+  font-size: 12.5px !important; line-height: 1.7; color: var(--faint) !important;
+  border-top: 1px solid var(--line); padding-top: 16px; margin-top: 6px !important;
+}
+
+/* tabla de capacidades: el bloque más citable de la página */
+.cot-doc-tabla { overflow-x: auto; }
+.cot-doc-tabla table { width: 100%; border-collapse: collapse; }
+.cot-doc-tabla th, .cot-doc-tabla td {
+  text-align: left; vertical-align: top; padding: 14px 0;
+  border-bottom: 1px solid var(--line); font-weight: 300; font-size: 14.5px;
+  line-height: 1.6;
+}
+.cot-doc-tabla th {
+  color: var(--text); font-weight: 400; padding-right: 28px; white-space: nowrap;
+}
+.cot-doc-tabla td { color: var(--muted); }
+
+/* preguntas frecuentes */
+.cot-faq { display: flex; flex-direction: column; }
+.cot-faq-i { border-bottom: 1px solid var(--line); }
+.cot-faq-i summary {
+  list-style: none; cursor: pointer; padding: 20px 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  font-size: 16px; font-weight: 300; color: var(--text);
+  transition: color .3s var(--ease);
+}
+.cot-faq-i summary::-webkit-details-marker { display: none; }
+.cot-faq-i summary::after {
+  content: '+'; font-family: var(--mono); font-size: 16px; color: var(--faint);
+  flex: none; transition: transform .4s var(--ease), color .3s;
+}
+.cot-faq-i[open] summary::after { transform: rotate(45deg); color: var(--accent); }
+.cot-faq-i summary:hover { color: var(--accent); }
+.cot-faq-i summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cot-faq-i > div { padding: 0 0 22px; }
+.cot-faq-i > div p { font-size: 15px; }
+
+@media (max-width: 640px) {
+  .cot-doc { margin-top: 56px; gap: 44px; }
+  .cot-doc-tabla th { white-space: normal; }
+  .cot-doc-tabla table, .cot-doc-tabla tbody, .cot-doc-tabla tr { display: block; }
+  .cot-doc-tabla th, .cot-doc-tabla td { display: block; padding: 0; border: 0; }
+  .cot-doc-tabla tr { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .cot-doc-tabla td { margin-top: 4px; }
+}
+
 /* ---------- mínimo táctil ----------
    Con el dedo son 44px; con mouse no hace falta y las pills ocupaban tres
    filas de alto para nada. Va al final del archivo a propósito: varias de
