@@ -864,8 +864,10 @@
         ? '<div class="pdf-regla"></div>' +
           '<p class="pdf-rotulo">Cómo entran en la chapa · ' + esc(t.nest.chapa.label) + '</p>' +
           '<div class="pdf-chapas">' + chapas + '</div>' +
-          '<p class="pdf-nota-chapa">Una chapa nunca mezcla espesores. El anidado real del ' +
-          'taller suele aprovechar más que esta estimación.</p>'
+          '<p class="pdf-nota-chapa"><b>Se dibuja la chapa entera para mostrar cómo entran ' +
+          'las piezas, pero el precio es solo por las piezas cortadas.</b> Una chapa nunca ' +
+          'mezcla espesores. El anidado real del taller suele aprovechar más que esta ' +
+          'estimación.</p>'
         : '') +
 
       '<div class="pdf-regla"></div>' +
@@ -1252,6 +1254,8 @@
       '</div>';
 
       h += '<p class="est-nest-nota mono">' +
+        '<b>Se dibuja la chapa entera para mostrar cómo entran las piezas, ' +
+        'pero el precio es solo por las piezas cortadas.</b><br />' +
         'Una chapa por espesor: el 3 mm y el 8 mm no comparten placa.<br />' +
         'Estimación de anidado — el taller optimiza y suele entrar más.' +
       '</p>';
