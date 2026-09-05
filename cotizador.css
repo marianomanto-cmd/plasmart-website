@@ -250,6 +250,7 @@
 }
 .est-total-lbl { letter-spacing: .2em; }
 .est-accion { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+.est-botones { display: flex; gap: 12px; flex-wrap: wrap; }
 .est-monto {
   margin: 0; font-weight: 200; font-size: clamp(36px, 4vw, 60px);
   letter-spacing: -.045em; line-height: 1; font-variant-numeric: tabular-nums;
@@ -258,6 +259,11 @@
 .est-tapado { letter-spacing: -.02em; }
 .est-punto { color: var(--accent); }
 .est-cta { height: 56px; padding: 0 26px; gap: 10px; }
+/* El PDF es la salida secundaria: mismo tamaño, sin el relleno claro,
+   para que no compita con "mandar al vendedor". */
+.est-cta-pdf { background: transparent; color: var(--text); border-color: var(--line-2); }
+.est-cta-pdf svg { width: 16px; height: 16px; }
+.est-cta-corto { display: none; }
 
 .est-legal {
   display: flex; flex-direction: column; gap: 8px;
@@ -405,8 +411,17 @@
     border-top: 1px solid var(--line);
   }
   .est-accion .est-monto { font-size: 26px; }
-  .est-accion .est-cta { height: 48px; padding: 0 18px; flex: none; }
+  .est-accion .est-cta { height: 48px; padding: 0 16px; flex: none; }
   .est-accion .est-cta span:not(.fill) { font-size: 12px; }
+  .est-botones { gap: 8px; flex-wrap: nowrap; }
+  /* En la barra fija los tres elementos no entran en 350px escritos
+     enteros: el PDF queda como ícono con su aria-label, y el principal
+     acorta a "Enviar". El monto es lo que tiene que seguir mandando. */
+  .est-accion .est-cta-pdf { padding: 0; width: 48px; justify-content: center; }
+  .est-accion .est-cta-txt { display: none; }
+  .est-accion .est-cta-largo { display: none; }
+  .est-accion .est-cta-corto { display: inline; }
+  .est-accion .est-monto { font-size: 23px; }
   /* aire para que la barra fija no tape el final de la página */
   .cot-page-inner { padding-bottom: 92px; }
   /* El globo de WhatsApp se va: quedaría encima del botón, y ese botón
@@ -509,6 +524,140 @@
   .cot-doc-tabla th, .cot-doc-tabla td { display: block; padding: 0; border: 0; }
   .cot-doc-tabla tr { padding: 14px 0; border-bottom: 1px solid var(--line); }
   .cot-doc-tabla td { margin-top: 4px; }
+}
+
+/* ============================================================
+   LA HOJA IMPRIMIBLE
+
+   El PDF va en papel: blanco, tinta negra, indigo con cuentagotas. El
+   sitio es oscuro, pero un PDF oscuro se imprime mal, se reenvía peor y
+   se lee como una captura en vez de un documento. Lo que sí viaja del
+   sistema es la gramática: hairlines en lugar de cajas, Sora 200 para el
+   número grande, mono para los datos.
+
+   Las medidas son las que se aprobaron en la maqueta. La base en pt y no
+   en px para que la escala sea la misma en pantalla y en papel.
+   ============================================================ */
+#cot-pdf { display: none; }
+
+#cot-pdf {
+  --papel: #fff; --tinta: #15171c; --tinta-2: #565d6d; --tinta-3: #9298a6;
+  --pl: #e2e5ea; --pl-2: #c8cdd6; --ac: #4a55d6; --ac-suave: #eceefc;
+}
+.pdf-hoja {
+  width: 210mm; min-height: 297mm; padding: 12mm 13mm 10mm;
+  background: var(--papel); color: var(--tinta);
+  font-family: var(--display); font-weight: 300; font-size: 8.5pt;
+  display: flex; flex-direction: column;
+}
+.pdf-membrete { display: flex; align-items: flex-start; justify-content: space-between; gap: 2.4em; }
+.pdf-membrete img { width: 5.2em; height: auto; display: block; }
+.pdf-emisor { text-align: right; font-family: var(--mono); font-size: .82em;
+  line-height: 1.85; color: var(--tinta-2); font-style: normal; }
+.pdf-emisor b { display: block; font-family: var(--display); font-weight: 500;
+  font-size: 1.16em; letter-spacing: -.01em; color: var(--tinta); margin-bottom: .35em; }
+
+.pdf-regla { height: 1px; background: var(--pl); margin: 1.15em 0 1em; }
+.pdf-regla-fuerte { background: var(--pl-2); }
+
+.pdf-cabeza { display: flex; align-items: flex-end; justify-content: space-between; gap: 2em; }
+.pdf-cabeza h2 { margin: 0; font-weight: 200; font-size: 2.25em;
+  letter-spacing: -.04em; line-height: 1; color: var(--tinta); }
+.pdf-cabeza h2 span { color: var(--ac); }
+.pdf-ref { text-align: right; font-family: var(--mono); font-size: .82em;
+  line-height: 1.9; color: var(--tinta-2); }
+.pdf-ref b { color: var(--tinta); font-weight: 500; }
+
+.pdf-cliente { display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1.1em; margin: 1.05em 0 0; }
+.pdf-cliente dt, .pdf-resumen dt {
+  font-family: var(--mono); font-size: .72em; letter-spacing: .17em;
+  text-transform: uppercase; color: var(--tinta-3); margin-bottom: .45em;
+}
+.pdf-cliente dd { margin: 0; font-size: 1.06em; font-weight: 400;
+  color: var(--tinta); overflow-wrap: anywhere; }
+
+.pdf-rotulo { font-family: var(--mono); font-size: .74em; letter-spacing: .19em;
+  text-transform: uppercase; color: var(--tinta-3); margin: 0 0 .9em;
+  padding-bottom: .7em; border-bottom: 1px solid var(--pl); }
+
+#cot-pdf table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+#cot-pdf thead th { font-family: var(--mono); font-size: .72em; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--tinta-3); font-weight: 400;
+  text-align: left; padding-bottom: .85em; border-bottom: 1px solid var(--pl); }
+#cot-pdf th.pdf-num, #cot-pdf td.pdf-num { text-align: right; padding-left: 1.4em; white-space: nowrap; }
+#cot-pdf th:nth-child(3), #cot-pdf td:nth-child(3) { width: 5.5em; }
+#cot-pdf th:nth-child(4), #cot-pdf td:nth-child(4) { width: 6em; }
+#cot-pdf th:nth-child(5), #cot-pdf td:nth-child(5) { width: 8em; }
+#cot-pdf tbody td { padding: .72em 0; border-bottom: 1px solid var(--pl); vertical-align: top; }
+.pdf-idx { font-family: var(--mono); font-size: .8em; color: var(--tinta-3); width: 2.6em; }
+.pdf-pieza { font-size: 1.06em; font-weight: 400; color: var(--tinta); }
+.pdf-pieza small { display: block; font-family: var(--mono); font-size: .74em;
+  letter-spacing: .08em; color: var(--tinta-3); margin-top: .4em; }
+.pdf-kg { font-family: var(--mono); font-size: .86em; color: var(--tinta-2); }
+.pdf-plata { font-size: 1.06em; font-weight: 400; color: var(--tinta); }
+
+.pdf-chapas { display: flex; gap: 1.1em; align-items: flex-start; }
+.pdf-chapa { margin: 0; display: flex; flex-direction: column; gap: .6em; flex: none; }
+.pdf-chapa svg { height: 9.2em; width: auto; display: block;
+  border: 1px solid var(--pl-2); background: #fafbfc; }
+.pdf-chapa figcaption { font-family: var(--mono); font-size: .7em; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--tinta-2); line-height: 1.75; }
+.pdf-chapa figcaption b { color: var(--ac); font-weight: 500; }
+.pdf-chapa-mas { font-family: var(--mono); font-size: .7em; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--tinta-3); line-height: 1.75;
+  align-self: center; margin: 0; flex: none; }
+.pdf-nota-chapa { font-family: var(--mono); font-size: .7em; letter-spacing: .08em;
+  line-height: 1.8; color: var(--tinta-3); margin: .9em 0 0; }
+
+.pdf-totales { display: flex; align-items: flex-end; justify-content: space-between; gap: 2em; }
+.pdf-resumen { display: flex; gap: 2.4em; }
+.pdf-resumen dd { margin: 0; font-size: 1.35em; font-weight: 300;
+  color: var(--tinta); font-variant-numeric: tabular-nums; }
+.pdf-monto { text-align: right; margin: 0; }
+.pdf-monto dt { font-family: var(--mono); font-size: .74em; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--tinta-3); margin-bottom: .35em; }
+.pdf-monto dd { margin: 0; font-weight: 200; font-size: 2.5em; letter-spacing: -.045em;
+  line-height: 1; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.pdf-monto dd i { font-style: normal; color: var(--ac); }
+.pdf-monto dd.pdf-sin { font-size: 1.6em; color: var(--tinta-2); }
+.pdf-siniva { display: block; font-family: var(--mono); font-size: .72em;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--tinta-3); margin-top: .6em; }
+.pdf-min, .pdf-revision { font-family: var(--mono); font-size: .74em; letter-spacing: .06em;
+  line-height: 1.75; color: var(--tinta-2); margin: 1em 0 0; }
+
+.pdf-avisos { margin-top: auto; padding-top: 1.15em; }
+.pdf-clave { display: flex; gap: 1em; align-items: flex-start;
+  background: var(--ac-suave); border-left: 2px solid var(--ac);
+  padding: .85em 1.1em; margin-bottom: .85em; }
+.pdf-marca { font-family: var(--mono); font-size: .72em; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ac); white-space: nowrap; padding-top: .15em; }
+.pdf-clave p { margin: 0; font-size: .95em; line-height: 1.6; color: var(--tinta); }
+.pdf-clave b { font-weight: 500; }
+.pdf-excluye { display: flex; gap: 1.5em; flex-wrap: wrap; margin-bottom: .8em; }
+.pdf-excluye span { font-family: var(--mono); font-size: .74em; letter-spacing: .1em;
+  color: var(--tinta-2); display: inline-flex; align-items: center; gap: .55em; }
+.pdf-excluye span::before { content: ''; width: .75em; height: 1px;
+  background: var(--tinta-3); flex: none; }
+.pdf-legal { font-family: var(--mono); font-size: .68em; letter-spacing: .04em;
+  line-height: 1.8; color: var(--tinta-3); margin: 0; }
+.pdf-pie { display: flex; justify-content: space-between; align-items: baseline; gap: 2em;
+  border-top: 1px solid var(--pl); margin-top: 1em; padding-top: .8em;
+  font-family: var(--mono); font-size: .68em; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--tinta-3); }
+
+/* Al imprimir queda solo la hoja: ni nav, ni estimador, ni globo de
+   WhatsApp. La clase la pone y la saca el JS alrededor de window.print(). */
+@media print {
+  @page { size: A4; margin: 0; }
+  html.cot-imprimiendo body > * { display: none !important; }
+  html.cot-imprimiendo body > #cot-pdf { display: block !important; }
+  html.cot-imprimiendo, html.cot-imprimiendo body {
+    background: #fff !important; margin: 0 !important; padding: 0 !important;
+  }
+  .pdf-hoja { box-shadow: none; }
+  /* que el navegador no descarte los fondos del bloque de aviso */
+  #cot-pdf { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 /* ---------- mínimo táctil ----------
