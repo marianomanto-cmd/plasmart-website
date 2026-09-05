@@ -449,3 +449,34 @@ html:not(.lib-on) .htrack { padding-block: 20px; }
   .hero-cta .btn { flex: 1 1 auto; justify-content: center; height: 44px; padding: 0 16px; font-size: 13px; gap: 8px; }
   .hero-cta .btn svg { width: 14px; height: 14px; }
 }
+
+/* ============================================================
+   ENTRADAS AL ESTIMADOR
+   Viven aca y no en landing.css porque el home y la version en ingles
+   no cargan landing.css, y el estimador se ofrece en las cinco paginas.
+   ============================================================ */
+/* fila: puede llevar dos botones, o un boton y su nota al costado */
+.why-cta { margin-top: clamp(34px, 4.5vw, 56px);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 14px 20px; }
+
+/* ---------- atajo al estimador ----------
+   Debajo del CTA principal del hero. El boton grande sigue siendo el
+   presupuesto a medida —una fachada o una serie con geometria rara no se
+   autoservicia— y esto es el atajo para el que ya tiene medidas o un DXF. */
+.hero-alt {
+  margin-top: 18px; font-family: var(--mono); font-size: 12px;
+  letter-spacing: .08em; color: var(--muted); line-height: 1.7;
+}
+.hero-alt a {
+  color: var(--text); border-bottom: 1px solid var(--accent);
+  padding-bottom: 2px; transition: color .3s;
+}
+.hero-alt a:hover { color: var(--accent); }
+.hero-alt span { color: var(--faint); }
+
+/* nota al lado de un CTA intermedio: dice de que se trata sin obligar a
+   entrar para averiguarlo */
+.cta-nota {
+  font-size: 11px; letter-spacing: .1em; color: var(--faint);
+  align-self: center; line-height: 1.6;
+}

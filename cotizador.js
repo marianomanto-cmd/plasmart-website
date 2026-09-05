@@ -59,6 +59,33 @@
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(Object.assign({ event: ev }, extra || {}));
   }
+
+  /* Lo que la etiqueta de conversion de Google Ads necesita para pujar por
+     valor y no solo por cantidad: value y currency arriba de todo. El resto
+     son dimensiones para segmentar despues.
+
+     OJO al configurar el tROAS: este value es el estimado que vio la
+     persona, no facturacion. Historicamente cierra el 43,6% de las
+     cotizaciones y el margen bruto es 66,4%, asi que el margen esperado de
+     una de estas conversiones ronda el 29% del value. */
+  function datosConversion(t) {
+    var prom = null;
+    if (t.nest && t.nest.aprovechamiento.length) {
+      prom = Math.round(t.nest.aprovechamiento.reduce(function (a, v) { return a + v; }, 0) /
+                        t.nest.aprovechamiento.length);
+    }
+    return {
+      value: t.total ? Math.round(t.total) : 0,
+      currency: 'ARS',
+      items: (t.items || []).length,
+      peso_kg: Math.round((t.peso || 0) * 10) / 10,
+      chapas: t.chapas || 0,
+      aprovechamiento: prom,
+      requiere_revision: !!t.revision,
+      origen: origenSrc(),
+      gclid: clickId('gclid')
+    };
+  }
   function chapaDe(key) {
     for (var i = 0; i < CHAPAS.length; i++) if (CHAPAS[i].key === key) return CHAPAS[i];
     return CHAPAS[0];
@@ -517,7 +544,9 @@
       total_sin_iva: t.total || 0,
       minimo_aplicado: !!t.minimoPedido || (t.items || []).some(function (m) { return m.minimoItem; }),
       requiere_revision: !!t.revision || !!t.sinPrecio,
-      origen: origenSrc()
+      origen: origenSrc(),
+      gclid: clickId('gclid'),
+      fbclid: clickId('fbclid')
     });
   }
 
@@ -528,10 +557,27 @@
 
   /* De donde vino: el ?src= que traen los CTA del sitio. */
   function origenSrc() {
+    return param('src', 80);
+  }
+
+  /* El gclid de Google Ads. Es lo unico que permite despues cruzar un lead
+     con la campaña, el anuncio y la palabra que lo trajo, y subir la venta
+     como conversion offline cuando la cotizacion se confirma. Se guarda en
+     sessionStorage porque el parametro vive en la URL de entrada y se
+     pierde en cuanto la persona navega. Idem fbclid, para Meta. */
+  function param(nombre, max) {
     try {
-      var v = new URLSearchParams(location.search).get('src');
-      return v ? String(v).slice(0, 80) : null;
+      var v = new URLSearchParams(location.search).get(nombre);
+      return v ? String(v).slice(0, max || 200) : null;
     } catch (e) { return null; }
+  }
+  function clickId(nombre) {
+    var v = param(nombre, 200);
+    try {
+      if (v) sessionStorage.setItem('pm_' + nombre, v);
+      else v = sessionStorage.getItem('pm_' + nombre);
+    } catch (e) {}
+    return v || null;
   }
 
   function cargarTarifa(cb) {
@@ -1152,7 +1198,7 @@
             try { vuelto.setSelectionRange(pos, pos); } catch (err) {}
           }
           if (ahora) {
-            track('estimador_total', { items: st.items.length });
+            track('estimador_total', datosConversion(calcTotal(st)));
             guardarConsulta(st, calcTotal(st));
           }
         } else {
@@ -1169,7 +1215,7 @@
       });
 
       on('[data-nav="wa"]', 'click', function () {
-        track('estimador_whatsapp', { items: st.items.length });
+        track('estimador_whatsapp', datosConversion(calcTotal(st)));
         guardarConsulta(st, calcTotal(st));
         marcarEnviado();
       });
@@ -1209,7 +1255,7 @@
           });
           var wa = root.querySelector('[data-nav="wa"]');
           if (wa) wa.addEventListener('click', function () {
-            track('estimador_whatsapp', { items: st.items.length });
+            track('estimador_whatsapp', datosConversion(calcTotal(st)));
             guardarConsulta(st, calcTotal(st));
             marcarEnviado();
           });

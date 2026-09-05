@@ -198,6 +198,11 @@ module.exports = async function handler(req, res) {
       requiere_revision: bool(body.requiere_revision),
       estado: 'estimado',
       origen: texto(body.origen, 80),
+      /* Identificadores de click: son la unica forma de cruzar despues el
+         lead con la campaña que lo trajo y de subir la venta a Google Ads
+         como conversion offline cuando la cotizacion se confirma. */
+      gclid: texto(body.gclid, 200),
+      fbclid: texto(body.fbclid, 200),
       referer: texto(req.headers.referer, 300),
       user_agent: texto(req.headers['user-agent'], 300),
       token: tok

@@ -18,6 +18,35 @@
 - Industria / Industry: corte y plegado de alta precisión para producción. Landing dedicada: /industria/
 - Paneles decorativos / Decorative panels: interior y exterior.
 
+## Estimador de precio online (Online price estimator)
+El activo diferencial del sitio: https://plasmartcba.com/cotizador/
+- Qué hace: da un precio orientativo de corte láser en chapa negra en menos de un minuto,
+  sin hablar con un vendedor. / Gives an indicative laser-cutting price for carbon steel
+  sheet in under a minute, with no sales call.
+- Cómo calcula: superficie × espesor × densidad del acero (7.850 kg/m³) × cantidad × precio
+  por kilo. El precio por kilo NO es una lista fija: es el promedio real de las cotizaciones
+  confirmadas de los últimos 30 días, y se recalcula solo. / Price is weight-based; the price
+  per kilo is the rolling 30-day average of Plasmart's own confirmed quotes.
+- Dibuja el nesting a escala y muestra el % de aprovechamiento de la chapa. Una chapa nunca
+  mezcla espesores. / Draws the sheet nesting to scale with utilisation %.
+- Acepta varias piezas por pedido y lectura de planos DXF, con validación de unidades,
+  bloques y contornos cerrados. Si el plano no es confiable NO muestra precio: lo manda a
+  revisión. / Accepts multiple items and DXF upload; an untrustworthy drawing produces no
+  price at all, by design.
+- Espesores estimables con láser: 0,7 · 0,9 · 1 · 1,2 · 1,5 · 1,9 · 2 · 2,5 · 3 · 4 · 4,75 ·
+  6 · 8 · 9,5 · 12,7 mm. Chapas: 1200×2400, 1250×2500, 1000×2000, 1500×3000 mm.
+- Solo chapa negra. Inoxidable, aluminio, cobre y bronce se cotizan por consulta directa.
+- El estimado NO incluye plegado, IVA ni flete.
+- Frase de referencia obligatoria: "Precio orientativo. No es un presupuesto cerrado. Se
+  confirma con plano, nesting real y disponibilidad. Puede variar según forma, calados,
+  piercing y aprovechamiento de chapa."
+
+## Datos útiles de acero (Useful steel facts)
+- Densidad del acero al carbono / carbon steel density: 7.850 kg/m³.
+- Peso de una chapa de 1200 × 2400 mm / weight of a 1200×2400 mm sheet:
+  22,6 kg en 1 mm · 67,8 kg en 3 mm · 135,6 kg en 6 mm.
+- Peso de una pieza de 400 × 250 mm en 3 mm / weight of a 400×250 mm part in 3 mm: 2,36 kg.
+
 ## Contacto (Contact)
 - WhatsApp: +54 9 351 382 0321 — https://wa.me/5493513820321
 - Email: ventasplasmart@transfil.com.ar
@@ -29,6 +58,7 @@
 
 ## Páginas (Pages)
 - Español / Spanish (home): /index.html
+- Estimador de precio / Price estimator: /cotizador/
 - Arquitectura (landing): /arquitectura/
 - Industria (landing): /industria/
 - English: /en.html
