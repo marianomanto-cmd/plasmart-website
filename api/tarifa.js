@@ -6,8 +6,15 @@
    asi que la tarifa no queda publicada para la competencia.
 
    El $/kg NO esta escrito aca: sale de Plasmart OT, de la funcion
-   public.tarifa_web() — promedio limpio de las cotizaciones confirmadas
-   de los ultimos 30 dias en chapa negra, sin recargo.
+   public.tarifa_web() — promedio de las cotizaciones confirmadas de chapa
+   negra + 6%.
+
+   La ventana se adapta: prueba 30, 45, 60 y 90 dias y se queda con la
+   primera que junte al menos 5 items. Con OT al dia son 30 dias; se estira
+   sola cuando la fuente se seca, que es preferible a dejar el estimador
+   mudo. La respuesta trae la ventana que se uso — si dice mas de 30 dias,
+   hace rato que no se cargan cotizaciones en OT y el promedio esta
+   envejeciendo.
 
    Variables de entorno (Vercel · Settings > Environment Variables):
      SUPABASE_URL      https://xgoopnjklodmqxopjafv.supabase.co
