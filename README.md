@@ -186,17 +186,29 @@ configuran **dentro de GTM**, no en el código.
 >   reescribir el teléfono), y `estimador_whatsapp` / `estimador_pdf` salían en cada click. Ahora
 >   una vez por persona cada 24 h.
 >
-> **Revisar en GTM / Ads (panel, no código):**
-> - Los triggers tienen que ser **"Evento personalizado · es igual a"** el nombre exacto. Con
->   "contiene" o una regex, `whatsapp_click` también matchea **`whatsapp_click_blocked`** (y
->   `estimador_` matchea los eventos de uso).
-> - Una sola acción **principal** por camino: si la persona manda el estimado por WhatsApp,
->   `estimador_total` + `estimador_whatsapp` + `estimador_pdf` como principales cuentan 3 veces el
->   mismo lead. Elegir una (sugerido: `estimador_whatsapp` o `estimador_total`) y el resto secundarias.
-> - No duplicar fuentes: si el key event de GA4 (`generate_lead`) está **importado** en Ads y además
->   corre el tag de conversión de Ads para el mismo evento, cada lead cuenta 2 veces. Una de las dos
->   como secundaria.
-> - Recuento **"Una"** en todas las acciones de lead.
+> **Estado de GTM / GA4 / Ads (relevado 2026‑10, de capturas del panel):**
+> - **GTM:** "Ads - Conv WhatsApp" y "GA4 - Event Lead" disparan con `whatsapp_click` (bien);
+>   `whatsapp_direct_click` quedó sin tags (bien). Los eventos del estimador **no están cableados**:
+>   lo que se manda con "Mandar al vendedor" (va directo a `wa.me`) **no cuenta en Ads**. "Ads - Conv
+>   Form" escucha `form_submit`, que el sitio ya no pushea (tag muerto). El tag "Meta Pixel" de GTM
+>   (All Pages) **duplica** el pixel hardcodeado en las 6 páginas.
+> - **GA4:** key events = `generate_lead`, `ads_conversion`, `social_click` (+ `purchase` sin datos).
+> - **Google Ads, causa del inflado:** son **principales a la vez** `generate_lead` (import GA4, objetivo
+>   "Enviar formulario", 5.970 conv.) y `ads_conversion` (import GA4, objetivo "Contacto", 5.929 conv.):
+>   **cada click a WhatsApp cuenta dos veces**. También son principales `social_click` (import GA4, 18)
+>   y "Acciones locales – Otras interacciones" (Perfil de Negocio, 305), que no son leads. Total en la
+>   columna Conversiones ≈ 12.300 para ≈ 6.000 clicks a WhatsApp (que a su vez venían inflados por la
+>   dedup rota de `/whatsapp/`).
+>
+> **A hacer en el panel:**
+> - Ads: **una sola** acción principal para el lead de WhatsApp. `ads_conversion`, `social_click` y
+>   "Otras interacciones" → **secundarias**. Si existe la acción nativa de "Ads - Conv WhatsApp", elegir
+>   ella **o** `generate_lead`, nunca las dos.
+> - Ads: recuento **"Una"** en la acción de lead. Al bajar el número de conversiones, revisar el CPA
+>   objetivo de las campañas (si usan tCPA) para que el bidding no se ajuste de golpe.
+> - GA4: sacar la estrella (key event) a `social_click` y `ads_conversion`.
+> - GTM: confirmar que `evt - whatsapp_click` es **"es igual a"** sin regex (con regex o "contiene"
+>   también agarra `whatsapp_click_blocked`). Pausar "Ads - Conv Form" y el tag "Meta Pixel".
 
 ## SEO / LLM
 
