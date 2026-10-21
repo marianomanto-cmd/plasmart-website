@@ -204,11 +204,13 @@ configuran **dentro de GTM**, no en el código.
 > - Ads: **una sola** acción principal para el lead de WhatsApp. `ads_conversion`, `social_click` y
 >   "Otras interacciones" → **secundarias**. Si existe la acción nativa de "Ads - Conv WhatsApp", elegir
 >   ella **o** `generate_lead`, nunca las dos.
-> - Ads: recuento **"Una"** en la acción de lead. Al bajar el número de conversiones, revisar el CPA
+> - Ads: el recuento "Una" de `generate_lead` se cambia en GA4 (abajo). Al bajar el número de conversiones, revisar el CPA
 >   objetivo de las campañas (si usan tCPA) para que el bidding no se ajuste de golpe.
 > - GA4: sacar la estrella (key event) a `social_click` y `ads_conversion`.
-> - GTM: confirmar que `evt - whatsapp_click` es **"es igual a"** sin regex (con regex o "contiene"
->   también agarra `whatsapp_click_blocked`). Pausar "Ads - Conv Form" y el tag "Meta Pixel".
+> - GA4: `generate_lead` → **Admin › Data display › Key events › ⋮ › Change counting method › Once per
+>   session** (el recuento de esa acción en Ads se maneja desde GA4, no desde Ads).
+> - GTM: pausar "Ads - Conv Form" y el tag "Meta Pixel". El trigger `evt - whatsapp_click` está bien
+>   (nombre exacto, sin filtros): no deja pasar `whatsapp_click_blocked`.
 
 ## SEO / LLM
 
