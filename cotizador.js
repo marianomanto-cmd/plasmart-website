@@ -60,6 +60,25 @@
     window.dataLayer.push(Object.assign({ event: ev }, extra || {}));
   }
 
+  /* Los eventos que son conversion (total, whatsapp, pdf) salen una sola vez
+     por persona cada 24 h. Antes salian en cada click: corregir el telefono,
+     apretar dos veces "Mandar al vendedor" o bajar el PDF de nuevo contaban
+     como conversiones nuevas en Google Ads. Va en localStorage para que
+     tampoco vuelva a contar al recargar la pagina o abrirla en otra pestaña. */
+  var UNA_VEZ_MS = 24 * 60 * 60 * 1000;
+  var enviados = {};
+  function trackUnaVez(ev, extra) {
+    if (enviados[ev]) return;
+    enviados[ev] = true;
+    var clave = 'pm_conv_' + ev;
+    try {
+      var antes = parseInt(localStorage.getItem(clave), 10);
+      if (antes > 0 && Date.now() - antes < UNA_VEZ_MS) return;
+      localStorage.setItem(clave, String(Date.now()));
+    } catch (e) {}
+    track(ev, extra);
+  }
+
   /* Lo que la etiqueta de conversion de Google Ads necesita para pujar por
      valor y no solo por cantidad: value y currency arriba de todo. El resto
      son dimensiones para segmentar despues.
@@ -1427,7 +1446,7 @@
             try { vuelto.setSelectionRange(pos, pos); } catch (err) {}
           }
           if (ahora) {
-            track('estimador_total', datosConversion(calcTotal(st)));
+            trackUnaVez('estimador_total', datosConversion(calcTotal(st)));
             guardarConsulta(st, calcTotal(st));
           }
         } else {
@@ -1444,7 +1463,7 @@
       });
 
       on('[data-nav="wa"]', 'click', function () {
-        track('estimador_whatsapp', datosConversion(calcTotal(st)));
+        trackUnaVez('estimador_whatsapp', datosConversion(calcTotal(st)));
         guardarConsulta(st, calcTotal(st));
         marcarEnviado();
       });
@@ -1459,7 +1478,7 @@
     function bajarPdf() {
       var t = calcTotal(st);
       if (falta(st).length) return;
-      track('estimador_pdf', datosConversion(t));
+      trackUnaVez('estimador_pdf', datosConversion(t));
       guardarConsulta(st, t);
       marcarPdf();
 
@@ -1526,7 +1545,7 @@
           });
           var wa = root.querySelector('[data-nav="wa"]');
           if (wa) wa.addEventListener('click', function () {
-            track('estimador_whatsapp', datosConversion(calcTotal(st)));
+            trackUnaVez('estimador_whatsapp', datosConversion(calcTotal(st)));
             guardarConsulta(st, calcTotal(st));
             marcarEnviado();
           });

@@ -134,7 +134,11 @@ configuran **dentro de GTM**, no en el código.
   `eventCallback`/`eventTimeout`).
   - **Chequeos:** `bot_ua` (regex de User‑Agent) · `not_visible` (`document.visibilityState`, descarta
     prefetch / pestañas en background) · `no_source` (sin `?src` o `unknown`) · `already_fired_session`
-    (dedup por `sessionStorage` `pm_wa_fired`) · `no_languages` · `webdriver`.
+    (dedup **una por persona cada 24 h**, por `localStorage` `pm_wa_fired_at`; el ID conserva el nombre
+    viejo para no cortar los reportes) · `no_languages` · `webdriver`.
+  - ⚠️ La dedup **no puede** ir en `sessionStorage`: los CTA abren `/whatsapp/` con `target="_blank"`
+    y cada pestaña nueva arranca con el `sessionStorage` vacío, así que cada click contaba como una
+    conversión nueva (ver *Resuelto 2026‑10* abajo).
   - Si **algún** chequeo falla, en vez del evento principal se pushea **`whatsapp_click_blocked`** con
     `block_reasons` (IDs separados por coma) — sirve para auditar en GA4 cuánto/por qué se filtró.
 - **`whatsapp_direct_click`** (legado): el listener de `v3.js` lo pushea si se clickea un link
@@ -143,6 +147,12 @@ configuran **dentro de GTM**, no en el código.
   directos** en las páginas de contenido y este evento queda dormido. ⚠️ La conversión de Ads y
   `generate_lead` deben disparar **sólo con `whatsapp_click`**, **nunca** con `whatsapp_direct_click`
   (ese segundo trigger, sin los 6 chequeos ni dedup, era el origen del ~67% inflado en la home).
+- **Estimador (`/cotizador/`)**: `cotizador.js` pushea `estimador_total` (se completó la puerta de
+  datos y se ve el precio; el lead ya se guarda), `estimador_whatsapp` ("Mandar al vendedor", va
+  **directo a `wa.me`**, no pasa por `/whatsapp/`) y `estimador_pdf`. Los tres llevan `value` = el
+  **estimado que vio la persona** (no facturación) + `currency`, `gclid` y dimensiones. Salen **una
+  vez por persona cada 24 h** cada uno (`localStorage` `pm_conv_<evento>`). El resto
+  (`estimador_abrir`, `_item_agregado`, `_chapa`, `_dxf_*`) son de uso y no deben ser conversión.
 - **`social_click`**: listener global en `v3.js` para clicks salientes a IG/FB/LinkedIn/etc.
 - `generate_lead` / form **no aplica** (se quitó el formulario).
 - **Landings (Arquitectura / Industria)**: **no** agregan ninguna conversión propia. Todos los CTA
@@ -166,6 +176,41 @@ configuran **dentro de GTM**, no en el código.
 >   `whatsapp_direct_click`), y mapearlo como key event (`generate_lead`), ya que no hay formulario.
 > - Mandar `whatsapp_click_blocked` a **GA4 como evento de auditoría** (con `block_reasons` / `wa_source`).
 > - En Google Ads, contar la conversión como **"Una"** por interacción (no "Cada").
+
+> **Resuelto (2026‑10): conversiones infladas otra vez.** Reproducido con Playwright: una persona que
+> tocaba WhatsApp 3 veces y usaba el estimador (corrigiendo el teléfono, mandando 2 veces y bajando
+> 2 veces el PDF) generaba **10 eventos de conversión**; ahora genera **4** (uno por evento).
+> - `/whatsapp/`: la dedup por `sessionStorage` no servía con `target="_blank"` (pestaña nueva =
+>   storage vacío). Pasó a `localStorage` con ventana de 24 h.
+> - Estimador: `estimador_total` volvía a salir cada vez que la puerta se cerraba y abría (borrar y
+>   reescribir el teléfono), y `estimador_whatsapp` / `estimador_pdf` salían en cada click. Ahora
+>   una vez por persona cada 24 h.
+>
+> **Estado de GTM / GA4 / Ads (relevado 2026‑10, de capturas del panel):**
+> - **GTM:** "Ads - Conv WhatsApp" y "GA4 - Event Lead" disparan con `whatsapp_click` (bien);
+>   `whatsapp_direct_click` quedó sin tags (bien). Los eventos del estimador **no están cableados**:
+>   lo que se manda con "Mandar al vendedor" (va directo a `wa.me`) **no cuenta en Ads**. "Ads - Conv
+>   Form" escucha `form_submit`, que el sitio ya no pushea (tag muerto). El tag "Meta Pixel" de GTM
+>   (All Pages) **duplica** el pixel hardcodeado en las 6 páginas.
+> - **GA4:** key events = `generate_lead`, `ads_conversion`, `social_click` (+ `purchase` sin datos).
+> - **Google Ads, causa del inflado:** son **principales a la vez** `generate_lead` (import GA4, objetivo
+>   "Enviar formulario", 5.970 conv.) y `ads_conversion` (import GA4, objetivo "Contacto", 5.929 conv.):
+>   **cada click a WhatsApp cuenta dos veces**. También son principales `social_click` (import GA4, 18)
+>   y "Acciones locales – Otras interacciones" (Perfil de Negocio, 305), que no son leads. Total en la
+>   columna Conversiones ≈ 12.300 para ≈ 6.000 clicks a WhatsApp (que a su vez venían inflados por la
+>   dedup rota de `/whatsapp/`).
+>
+> **A hacer en el panel:**
+> - Ads: **una sola** acción principal para el lead de WhatsApp. `ads_conversion`, `social_click` y
+>   "Otras interacciones" → **secundarias**. Si existe la acción nativa de "Ads - Conv WhatsApp", elegir
+>   ella **o** `generate_lead`, nunca las dos.
+> - Ads: el recuento "Una" de `generate_lead` se cambia en GA4 (abajo). Al bajar el número de conversiones, revisar el CPA
+>   objetivo de las campañas (si usan tCPA) para que el bidding no se ajuste de golpe.
+> - GA4: sacar la estrella (key event) a `social_click` y `ads_conversion`.
+> - GA4: `generate_lead` → **Admin › Data display › Key events › ⋮ › Change counting method › Once per
+>   session** (el recuento de esa acción en Ads se maneja desde GA4, no desde Ads).
+> - GTM: pausar "Ads - Conv Form" y el tag "Meta Pixel". El trigger `evt - whatsapp_click` está bien
+>   (nombre exacto, sin filtros): no deja pasar `whatsapp_click_blocked`.
 
 ## SEO / LLM
 

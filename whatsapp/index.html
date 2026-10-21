@@ -103,9 +103,21 @@ src="https://www.facebook.com/tr?id=2982494008617961&ev=PageView&noscript=1"
       reasons.push('no_source');
     }
 
-    // d) deduplicación por sesión
+    // d) deduplicación: una conversión por persona cada 24 h.
+    //    Va en localStorage y no en sessionStorage: todos los CTA abren esta
+    //    página en una pestaña nueva (target="_blank" + noopener) y cada
+    //    pestaña nueva arranca con el sessionStorage vacío, así que la dedup
+    //    por sesión nunca frenaba un segundo click. localStorage se comparte
+    //    entre pestañas. El ID del motivo queda igual para no cortar los
+    //    reportes de GA4.
+    var DEDUP_KEY = 'pm_wa_fired_at';
+    var DEDUP_MS = 24 * 60 * 60 * 1000;
     var alreadyFired = false;
-    try { alreadyFired = sessionStorage.getItem('pm_wa_fired') === '1'; } catch (e) {}
+    try {
+      var lastFired = parseInt(localStorage.getItem(DEDUP_KEY), 10);
+      alreadyFired = lastFired > 0 && Date.now() - lastFired < DEDUP_MS;
+    } catch (e) {}
+    try { if (sessionStorage.getItem('pm_wa_fired') === '1') alreadyFired = true; } catch (e) {}
     if (alreadyFired) {
       reasons.push('already_fired_session');
     }
@@ -122,7 +134,8 @@ src="https://www.facebook.com/tr?id=2982494008617961&ev=PageView&noscript=1"
 
     // PASO 4 / 5: pushear según corresponda
     if (reasons.length === 0) {
-      try { sessionStorage.setItem('pm_wa_fired', '1'); } catch (e) {}
+      try { localStorage.setItem(DEDUP_KEY, String(Date.now())); } catch (e) {}
+      try { sessionStorage.setItem('pm_wa_fired', '1'); } catch (e) {}   // respaldo si localStorage está bloqueado
       window.dataLayer.push({
         event: 'whatsapp_click',
         lead_type: 'whatsapp',
