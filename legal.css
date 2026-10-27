@@ -1,0 +1,148 @@
+/* ============================================================
+   PLASMART · PÁGINAS LEGALES (/privacidad/ · /privacy/)
+   Página de lectura, no de venta: sin video ni revelados al scrollear,
+   texto en una columna angosta y un índice al costado en desktop.
+   Hereda de v3.css colores, tipografía, nav, footer y WhatsApp flotante.
+   ============================================================ */
+
+.legal {
+  padding-block: clamp(118px, 17vh, 190px) clamp(80px, 12vh, 140px);
+}
+
+/* ---------- cabecera ---------- */
+.legal-head {
+  padding-bottom: clamp(34px, 5vw, 60px);
+  border-bottom: 1px solid var(--line);
+}
+.legal-head .kicker { margin-bottom: clamp(22px, 3vw, 32px); }
+.legal-head h1 {
+  font-size: clamp(42px, 7.4vw, 112px); font-weight: 200;
+  letter-spacing: -.045em; line-height: .96; max-width: 14ch;
+}
+.legal-lead {
+  margin-top: clamp(22px, 3vw, 34px); max-width: 60ch;
+  font-size: clamp(17px, 1.45vw, 20px); line-height: 1.6; font-weight: 300;
+  color: #c9ced8; letter-spacing: -.01em; text-wrap: pretty;
+}
+.legal-fecha { margin-top: 22px; }
+.legal-fecha time { color: var(--text); }
+/* aviso de traducción (versión en inglés) */
+.legal-nota {
+  margin-top: 18px; max-width: 72ch; font-size: 12px; line-height: 1.7;
+  letter-spacing: .04em;
+}
+.legal-fecha a, .legal-nota a {
+  color: var(--text); border-bottom: 1px solid var(--accent); padding-bottom: 1px;
+  transition: color .3s;
+}
+.legal-fecha a:hover, .legal-nota a:hover { color: var(--accent); }
+
+/* ---------- cuerpo: índice + texto ---------- */
+.legal-body {
+  display: grid; grid-template-columns: minmax(190px, 250px) minmax(0, 1fr);
+  gap: clamp(40px, 7vw, 120px); align-items: start;
+  margin-top: clamp(40px, 6vw, 76px);
+}
+
+/* Índice: acompaña al costado mientras se lee. El top deja libre el nav fijo. */
+.legal-toc { position: sticky; top: 112px; }
+.legal-toc-t {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint); margin-bottom: 12px;
+}
+.legal-toc ol { list-style: none; border-top: 1px solid var(--line); }
+.legal-toc li { border-bottom: 1px solid var(--line); break-inside: avoid; }
+.legal-toc a {
+  display: flex; align-items: baseline; gap: 12px; padding: 10px 0;
+  font-size: 14px; line-height: 1.35; color: var(--muted); transition: color .3s;
+}
+.legal-toc a span {
+  flex: none; font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+  color: var(--faint); transition: color .3s;
+}
+.legal-toc a:hover { color: var(--text); }
+.legal-toc a:hover span { color: var(--accent); }
+
+/* Texto. El gris es el de .hero-sub: más claro que --muted porque acá se
+   lee de corrido, no se escanea. El ancho deja ~80 caracteres por línea
+   (en ch no sirve: el "0" de Sora es ancho y 70ch daban ~110). */
+.legal-doc {
+  max-width: 41rem;
+  display: flex; flex-direction: column; gap: clamp(52px, 7vw, 84px);
+}
+/* el nav es fijo: al saltar desde el índice, el título queda debajo de él */
+.legal-sec { scroll-margin-top: 104px; }
+.legal-sec h2 {
+  display: flex; align-items: baseline; gap: 16px;
+  font-size: clamp(26px, 2.7vw, 38px); font-weight: 200;
+  letter-spacing: -.035em; line-height: 1.08;
+  padding-bottom: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--line);
+}
+.legal-sec h2 .n {
+  flex: none; font-family: var(--mono); font-size: 12px; font-weight: 400;
+  letter-spacing: .1em; color: var(--accent);
+}
+.legal-sec h3 {
+  font-size: 17px; font-weight: 500; letter-spacing: -.01em; line-height: 1.4;
+  color: var(--text); margin: 32px 0 10px;
+}
+.legal-doc p, .legal-doc li, .legal-doc dd {
+  font-size: 16px; line-height: 1.75; font-weight: 300;
+  color: #c9ced8; text-wrap: pretty;
+}
+.legal-doc p + p, .legal-doc p + ul, .legal-doc ul + p,
+.legal-doc p + dl, .legal-doc dl + p { margin-top: 14px; }
+.legal-doc strong { color: var(--text); font-weight: 500; }
+.legal-doc a {
+  color: var(--text); border-bottom: 1px solid var(--accent-soft); padding-bottom: 1px;
+  overflow-wrap: anywhere; transition: color .3s, border-color .3s;
+}
+.legal-doc a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+.legal-lista { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.legal-lista li { position: relative; padding-left: 22px; }
+.legal-lista li::before {
+  content: ""; position: absolute; left: 0; top: .9em;
+  width: 8px; height: 1px; background: var(--accent);
+}
+
+/* datos del responsable */
+.legal-datos { margin-top: 22px; border-top: 1px solid var(--line); }
+.legal-datos > div {
+  display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 2px 20px;
+  align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.legal-datos dt {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--faint);
+}
+.legal-datos dd { color: var(--text); }
+
+/* leyenda obligatoria de la AAIP: destacada, como pide la norma */
+.legal-aaip {
+  margin-top: 26px; padding: 18px 20px 20px 22px;
+  border-left: 1px solid var(--accent);
+  background: linear-gradient(90deg, rgba(110, 123, 255, .07), transparent 80%);
+}
+.legal-aaip-k {
+  display: block; margin-bottom: 10px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent);
+}
+.legal-doc .legal-aaip p { font-size: 15px; line-height: 1.7; color: #c9ced8; }
+.legal-doc .legal-aaip p + p { margin-top: 12px; }
+
+.legal-cierre { padding-top: 22px; border-top: 1px solid var(--line); }
+
+/* ---------- tablet y celular ---------- */
+@media (max-width: 1024px) {
+  .legal-body { grid-template-columns: 1fr; gap: 48px; }
+  .legal-toc { position: static; }
+  .legal-toc ol { columns: 2; column-gap: 32px; }
+}
+@media (max-width: 640px) {
+  .legal-toc ol { columns: 1; }
+  .legal-doc p, .legal-doc li, .legal-doc dd { font-size: 15.5px; }
+  .legal-datos > div { grid-template-columns: 1fr; }
+  .legal-aaip { padding: 16px 16px 18px 18px; }
+}

@@ -203,6 +203,11 @@
 }
 .est-ok { color: var(--muted); }
 .est-ok b { color: var(--text); }
+.est-nota a {
+  color: var(--muted); border-bottom: 1px solid var(--line-2); padding-bottom: 1px;
+  transition: color .3s, border-color .3s;
+}
+.est-nota a:hover { color: var(--text); border-bottom-color: var(--accent); }
 .est-abrir { color: var(--muted); }
 .est-err { color: var(--accent); }
 .est-diag { display: block; margin-top: 8px; color: var(--faint); word-break: break-word; }
@@ -338,7 +343,10 @@
 }
 .cot-page-inner { max-width: 100%; }
 
-.cot-volver { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
+.cot-volver {
+  margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0 24px;
+}
 .cot-volver a {
   font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
   text-transform: uppercase; color: var(--muted); transition: color .3s;

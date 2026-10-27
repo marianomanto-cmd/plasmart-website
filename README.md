@@ -24,6 +24,9 @@ v3.js                 Lenis + GSAP, loader, reveals, scrub, acordeón, marquee v
                       crossfade, nav backdrop on-scroll, menú hamburguesa, carrusel auto de
                       landings, analytics (dataLayer)
 whatsapp/index.html   Página intermedia de tracking (pushea whatsapp_click y redirige a wa.me)
+privacidad/index.html Política de privacidad (ES) — la URL que piden los formularios de Google Ads
+privacy/index.html    Privacy policy (EN) — traducción de la anterior (prevalece la versión en español)
+legal.css             Estilos de las páginas legales (índice lateral, columna de lectura, leyenda AAIP)
 llms.txt              Resumen del sitio para LLMs (formato llmstxt.org)
 sitemap.xml · robots.txt · vercel.json (301 www→non-www) · .nojekyll
 assets/
@@ -220,7 +223,8 @@ configuran **dentro de GTM**, no en el código.
   misma y **URLs absolutas** (`https://plasmartcba.com/…`) en canonical / OG / JSON‑LD — evita que el
   preview de Vercel (u otro staging) se indexe como contenido duplicado. JSON‑LD **`Service`** (con
   `provider` `LocalBusiness`) + **`BreadcrumbList`** por landing, y `og:image:alt`.
-- **`sitemap.xml`** (home · arquitectura · industria · en) + línea `Sitemap:` en `robots.txt`.
+- **`sitemap.xml`** (home · arquitectura · industria · cotizador · en · privacidad · privacy) + línea
+  `Sitemap:` en `robots.txt`.
 - **`llms.txt`** con el resumen del negocio (incluye las landings, diferenciales y un mini‑FAQ).
 - **AEO / motores de respuesta** (ChatGPT Search, Perplexity, AI Overviews, Copilot): sección **FAQ**
   visible (acordeón nativo `<details>`) + JSON‑LD **`FAQPage`** en home, `arquitectura`, `industria` y
@@ -238,6 +242,17 @@ configuran **dentro de GTM**, no en el código.
 > de `www` → non‑www**. Las `LocalBusiness` comparten `@id` (`#localbusiness`) para unificar la entidad.
 > Las landings tienen **OG image propia** (`arq-og.jpg` / `ind-og.jpg`, 1200×630 con logo).
 > Pendiente del lado de Vercel: marcar **non‑www como dominio primario** y **eliminar `tienda.`**.
+
+## Privacidad (Ley 25.326)
+
+- **`/privacidad/`** (ES) y **`/privacy/`** (EN): responsable TRANS FIL SRL (CUIT 30-68100731-4),
+  qué datos entran por cada vía (formularios de Google Ads, estimador → `api/lead.js`, WhatsApp,
+  email), proveedores, plazos, derechos y la **leyenda obligatoria de la AAIP** (Res. 14/2018), textual.
+  Link en el footer de todas las páginas, en el cierre de `/cotizador/` y junto a los datos del
+  estimador. `/privacidad/` es la URL para los formularios de clientes potenciales de Google Ads.
+- **Actualizar la política** (las dos versiones + la fecha) cuando cambie lo que se junta o con quién
+  se comparte: un campo nuevo en `api/lead.js`, otro formulario, una herramienta nueva en GTM
+  (hoy: GA4, Google Ads y Meta Pixel) o un proveedor nuevo.
 
 ## Accesibilidad / robustez
 
