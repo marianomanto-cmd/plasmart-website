@@ -1132,7 +1132,10 @@
             '<label class="est-lbl mono" for="cot-ciu">Ciudad de entrega</label>' +
             '<input id="cot-ciu" type="text" autocomplete="address-level2" data-d="ciudad" value="' + esc(st.ciudad) + '" /></div>' +
         '</div>' +
-        '<p class="est-nota mono">Con el teléfono o el email alcanza. Es para que el vendedor pueda responderte.</p>' +
+        /* La consulta se guarda apenas se completan estos datos: el link a la
+           politica va aca, donde se piden, y abre aparte para no perder lo cargado. */
+        '<p class="est-nota mono">Con el teléfono o el email alcanza. Es para que el vendedor pueda responderte. ' +
+          '<a href="/privacidad/" target="_blank" rel="noopener">Cómo cuidamos tus datos ↗</a></p>' +
       '</div>';
     }
 
