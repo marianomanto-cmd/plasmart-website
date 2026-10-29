@@ -29,7 +29,7 @@
    Con su propio radio, por si el navegador no soporta overflow:clip. */
 .est-glow {
   position: absolute; inset: 0; pointer-events: none; border-radius: 4px;
-  background: radial-gradient(120% 70% at 30% -10%, rgba(110, 123, 255, .10), transparent 60%);
+  background: radial-gradient(120% 70% at 30% -10%, rgba(166, 67, 31, .06), transparent 60%);
 }
 .est-col { position: relative; display: flex; flex-direction: column; min-width: 0; }
 .est-col-piezas { padding: clamp(28px, 3vw, 52px); gap: clamp(22px, 2.6vh, 34px); }
@@ -61,7 +61,7 @@
   background: var(--accent); box-shadow: 0 0 10px var(--accent);
 }
 .est-h1 {
-  font-weight: 200; font-size: clamp(34px, 3.6vw, 56px);
+  font-weight: 300; font-size: clamp(34px, 3.6vw, 56px);
   line-height: .94; letter-spacing: -.045em; margin: 0; max-width: 16ch;
 }
 .est-h1 span { color: var(--accent); }
@@ -92,7 +92,7 @@
   width: 26px; flex: none;
 }
 .est-desc {
-  flex: 1; min-width: 0; font-weight: 200;
+  flex: 1; min-width: 0; font-weight: 300;
   font-size: clamp(19px, 1.6vw, 26px); letter-spacing: -.02em; line-height: 1.15;
 }
 .est-desc em { font-style: normal; color: var(--muted); }
@@ -128,7 +128,7 @@
 .est-pill {
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 36px;
-  font-family: var(--display); font-weight: 200; font-size: 15px;
+  font-family: var(--display); font-weight: 300; font-size: 15px;
   color: var(--muted); background: transparent;
   border: 1px solid var(--line); border-radius: 100px;
   padding: 6px 14px; cursor: pointer;
@@ -149,7 +149,7 @@
 .est-campo input {
   width: 130px; max-width: 100%; min-height: 44px;
   background: transparent; border: 0; border-bottom: 1px solid var(--line-2);
-  color: var(--text); font-family: var(--display); font-weight: 200;
+  color: var(--text); font-family: var(--display); font-weight: 300;
   font-size: 30px; letter-spacing: -.03em; padding: 0 0 8px;
   transition: border-color .3s var(--ease);
 }
@@ -162,7 +162,7 @@
   width: 44px; height: 44px; flex: none;
   display: grid; place-items: center;
   background: transparent; border: 1px solid var(--line-2); border-radius: 100px;
-  color: var(--muted); font-family: var(--display); font-weight: 200; font-size: 20px;
+  color: var(--muted); font-family: var(--display); font-weight: 300; font-size: 20px;
   cursor: pointer; transition: color .3s var(--ease), border-color .3s var(--ease);
 }
 .est-stepb:hover { border-color: var(--accent); color: var(--text); }
@@ -170,7 +170,7 @@
 .est-stepi {
   width: 64px; min-height: 44px; text-align: center;
   background: transparent; border: 0; color: var(--text);
-  font-family: var(--display); font-weight: 200; font-size: 30px; letter-spacing: -.03em;
+  font-family: var(--display); font-weight: 300; font-size: 30px; letter-spacing: -.03em;
 }
 .est-stepi:focus { outline: none; }
 
@@ -184,7 +184,7 @@
   transition: color .3s var(--ease), border-color .3s var(--ease);
 }
 .est-chip:hover { border-color: var(--accent); color: var(--text); }
-.est-chip.on { color: var(--accent); border-color: rgba(110, 123, 255, .5); }
+.est-chip.on { color: var(--accent); border-color: var(--accent-soft); }
 .est-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .est-listo, .est-borrar {
   font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
@@ -212,7 +212,7 @@
 .est-err { color: var(--accent); }
 .est-diag { display: block; margin-top: 8px; color: var(--faint); word-break: break-word; }
 .est-warn {
-  border: 1px solid rgba(110, 123, 255, .35); border-radius: 4px;
+  border: 1px solid var(--accent-soft); border-radius: 4px;
   padding: 14px 16px; font-size: 13px; line-height: 1.6;
   color: var(--muted); font-weight: 300;
 }
@@ -239,7 +239,7 @@
 .est-datos-campos input {
   width: 100%; min-height: 44px;
   background: transparent; border: 0; border-bottom: 1px solid var(--line-2);
-  color: var(--text); font-family: var(--display); font-weight: 200;
+  color: var(--text); font-family: var(--display); font-weight: 300;
   font-size: 20px; letter-spacing: -.02em; padding: 0 0 8px;
   transition: border-color .3s var(--ease);
 }
@@ -257,7 +257,7 @@
 .est-accion { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
 .est-botones { display: flex; gap: 12px; flex-wrap: wrap; }
 .est-monto {
-  margin: 0; font-weight: 200; font-size: clamp(36px, 4vw, 60px);
+  margin: 0; font-weight: 300; font-size: clamp(36px, 4vw, 60px);
   letter-spacing: -.045em; line-height: 1; font-variant-numeric: tabular-nums;
 }
 .est-monto-off { color: var(--faint); }
@@ -358,7 +358,7 @@
    hay contenido denso: sin fondo propio se leían los dos encimados. */
 .cot-page-nav {
   mix-blend-mode: normal;
-  background: rgba(8, 9, 11, .82);
+  background: rgba(239, 236, 230, .9);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
@@ -373,7 +373,7 @@
 
 /* Fallback si el JS no carga */
 .cot-warn {
-  border: 1px solid rgba(110, 123, 255, .35); border-radius: 4px;
+  border: 1px solid var(--accent-soft); border-radius: 4px;
   padding: 18px 20px; color: var(--muted); font-weight: 300;
 }
 .cot-warn a { color: var(--text); border-bottom: 1px solid var(--accent); }
@@ -417,7 +417,7 @@
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 350;
     flex-direction: row; align-items: center; justify-content: space-between; gap: 14px;
     padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
-    background: rgba(8, 9, 11, .94);
+    background: rgba(239, 236, 230, .96);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid var(--line);
   }
@@ -462,7 +462,7 @@
 }
 .cot-doc-sec { display: flex; flex-direction: column; gap: 16px; }
 .cot-doc h2 {
-  font-weight: 200; font-size: clamp(26px, 2.6vw, 38px);
+  font-weight: 300; font-size: clamp(26px, 2.6vw, 38px);
   letter-spacing: -.035em; line-height: 1.04; margin: 0;
   padding-bottom: 18px; border-bottom: 1px solid var(--line);
 }
@@ -553,7 +553,7 @@
 
 #cot-pdf {
   --papel: #fff; --tinta: #15171c; --tinta-2: #565d6d; --tinta-3: #9298a6;
-  --pl: #e2e5ea; --pl-2: #c8cdd6; --ac: #4a55d6; --ac-suave: #eceefc;
+  --pl: #e2e5ea; --pl-2: #c8cdd6; --ac: #A6431F; --ac-suave: #F6E7E0;
 }
 .pdf-hoja {
   width: 210mm; min-height: 297mm; padding: 12mm 13mm 10mm;
@@ -572,7 +572,7 @@
 .pdf-regla-fuerte { background: var(--pl-2); }
 
 .pdf-cabeza { display: flex; align-items: flex-end; justify-content: space-between; gap: 2em; }
-.pdf-cabeza h2 { margin: 0; font-weight: 200; font-size: 2.25em;
+.pdf-cabeza h2 { margin: 0; font-weight: 300; font-size: 2.25em;
   letter-spacing: -.04em; line-height: 1; color: var(--tinta); }
 .pdf-cabeza h2 span { color: var(--ac); }
 .pdf-ref { text-align: right; font-family: var(--mono); font-size: .82em;
@@ -629,7 +629,7 @@
 .pdf-monto { text-align: right; margin: 0; }
 .pdf-monto dt { font-family: var(--mono); font-size: .74em; letter-spacing: .2em;
   text-transform: uppercase; color: var(--tinta-3); margin-bottom: .35em; }
-.pdf-monto dd { margin: 0; font-weight: 200; font-size: 2.5em; letter-spacing: -.045em;
+.pdf-monto dd { margin: 0; font-weight: 300; font-size: 2.5em; letter-spacing: -.045em;
   line-height: 1; color: var(--tinta); font-variant-numeric: tabular-nums; }
 .pdf-monto dd i { font-style: normal; color: var(--ac); }
 .pdf-monto dd.pdf-sin { font-size: 1.6em; color: var(--tinta-2); }

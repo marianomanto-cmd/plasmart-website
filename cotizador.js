@@ -30,8 +30,8 @@
   var SEPARACION_MM = 5;
 
   /* Un color por item para poder distinguirlos en la chapa. Arranca por el
-     acento del sitio y sigue con tonos que se leen sobre el fondo oscuro. */
-  var COLORES = ['#6e7bff', '#5fd0e0', '#e8a45c', '#5cb98a', '#e8798c', '#b39ddb'];
+     acento del sitio y sigue con tonos que se leen sobre el fondo claro. */
+  var COLORES = ['#A6431F', '#1F6F8B', '#9A6A0C', '#2F7D52', '#B23A5E', '#5B4FA3'];
 
   var CHAPAS = [
     { key: '1200x2400', label: '1200 × 2400 mm', largo: 2400, ancho: 1200 },
@@ -764,7 +764,7 @@
           var x = MARGEN_MM + p.y + r * (p.ph + SEPARACION_MM);
           var y = MARGEN_MM + p.x + k * (p.pw + SEPARACION_MM);
           piezas += '<rect x="' + x + '" y="' + y + '" width="' + p.ph + '" height="' + p.pw +
-                    '" fill="#4a55d6" fill-opacity="0.20" stroke="#4a55d6" stroke-width="6" />';
+                    '" fill="#A6431F" fill-opacity="0.20" stroke="#A6431F" stroke-width="6" />';
           dib++;
         }
       }
