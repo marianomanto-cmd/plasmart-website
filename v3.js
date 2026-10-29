@@ -111,9 +111,12 @@
     /* manifesto word scrub */
     var mani = document.querySelector('.mani p');
     if (mani) {
-      GS.to('.mani .w:not(.accent)', { color: '#eef0f3', stagger: .5, ease: 'none',
+      var cs = getComputedStyle(document.documentElement);
+      var cText = cs.getPropertyValue('--text').trim() || '#1B1917';
+      var cAcc = cs.getPropertyValue('--accent').trim() || '#A6431F';
+      GS.to('.mani .w:not(.accent)', { color: cText, stagger: .5, ease: 'none',
         scrollTrigger: { trigger: mani, start: 'top 80%', end: 'bottom 60%', scrub: .6 } });
-      GS.to('.mani .accent', { color: '#6e7bff', ease: 'none',
+      GS.to('.mani .accent', { color: cAcc, ease: 'none',
         scrollTrigger: { trigger: mani, start: 'top 70%', end: 'bottom 60%', scrub: .6 } });
     }
 
@@ -222,6 +225,72 @@
     window.addEventListener('scroll', function () { play(cur); }, { once: true, passive: true });
   })();
 
+  /* ---------- Hero reel (home): varios videos en rotación con fundido ----------
+     Sólo el primero se descarga al cargar; el siguiente se precarga mientras
+     corre el actual. Se pausa fuera de pantalla y con la pestaña oculta. */
+  (function () {
+    var reel = document.getElementById('heroReel');
+    if (!reel) return;
+    var hero = reel.closest('.hero');
+    var vids = Array.prototype.slice.call(reel.querySelectorAll('video'));
+    var btns = Array.prototype.slice.call(hero.querySelectorAll('.reel-btn'));
+    var DUR = 7000, cur = 0, timer = null, visible = true, inView = true, startedAt = 0, left = DUR;
+    hero.style.setProperty('--reel-dur', DUR + 'ms');
+    function play(v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+    function preload(v) { if (v && v.preload !== 'auto') { v.preload = 'auto'; try { v.load(); } catch (e) {} } }
+    function mark(i) {
+      btns.forEach(function (b, k) {
+        var on = k === i;
+        b.classList.remove('on');
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      if (btns[i]) { void btns[i].offsetWidth; btns[i].classList.add('on'); }
+    }
+    function schedule(ms) {
+      clearTimeout(timer); timer = null;
+      if (REDUCE || !visible || document.hidden) return;
+      startedAt = Date.now(); left = ms;
+      timer = setTimeout(function () { show(cur + 1); }, ms);
+    }
+    function show(i) {
+      i = (i + vids.length) % vids.length;
+      var prev = vids[cur], next = vids[i];
+      if (i !== cur) {
+        preload(next);
+        try { next.currentTime = 0; } catch (e) {}
+        play(next);
+        next.classList.add('on'); prev.classList.remove('on');
+        setTimeout(function () { if (!prev.classList.contains('on')) prev.pause(); }, 1500);
+        cur = i;
+      }
+      mark(i);
+      preload(vids[(i + 1) % vids.length]);
+      schedule(DUR);
+    }
+    btns.forEach(function (b, k) { b.addEventListener('click', function () { show(k); }); });
+    function setVisible(v) {
+      if (v === visible) return;
+      visible = v;
+      hero.classList.toggle('paused', !v);
+      if (!v) {
+        clearTimeout(timer); timer = null;
+        left = Math.max(400, left - (Date.now() - startedAt));
+        vids[cur].pause();
+      } else { play(vids[cur]); schedule(left); }
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) { inView = es[0].isIntersecting; setVisible(inView && !document.hidden); }, { threshold: 0.05 }).observe(hero);
+    }
+    document.addEventListener('visibilitychange', function () { setVisible(inView && !document.hidden); });
+    play(vids[0]);
+    // algunos navegadores bloquean el autoplay hasta la primera interacción
+    document.addEventListener('pointerdown', function () { play(vids[cur]); }, { once: true });
+    window.addEventListener('scroll', function () { play(vids[cur]); }, { once: true, passive: true });
+    vids[0].addEventListener('playing', function () { preload(vids[1]); }, { once: true });
+    mark(0);
+    schedule(DUR);
+  })();
+
   /* ---------- Aplicaciones: accordion auto-rotate ---------- */
   (function () {
     var acc = document.getElementById('appsAcc3');
@@ -235,7 +304,13 @@
       void bar.offsetWidth;
       bar.style.transition = 'width ' + DWELL + 'ms linear'; bar.style.width = '100%';
     }
-    function set(i) { idx = (i + panels.length) % panels.length; panels.forEach(function (p, k) { p.classList.toggle('is-active', k === idx); }); prog(); }
+    // un panel puede llevar video (Industria): se carga recién cuando se activa y se pausa al salir
+    function syncVid(p, on) {
+      var v = p.querySelector('video'); if (!v) return;
+      if (on) { if (v.preload !== 'auto') { v.preload = 'auto'; } var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      else v.pause();
+    }
+    function set(i) { idx = (i + panels.length) % panels.length; panels.forEach(function (p, k) { p.classList.toggle('is-active', k === idx); syncVid(p, k === idx); }); prog(); }
     function start() { stop(); timer = setInterval(function () { if (!paused) set(idx + 1); }, DWELL); }
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
     panels.forEach(function (p, k) {

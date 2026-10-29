@@ -16,13 +16,13 @@
 }
 .legal-head .kicker { margin-bottom: clamp(22px, 3vw, 32px); }
 .legal-head h1 {
-  font-size: clamp(42px, 7.4vw, 112px); font-weight: 200;
+  font-size: clamp(42px, 7.4vw, 112px); font-weight: 300;
   letter-spacing: -.045em; line-height: .96; max-width: 14ch;
 }
 .legal-lead {
   margin-top: clamp(22px, 3vw, 34px); max-width: 60ch;
   font-size: clamp(17px, 1.45vw, 20px); line-height: 1.6; font-weight: 300;
-  color: #c9ced8; letter-spacing: -.01em; text-wrap: pretty;
+  color: var(--muted); letter-spacing: -.01em; text-wrap: pretty;
 }
 .legal-fecha { margin-top: 22px; }
 .legal-fecha time { color: var(--text); }
@@ -74,7 +74,7 @@
 .legal-sec { scroll-margin-top: 104px; }
 .legal-sec h2 {
   display: flex; align-items: baseline; gap: 16px;
-  font-size: clamp(26px, 2.7vw, 38px); font-weight: 200;
+  font-size: clamp(26px, 2.7vw, 38px); font-weight: 300;
   letter-spacing: -.035em; line-height: 1.08;
   padding-bottom: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--line);
 }
@@ -88,7 +88,7 @@
 }
 .legal-doc p, .legal-doc li, .legal-doc dd {
   font-size: 16px; line-height: 1.75; font-weight: 300;
-  color: #c9ced8; text-wrap: pretty;
+  color: var(--muted); text-wrap: pretty;
 }
 .legal-doc p + p, .legal-doc p + ul, .legal-doc ul + p,
 .legal-doc p + dl, .legal-doc dl + p { margin-top: 14px; }
@@ -122,14 +122,14 @@
 .legal-aaip {
   margin-top: 26px; padding: 18px 20px 20px 22px;
   border-left: 1px solid var(--accent);
-  background: linear-gradient(90deg, rgba(110, 123, 255, .07), transparent 80%);
+  background: linear-gradient(90deg, rgba(166, 67, 31, .07), transparent 80%);
 }
 .legal-aaip-k {
   display: block; margin-bottom: 10px;
   font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
   text-transform: uppercase; color: var(--accent);
 }
-.legal-doc .legal-aaip p { font-size: 15px; line-height: 1.7; color: #c9ced8; }
+.legal-doc .legal-aaip p { font-size: 15px; line-height: 1.7; color: var(--muted); }
 .legal-doc .legal-aaip p + p { margin-top: 12px; }
 
 .legal-cierre { padding-top: 22px; border-top: 1px solid var(--line); }
