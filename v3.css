@@ -338,7 +338,7 @@ html:not(.lib-on) .htrack { padding-block: 20px; }
 /* ============================================================
    CONTACTO
    ============================================================ */
-.contact-band { background: var(--accent-solid, #A6431F); }
+.contact-band { background: var(--accent-solid, #A6431F); --accent: #FFE6D9; --accent-soft: rgba(255,230,217,.5); }  /* claro sobre corten: 5.1:1 */
 .contact-band .btn-solid { background: #fff; color: #1B1917; border-color: #fff; }
 .contact-band .btn-solid .fill, .contact-band .btn .fill { background: #1B1917; }
 .contact-band .btn:hover { border-color: #1B1917; }
