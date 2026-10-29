@@ -234,8 +234,11 @@
     var hero = reel.closest('.hero');
     var vids = Array.prototype.slice.call(reel.querySelectorAll('video'));
     var btns = Array.prototype.slice.call(hero.querySelectorAll('.reel-btn'));
-    var DUR = 7000, cur = 0, timer = null, visible = true, inView = true, startedAt = 0, left = DUR;
-    hero.style.setProperty('--reel-dur', DUR + 'ms');
+    // duración por clip: data-dur="12" (segundos) en el <video>; si no, 7 s
+    var DUR = 7000, cur = 0, timer = null, visible = true, inView = true, startedAt = 0;
+    function durOf(i) { var d = parseFloat(vids[i].getAttribute('data-dur')); return d > 0 ? d * 1000 : DUR; }
+    var left = durOf(0);
+    hero.style.setProperty('--reel-dur', left + 'ms');
     function play(v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
     function preload(v) { if (v && v.preload !== 'auto') { v.preload = 'auto'; try { v.load(); } catch (e) {} } }
     function mark(i) {
@@ -263,9 +266,10 @@
         setTimeout(function () { if (!prev.classList.contains('on')) prev.pause(); }, 1500);
         cur = i;
       }
+      hero.style.setProperty('--reel-dur', durOf(i) + 'ms');
       mark(i);
       preload(vids[(i + 1) % vids.length]);
-      schedule(DUR);
+      schedule(durOf(i));
     }
     btns.forEach(function (b, k) { b.addEventListener('click', function () { show(k); }); });
     function setVisible(v) {
@@ -288,7 +292,7 @@
     window.addEventListener('scroll', function () { play(vids[cur]); }, { once: true, passive: true });
     vids[0].addEventListener('playing', function () { preload(vids[1]); }, { once: true });
     mark(0);
-    schedule(DUR);
+    schedule(durOf(0));
   })();
 
   /* ---------- Aplicaciones: accordion auto-rotate ---------- */
