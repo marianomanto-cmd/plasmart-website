@@ -58,7 +58,7 @@
       menu.classList.toggle('open', v);
       if (nav) nav.classList.toggle('menu-open', v);
       burger.setAttribute('aria-expanded', v ? 'true' : 'false');
-      burger.setAttribute('aria-label', v ? 'Cerrar menú' : 'Abrir menú');
+      burger.setAttribute('aria-label', v ? (burger.getAttribute('data-label-close') || 'Cerrar menú') : (burger.getAttribute('data-label-open') || 'Abrir menú'));
       menu.setAttribute('aria-hidden', v ? 'false' : 'true');
       document.body.style.overflow = v ? 'hidden' : '';
       if (lenis) { if (v) lenis.stop(); else lenis.start(); }

@@ -367,7 +367,7 @@
   .cot-page-nav .cot-page-links { display: flex; gap: 18px; }
 }
 @media (max-width: 560px) {
-  .cot-page-nav .nav-cta { display: inline-block; font-size: 11px; }
+  .cot-page-nav .nav-cta { display: inline-flex; font-size: 13px; padding: 0 16px; }
   .cot-page-nav .cot-page-links { display: none; }
 }
 
