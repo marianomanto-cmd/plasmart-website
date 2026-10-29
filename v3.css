@@ -227,7 +227,7 @@ html:not(.loaded) .hero-inner { opacity: 0; }
 .hero h1 { max-width: 16ch; font-weight: 300; }
 .hero-reel h1.h-xl { font-size: clamp(44px, 7.6vw, 124px); }
 .hero h1 .l { display: block; }
-.hero h1 .ln-mask { display: block; overflow: hidden; padding-bottom: .06em; }
+.hero h1 .ln-mask { display: block; overflow: hidden; padding-bottom: .2em; margin-bottom: -.14em; } /* aire para los descendentes (g, p, y) de Hanken */
 .hero h1 .ln-in { display: block; }
 .hero h1 .hl { color: var(--accent); }
 .hero-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-top: clamp(28px, 4vw, 48px); }
