@@ -260,8 +260,10 @@ configuran **dentro de GTM**, no en el código.
 >   propia URL y el anuncio aterriza en el home o en una landing. Ahora `v3.js` guarda `gclid`/`fbclid`
 >   en `localStorage` (`pm_gclid`, `pm_fbclid`, 90 días) en cualquier página, y `cotizador.js` los
 >   busca ahí y, de respaldo, en las cookies `_gcl_aw` (Google) y `_fbc` (Meta).
-> - **Pendiente:** los eventos del estimador (`estimador_total`, `estimador_whatsapp`) siguen sin
->   cablear en GTM: hoy un envío al vendedor desde el estimador no cuenta en Ads.
+> - **Eventos del estimador cableados (GTM versión 20, 2026‑11‑12):** `estimador_total`,
+>   `estimador_whatsapp` y `estimador_pdf` van a GA4 con su `value`/`currency`.
+> - **Pendiente:** cuando `estimador_total` aparezca en GA4 › Eventos recientes (tarda 24‑48 h en
+>   llegar), marcarlo como evento clave e importarlo a Google Ads como conversión (contar "una").
 
 ## SEO / LLM
 
