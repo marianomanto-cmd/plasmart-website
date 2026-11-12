@@ -89,7 +89,7 @@
     if (lines.length) tl.from(lines, { yPercent: 115, duration: 1.1, ease: 'power4.out', stagger: .1 });
     else tl.from('.hero h1', { y: 60, opacity: 0, duration: 1, ease: 'power3.out' });
     tl.from('.hero-top > *', { opacity: 0, y: 18, stagger: .08, duration: .7, ease: 'power2.out' }, '-=.7');
-    if (document.querySelector('.hero-sub')) {              // landings only (home has no subtitle)
+    if (document.querySelector('.hero-sub')) {              // home, EN y landings llevan bajada
       tl.from('.hero-sub', { opacity: 0, y: 18, duration: .7, ease: 'power2.out' }, '-=.5');
     }
     tl.from('.hero-cta', { opacity: 0, y: 18, duration: .7, ease: 'power2.out' }, '-=.55')
@@ -366,8 +366,9 @@
     var cards = Array.prototype.slice.call(grid.querySelectorAll('.wcard:not([data-clone])'));
     var items = cards.map(function (c) {
       var img = c.querySelector('img'), nm = (c.querySelector('.nm') || {}).textContent || '';
+      var ty = ((c.querySelector('.ty') || {}).textContent || '').trim();   // tipo de obra (p\u00e9rgola, baranda\u2026)
       var parts = nm.split('\u00b7');
-      return { src: img ? img.getAttribute('src') : '', num: (parts[0] || '').trim(), name: (parts[1] || parts[0] || '').trim() };
+      return { src: img ? img.getAttribute('src') : '', num: (parts[0] || '').trim(), name: (parts[1] || parts[0] || '').trim(), ty: ty };
     });
     items.sort(function (a, b) { return parseInt(a.num, 10) - parseInt(b.num, 10); });
     if (!items.length) return;
@@ -375,8 +376,8 @@
     var en = (document.documentElement.lang || 'es').toLowerCase().indexOf('en') === 0;
     function card(it, i, clone) {
       return '<article class="wm-card"' + (clone ? ' aria-hidden="true"' : '') + '>' +
-        '<div class="wm-pic"><img ' + ((i > 1 || clone) ? 'loading="lazy" ' : '') + 'decoding="async" src="' + it.src + '" alt="' + (clone ? '' : it.name) + '"></div>' +
-        '<div class="wm-cap"><span class="wm-nm">' + it.name + '</span><span class="wm-ix">' + it.num + ' / ' + total + '</span></div>' +
+        '<div class="wm-pic"><img ' + ((i > 1 || clone) ? 'loading="lazy" ' : '') + 'decoding="async" src="' + it.src + '" alt="' + (clone ? '' : (it.ty ? it.ty + ' · ' : '') + it.name) + '"></div>' +
+        '<div class="wm-cap"><span class="wm-tx"><span class="wm-nm">' + it.name + '</span>' + (it.ty ? '<span class="wm-ty">' + it.ty + '</span>' : '') + '</span><span class="wm-ix">' + it.num + ' / ' + total + '</span></div>' +
         '</article>';
     }
     // render the set twice for a seamless loop

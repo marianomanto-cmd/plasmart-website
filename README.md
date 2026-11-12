@@ -103,8 +103,9 @@ propio en `landing.css`.
   bloque de contacto** (`?src=contacto-directo`)— pasan por la página intermedia `/whatsapp/` para
   tracking validado. **No queda ningún `wa.me` directo** en las páginas de contenido (sólo en
   `/whatsapp/`, que es el destino). El email queda como dato informativo en Contacto.
-- **Envíos**: se coordinan con **Via Cargo o la transportista que prefiera el cliente**, con **pago en
-  destino** al recibir (no hay transporte propio).
+- **Envíos**: se coordinan con **Via Cargo o la transportista que prefiera el cliente**; el flete se
+  cotiza aparte según destino (no hay transporte propio). **No se ofrece pago en destino**: no lo
+  pongas en ninguna página, FAQ, JSON-LD ni en `llms.txt`.
 - Footer / redes: **Instagram · Facebook · LinkedIn**.
 
 ## Cambios sobre el handoff
@@ -119,6 +120,19 @@ propio en `landing.css`.
 - **Nav con backdrop + sombra al scrollear** (`.nav.scrolled`): deja de mezclarse con el contenido.
 - **Multi‑página**: el sitio pasó de single‑landing a **home + landings** de Arquitectura e Industria,
   con **header multi‑página + hamburguesa** en mobile (ver *Landings segmentadas*).
+- **Hero del home (nov 2026)**, a partir de GA4 (96% de las visitas en mobile, 17% llega al 90% de
+  scroll): bajada `.hero-sub` con procesos y espesores (antes estaban en un mono de 12px en el pie),
+  CTA principal **"Pedí presupuesto por WhatsApp"** (`whatsapp/?src=hero`) + "Estimá tu precio"
+  secundario. El catálogo salió del hero y quedó debajo de **Proyectos** (`.work-cat`). En mobile se
+  ocultan el `Nº/ 04` y el pie del hero para que oferta y CTAs entren en el primer pantallazo. Mismo
+  cambio en `en.html`. En Contacto, WhatsApp pasó a ser el botón principal.
+- **Header mobile (≤560px)**: se ve el CTA "Estimá tu precio" y el selector ES/EN pasa al menú
+  hamburguesa (antes era al revés).
+- **Espaciados mobile (≤760px)**: `.sec`, `.mani`, `.work-head` y `.contact` con la mitad de padding;
+  la home bajó de ~7,7 a ~7 pantallas.
+- **Proyectos**: cada tarjeta lleva el tipo de obra (`.ty`: pérgola, baranda, cerco…), deducido de la
+  foto; el carrusel mobile lo muestra debajo del apellido. Esto revierte el "sólo número + apellido"
+  del handoff: el apellido solo no le dice nada a quien está por cotizar.
 
 ## Analytics / Tracking (GTM)
 
@@ -214,6 +228,12 @@ configuran **dentro de GTM**, no en el código.
 >   session** (el recuento de esa acción en Ads se maneja desde GA4, no desde Ads).
 > - GTM: pausar "Ads - Conv Form" y el tag "Meta Pixel". El trigger `evt - whatsapp_click` está bien
 >   (nombre exacto, sin filtros): no deja pasar `whatsapp_click_blocked`.
+> - **GTM (visto en GA4, nov 2026):** en "GA4 - Event Lead" los parámetros `wa_source` y `lead_type`
+>   llegan con el texto literal `dlv - wa_source` / `dlv - lead_type` en las 2.253 conversiones del
+>   período: el valor quedó escrito como texto en vez de la variable `{{dlv - wa_source}}`. Hasta
+>   corregirlo no se puede saber qué botón genera los clicks a WhatsApp.
+> - **Estimador:** ninguna de las 51 consultas guardadas en `cotizaciones_web` entre el 15/10 y el
+>   11/11 trae `gclid`. Revisar la captura antes de importar conversiones offline a Ads.
 
 ## SEO / LLM
 
@@ -293,7 +313,9 @@ Hosting estático desde la raíz, sin build:
       Con el SVG vectorial quedaría nítido a cualquier tamaño.
 - [x] **Dominio non‑www unificado** (canonical/og/hreflang/sitemap absolutos + `vercel.json` 301).
       Falta en Vercel/DNS: **dominio primario = non‑www** y **borrar el subdominio `tienda.`**.
-- [ ] **Optimizar el catálogo PDF** (~35 MB, pesado para mobile).
+- [~] **Optimizar el catálogo PDF**: de 35,4 MB a 12,8 MB (imágenes recomprimidas con PyMuPDF,
+      sin cambio visible). Lo que queda es contenido vectorial de los modelos; para bajar más hay que
+      re-exportarlo desde el archivo de diseño original con imágenes a ~150 dpi.
 - [x] **GTM — inflado de conversión resuelto** (jun 2026): se quitó `whatsapp_direct_click` de los tags
       "Ads - Conv WhatsApp" y "GA4 - Event Lead"; la conversión cuenta sólo `whatsapp_click` validado.
       Quedan los ajustes de auditoría del bloque *Analytics / Tracking* (mandar `whatsapp_click_blocked`

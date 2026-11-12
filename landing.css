@@ -5,13 +5,7 @@
    nav/header, footer, hero, .sec/.sec-top, .cap-list, .contact, botones).
    ============================================================ */
 
-/* ---------- Hero: subtítulo de landing ---------- */
-.hero-sub {
-  margin-top: clamp(20px, 2.6vw, 30px);
-  max-width: 54ch;
-  font-size: clamp(16px, 1.4vw, 20px);
-  line-height: 1.5; font-weight: 300; color: var(--muted); letter-spacing: -.01em;
-}
+/* El subtítulo del hero (.hero-sub) vive en v3.css: el home y en.html también lo usan. */
 
 /* ---------- Hero menos sombreado (landings) ----------
    El video se ve más (opacidad vía data-hero-opacity en v3.js) y el overlay aclara
