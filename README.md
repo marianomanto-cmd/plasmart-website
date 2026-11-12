@@ -321,6 +321,11 @@ el tipo de cambio):
   YouTube) y 10 stories de 15 s.
 - Coherencia imagen/texto corregida: story 02 (sólo corte plasma), story 03 (plegadora plegando + foto
   de la plegadora + perfiles plegados) y tramos 02/04 y 03/04 del spot 04 (producción industrial).
+- **Spot 05 "20 años" sin Via Cargo (12/11):** el rótulo "Envíos a todo el país con Via Cargo" pasó a
+  **"Despachamos a todo el país"** en los 5 formatos. En Drive se subió como nueva versión de cada archivo
+  (mismo ID y link), igual que la planilla `plasmart-meta-ads-textos.xlsx`. YouTube: nuevos
+  `DTjPBwLb8Ng` (Short) y `FIH-CzVuvgc` (16:9), con descripción sin Via Cargo; los viejos
+  (`8EMn1RY6us4`, `onqZ7NCkiXE`) pasan a privado una vez que Demand Gen usa los nuevos.
 - **Drive**: carpetas de Meta y de YouTube con las versiones finales (las anteriores se reemplazaron, sin
   duplicados).
 - **YouTube**: 20 videos públicos (10 Shorts de stories; 5 Shorts y 5 horizontales de los spots). Las
