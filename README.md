@@ -158,6 +158,14 @@ configuran **dentro de GTM**, no en el código.
     conversión nueva (ver *Resuelto 2026‑10* abajo).
   - Si **algún** chequeo falla, en vez del evento principal se pushea **`whatsapp_click_blocked`** con
     `block_reasons` (IDs separados por coma) — sirve para auditar en GA4 cuánto/por qué se filtró.
+  - **Permanencia mínima (nov 2026):** aunque pase los 6 chequeos, el click cuenta como lead sólo si la
+    visita lleva **10 s** (`MIN_SEG`, el umbral de sesión "con interacción" de GA4). Si es más rápido se
+    pushea **`whatsapp_click_rapid`** (no es conversión, no dispara el `Lead` de Meta y no consume la
+    dedup de 24 h); la persona igual llega a WhatsApp. El inicio de la visita lo marcan `v3.js` y
+    `cotizador.js` en `localStorage` (`pm_visita_at` / `pm_visto_at`, se reinicia tras 30 min sin
+    actividad). Sin ese dato (entró directo a `/whatsapp/` o el storage está bloqueado) no se aplica.
+    Los tres eventos llevan `secs_on_site`. Motivo: los 6 chequeos frenan bots, no dedos; en PMax
+    mobile (8 s de permanencia promedio) casi todos los leads eran toques al botón flotante.
 - **`whatsapp_direct_click`** (legado): el listener de `v3.js` lo pushea si se clickea un link
   **directo** a `wa.me`. **Desde el fix de inflado, TODOS los links de WhatsApp (incluido el número de
   contacto) pasan por `/whatsapp/`** (`src=contacto-directo`), así que ya **no hay links `wa.me`
@@ -228,12 +236,29 @@ configuran **dentro de GTM**, no en el código.
 >   session** (el recuento de esa acción en Ads se maneja desde GA4, no desde Ads).
 > - GTM: pausar "Ads - Conv Form" y el tag "Meta Pixel". El trigger `evt - whatsapp_click` está bien
 >   (nombre exacto, sin filtros): no deja pasar `whatsapp_click_blocked`.
-> - **GTM (visto en GA4, nov 2026):** en "GA4 - Event Lead" los parámetros `wa_source` y `lead_type`
->   llegan con el texto literal `dlv - wa_source` / `dlv - lead_type` en las 2.253 conversiones del
->   período: el valor quedó escrito como texto en vez de la variable `{{dlv - wa_source}}`. Hasta
->   corregirlo no se puede saber qué botón genera los clicks a WhatsApp.
-> - **Estimador:** ninguna de las 51 consultas guardadas en `cotizaciones_web` entre el 15/10 y el
->   11/11 trae `gclid`. Revisar la captura antes de importar conversiones offline a Ads.
+
+> **Resuelto (2026‑11‑12): conversiones infladas, de punta a punta.** Estado actual:
+> - **GA4:** había un **evento personalizado `ads_conversion`** (Admin › Eventos › Configuraciones
+>   personalizadas) creado con *`event_name` = `page_view` y `page_location` contiene
+>   `https://www.plasmartcba.com/whatsapp`*: contaba **cualquier vista de `/whatsapp/`**, esquivando los
+>   chequeos y la dedup, y se importaba a Ads. **Se borró.** Único evento clave de lead:
+>   **`generate_lead`**, contado **una vez por sesión**. `ads_conversion` y `social_click` no son
+>   eventos clave. Métrica personalizada nueva: `secs_on_site` ("Segundos en el sitio al click WA");
+>   dimensiones ya registradas: `wa_source`, `lead_type`, `block_reasons`, `page_referrer`.
+> - **GTM (versión 19):** "GA4 - Event Lead" mandaba **texto literal** (`dlv - wa_source`,
+>   `dlv - lead_value`, …) en vez de las variables: no se veía el CTA de origen ni llegaba el valor.
+>   Ahora usa `{{dlv - …}}` y suma `secs_on_site`. Tag nuevo **"GA4 - Event WhatsApp no contado"**
+>   (trigger `evt - whatsapp_no_contado`, regex `^whatsapp_click_(rapid|blocked)$`) para auditar lo que
+>   no cuenta. Siguen pausados "Ads - Conv Form" y el "Meta Pixel" de GTM. "Ads - Conv WhatsApp" y
+>   "Google Tag AW-672786045" apuntan a la **cuenta de Ads vieja** (no afectan a la nueva).
+> - **Google Ads (cuenta 456-601-2695):** principales = "Submit lead form (Google Analytics event
+>   generate_lead)" y el formulario de clientes potenciales de Google ("Lead form - Submit").
+>   "Plasmart (web) ads_conversion" y "Contact (social_click)" quedan **secundarias** (sin datos nuevos).
+> - **Código:** regla de permanencia mínima de 10 s en `/whatsapp/` (ver *Contacto = WhatsApp*).
+> - **Pendiente:** ninguna de las 51 consultas guardadas en `cotizaciones_web` entre el 15/10 y el
+>   11/11 trae `gclid`. Revisar la captura antes de importar conversiones offline a Ads. Y los eventos
+>   del estimador (`estimador_total`, `estimador_whatsapp`) siguen sin cablear en GTM: hoy un envío al
+>   vendedor desde el estimador no cuenta en Ads.
 
 ## SEO / LLM
 
