@@ -616,9 +616,21 @@
 
   /* El gclid de Google Ads. Es lo unico que permite despues cruzar un lead
      con la campaña, el anuncio y la palabra que lo trajo, y subir la venta
-     como conversion offline cuando la cotizacion se confirma. Se guarda en
-     sessionStorage porque el parametro vive en la URL de entrada y se
-     pierde en cuanto la persona navega. Idem fbclid, para Meta. */
+     como conversion offline cuando la cotizacion se confirma. Idem fbclid,
+     para Meta.
+
+     El parametro llega en la URL donde aterriza el anuncio (casi nunca
+     /cotizador/), asi que se busca en este orden:
+       1. la URL de esta pagina;
+       2. localStorage, donde v3.js lo guarda al aterrizar en cualquier
+          pagina del sitio (vale 90 dias, la ventana de clic de Google Ads);
+       3. sessionStorage, el formato anterior;
+       4. las cookies que ya escriben las etiquetas: _gcl_aw (vinculador de
+          conversiones de Google, "GCL.<seg>.<gclid>") y _fbc (pixel de Meta,
+          "fb.1.<ms>.<fbclid>").
+     Hasta nov 2026 solo se miraban 1 y 3, y las 51 cotizaciones guardadas
+     quedaron con el gclid vacio. */
+  var CLICK_MAX_MS = 90 * 24 * 60 * 60 * 1000;
   function param(nombre, max) {
     try {
       var v = new URLSearchParams(location.search).get(nombre);
@@ -628,10 +640,24 @@
   function clickId(nombre) {
     var v = param(nombre, 200);
     try {
-      if (v) sessionStorage.setItem('pm_' + nombre, v);
-      else v = sessionStorage.getItem('pm_' + nombre);
+      if (v) {
+        localStorage.setItem('pm_' + nombre, JSON.stringify({ v: v, t: Date.now() }));
+        return v;
+      }
+      var g = JSON.parse(localStorage.getItem('pm_' + nombre) || 'null');
+      if (g && g.v && Date.now() - g.t < CLICK_MAX_MS) return String(g.v);
     } catch (e) {}
-    return v || null;
+    try { v = sessionStorage.getItem('pm_' + nombre); } catch (e) {}
+    return v || clickIdCookie(nombre);
+  }
+  function clickIdCookie(nombre) {
+    var cookie = { gclid: '_gcl_aw', fbclid: '_fbc' }[nombre];
+    if (!cookie) return null;
+    var m = document.cookie.match(new RegExp('(?:^|; )' + cookie + '=([^;]*)'));
+    if (!m) return null;
+    var partes = decodeURIComponent(m[1]).split('.');
+    var desde = nombre === 'gclid' ? 2 : 3;
+    return partes.length > desde ? partes.slice(desde).join('.').slice(0, 200) : null;
   }
 
   function cargarTarifa(cb) {

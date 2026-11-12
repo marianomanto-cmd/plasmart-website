@@ -26,6 +26,25 @@
     } catch (e) {}
   })();
 
+  /* ---------- Identificadores de clic de los anuncios ----------
+     El gclid (Google Ads) y el fbclid (Meta) llegan en la URL de la página
+     donde aterriza el anuncio —casi siempre el home o /industria/—, no en
+     /cotizador/. Antes sólo los leía cotizador.js de su propia URL, así que
+     las cotizaciones de quien entraba por un anuncio y después iba al
+     estimador quedaban con el gclid vacío. Acá se guardan al aterrizar, en
+     localStorage (los CTA abren pestañas nuevas), y cotizador.js los usa
+     durante 90 días, la ventana de clic de Google Ads. Mismo formato que
+     clickId() en cotizador.js: si cambiás uno, cambiá el otro. */
+  (function guardarClickIds() {
+    try {
+      var q = new URLSearchParams(location.search), ahora = Date.now();
+      ['gclid', 'fbclid'].forEach(function (k) {
+        var v = q.get(k);
+        if (v) localStorage.setItem('pm_' + k, JSON.stringify({ v: String(v).slice(0, 200), t: ahora }));
+      });
+    } catch (e) {}
+  })();
+
   /* ---------- Hero entrance (sin cortina) ---------- */
   document.documentElement.classList.add('loaded');
   heroIn();   // heroIn está declarada más abajo en el mismo IIFE (hoisting): NO la muevas

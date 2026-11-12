@@ -255,10 +255,13 @@ configuran **dentro de GTM**, no en el código.
 >   generate_lead)" y el formulario de clientes potenciales de Google ("Lead form - Submit").
 >   "Plasmart (web) ads_conversion" y "Contact (social_click)" quedan **secundarias** (sin datos nuevos).
 > - **Código:** regla de permanencia mínima de 10 s en `/whatsapp/` (ver *Contacto = WhatsApp*).
-> - **Pendiente:** ninguna de las 51 consultas guardadas en `cotizaciones_web` entre el 15/10 y el
->   11/11 trae `gclid`. Revisar la captura antes de importar conversiones offline a Ads. Y los eventos
->   del estimador (`estimador_total`, `estimador_whatsapp`) siguen sin cablear en GTM: hoy un envío al
->   vendedor desde el estimador no cuenta en Ads.
+> - **gclid de las cotizaciones (arreglado 2026‑11‑12):** ninguna de las 51 consultas guardadas en
+>   `cotizaciones_web` entre el 15/10 y el 11/11 traía `gclid`, porque `cotizador.js` sólo lo leía de su
+>   propia URL y el anuncio aterriza en el home o en una landing. Ahora `v3.js` guarda `gclid`/`fbclid`
+>   en `localStorage` (`pm_gclid`, `pm_fbclid`, 90 días) en cualquier página, y `cotizador.js` los
+>   busca ahí y, de respaldo, en las cookies `_gcl_aw` (Google) y `_fbc` (Meta).
+> - **Pendiente:** los eventos del estimador (`estimador_total`, `estimador_whatsapp`) siguen sin
+>   cablear en GTM: hoy un envío al vendedor desde el estimador no cuenta en Ads.
 
 ## SEO / LLM
 
