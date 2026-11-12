@@ -23,6 +23,9 @@ v3.js                 Lenis + GSAP, loader, reveals, scrub, acordeón, marquee v
                       proyectos, carrusel mobile, botones magnéticos, video
                       crossfade, nav backdrop on-scroll, menú hamburguesa, carrusel auto de
                       landings, analytics (dataLayer)
+cotizador/index.html  Estimador online (lo dibuja cotizador.js, estilos en cotizador.css): herramienta
+                      con nesting, foto de obra al pie de la columna del nesting, fila "Lo que sale
+                      de una chapa" (4 obras) y contenido + FAQ para buscadores
 whatsapp/index.html   Página intermedia de tracking (pushea whatsapp_click y redirige a wa.me)
 privacidad/index.html Política de privacidad (ES) — la URL que piden los formularios de Google Ads
 privacy/index.html    Privacy policy (EN) — traducción de la anterior (prevalece la versión en español)

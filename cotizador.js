@@ -977,9 +977,24 @@
         '<div class="est">' +
           '<span class="est-glow" aria-hidden="true"></span>' +
           '<div class="est-col est-col-piezas">' + columnaPiezas(t) + '</div>' +
-          '<aside class="est-col est-col-nest">' + columnaNesting(t) + '</aside>' +
+          '<aside class="est-col est-col-nest">' +
+            '<div class="est-nest-track">' + columnaNesting(t) + '</div>' +
+            obraFoto() +
+          '</aside>' +
         '</div>';
       wire();
+    }
+
+    /* Una obra real en el hueco que deja la columna del nesting debajo del
+       panel. Vive fuera de la pista del panel pegado para que el panel
+       frene antes de la foto en vez de taparla, y fuera de lo que se
+       repinta en cada cambio para que la imagen no parpadee. */
+    function obraFoto() {
+      return '<figure class="est-obra">' +
+        '<img src="/assets/portfolio-cuad-05.webp" width="1400" height="1400" loading="lazy" decoding="async" ' +
+          'alt="Escalera con panel de acero calado con motivo de hojas, cortado con láser por Plasmart" />' +
+        '<figcaption class="mono">Obra real · escalera con panel calado</figcaption>' +
+      '</figure>';
     }
 
     /* ---------------- columna izquierda ---------------- */
@@ -1560,7 +1575,7 @@
         pendiente = null;
         var t = calcTotal(st);
 
-        var nest = root.querySelector('.est-col-nest');
+        var nest = root.querySelector('.est-nest-track');
         if (nest) {
           nest.innerHTML = columnaNesting(t);
           nest.querySelectorAll('[data-chapa]').forEach(function (b) {

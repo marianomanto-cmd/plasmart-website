@@ -6,7 +6,8 @@
 
    Sin cajas grises: la estructura son hairlines y grilla, como el resto
    del sitio. Sin controles nativos a la vista: ni select, ni checkbox,
-   ni spinner de number. Sin sombras: el único glow es indigo.
+   ni spinner de number. Una sola sombra, larga y suave, para despegar la
+   herramienta del fondo de la página (nov 2026: la página se veía vacía).
 
    Todo sale de los tokens de v3.css. No hay un color ni una tipografía
    propia de este archivo.
@@ -24,6 +25,7 @@
      crear contexto de scroll. */
   overflow: clip;
   background: var(--bg);
+  box-shadow: 0 34px 80px -46px rgba(27, 25, 23, .5), 0 2px 8px rgba(27, 25, 23, .05);
 }
 /* wash indigo de fondo: da profundidad sin una sola sombra.
    Con su propio radio, por si el navegador no soporta overflow:clip. */
@@ -45,6 +47,30 @@
   position: sticky; top: 104px;
   display: flex; flex-direction: column; gap: 22px;
   padding: clamp(24px, 2.6vw, 40px);
+}
+/* La pista ocupa todo el alto que deja la foto: el panel se pega dentro de
+   ella y frena justo arriba de la obra, sin taparla. */
+.est-nest-track { flex: 1 0 auto; }
+
+/* Obra real al pie de la columna del nesting: llena el hueco que deja el
+   panel y muestra para qué sirve cortar una chapa. Se funde con el fondo
+   de la columna por arriba. */
+.est-obra { position: relative; margin: 0; flex: none; }
+.est-obra img {
+  display: block; width: 100%; height: auto; aspect-ratio: 4 / 3;
+  object-fit: cover; object-position: center 45%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 30%);
+}
+/* sombra al pie para que la leyenda se lea sobre cualquier foto */
+.est-obra::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 96px;
+  background: linear-gradient(to top, rgba(27, 25, 23, .45), transparent); pointer-events: none;
+}
+.est-obra figcaption {
+  position: absolute; z-index: 1; left: clamp(24px, 2.6vw, 40px); bottom: 20px;
+  font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .55);
 }
 
 .cot-load { padding: 60px 0; color: var(--muted); }
@@ -392,6 +418,9 @@
   .est-col-nest { border-left: 0; border-top: 1px solid var(--line); }
   .est-nest-in { position: static; }
   .est-h1 { max-width: 20ch; }
+  /* En una columna la foto quedaría pegada a la fila de obras de abajo:
+     sobra, y alarga la herramienta. */
+  .est-obra { display: none; }
 }
 
 /* ---------- celular ---------- */
@@ -453,6 +482,39 @@
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
   margin: -1px; padding: 0; border: 0;
+}
+
+/* ---------- obras: lo que sale de una chapa ----------
+   Fila de cuatro obras reales entre la herramienta y el texto. En celular
+   pasa a carrusel horizontal con snap. */
+.cot-obras { margin-top: clamp(40px, 6vh, 70px); display: flex; flex-direction: column; gap: 16px; }
+.cot-obras-hd {
+  display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;
+  gap: 8px 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+}
+.cot-obras-t { margin: 0; font-weight: 300; font-size: clamp(22px, 2vw, 30px); letter-spacing: -.03em; line-height: 1.1; }
+.cot-obras-hd span {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--muted);
+}
+.cot-obras-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.cot-obras-grid figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.cot-obras-grid img {
+  display: block; width: 100%; height: auto; aspect-ratio: 4 / 5;
+  object-fit: cover; border-radius: 4px; background: var(--panel);
+}
+.cot-obras-grid figcaption {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint);
+}
+@media (max-width: 900px) {
+  .cot-obras-grid {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    scrollbar-width: none; margin-inline: calc(-1 * var(--pad)); padding-inline: var(--pad);
+    scroll-padding-inline: var(--pad);
+  }
+  .cot-obras-grid::-webkit-scrollbar { display: none; }
+  .cot-obras-grid figure { flex: 0 0 62%; scroll-snap-align: start; }
 }
 
 .cot-doc {
