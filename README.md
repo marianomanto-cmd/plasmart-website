@@ -271,18 +271,20 @@ configuran **dentro de GTM**, no en el código.
 > (hasta las ~10 h del 12/11 seguía contando: 14 en esa hora contra 2 `generate_lead`) y sí llega
 > `whatsapp_click_blocked`. **Los leads y las conversiones de Google anteriores al 13/11 están
 > inflados** (Ads contaba 82–94 conversiones por día): no usarlos como base de comparación.
-> - ⚠️ **Google Ads, objetivos de la cuenta:** además de `generate_lead` y "Lead form - Submit", figuran
->   como **principales** "YouTube follow-on views" y "YouTube channel subscriptions" (hoy en 0) y
->   "Contact (www.plasmartcba.com/)" (0 conv.). Con Demand Gen y los videos de YouTube activos, las dos
->   de YouTube pueden empezar a sumar en la columna Conversiones de Search/PMax → **pasarlas a
->   secundarias** (a decidir; en la campaña de Demand Gen ya se dejó sólo "Submit lead forms").
+> - **Google Ads, conversiones de YouTube (2026‑11‑12):** "YouTube follow-on views" y "YouTube channel
+>   subscriptions" estaban como **principales** en objetivos predeterminados de la cuenta (Engagement y
+>   YouTube follow-on views, que usa PMax): con Demand Gen y los videos de YouTube activos iban a sumar
+>   en la columna Conversiones. **Pasaron a secundarias** (verificado por API: ya no cuentan en
+>   Conversiones). Siguen principales "Submit lead form (GA4 generate_lead)", "Lead form - Submit" y
+>   "Contact (www.plasmartcba.com/)" (0 conv.). La campaña de Demand Gen usa sólo "Submit lead forms".
 
 ## Medios pagos y contenido (estado al 2026‑11‑12)
 
 > Esto vive en los paneles (Google Ads, Meta, YouTube, Drive, Supermetrics), no en el código; se
 > documenta acá para tener un solo lugar de referencia.
 
-**Tope de inversión: Google + Meta ≤ USD 1.300 por mes, netos (sin impuestos).**
+**Tope de inversión: Google + Meta ≤ USD 1.500 por mes** (desde el 12/11/2026; antes USD 1.300). Con
+los presupuestos actuales un mes completo da ≈ US$ 1.300, así que quedan ≈ US$ 200/mes de margen.
 
 **Google Ads** (cuenta 456‑601‑2695, factura en USD) — total **US$ 31/día ≈ US$ 940/mes**:
 
@@ -323,14 +325,12 @@ el tipo de cambio):
 <https://studio.supermetrics.com/d/6133e379-57bb-4744-9f0b-2e84bcf2346d> (privado; se comparte desde
 Studio). Consulta en vivo Google Ads, Meta, GA4 (267426802), YouTube y Search Console
 (`sc-domain:plasmartcba.com`). Tiene selector de período y comparación, el **ritmo del mes contra el
-tope de USD 1.300** (proyecta con los presupuestos activos del día) y un **aviso automático** cuando el
+tope de USD 1.500** (proyecta con los presupuestos activos del día) y un **aviso automático** cuando el
 período incluye datos anteriores a la corrección de la medición.
 
-**A decidir / pendiente**
-- **Noviembre 2026 cierra ≈ US$ 1.420** (unos US$ 120 sobre el tope) porque los primeros 12 días
-  corrieron con presupuestos más altos; con los presupuestos actuales un mes completo da ≈ US$ 1.300.
-  Opción: Search a US$ 14/día hasta el 30/11 y volver a US$ 21 el 1/12.
-- Google Ads: pasar a secundarias las conversiones de YouTube (ver *Analytics / Tracking*).
+**Pendiente**
+- **Noviembre 2026 cierra ≈ US$ 1.420**, dentro del tope (los primeros 12 días corrieron con
+  presupuestos más altos). No hace falta recortar.
 - GA4: marcar `estimador_total` como evento clave e importarlo a Ads (contar "una").
 - PMax: sacar los temas de búsqueda de Arquitectura ("pantógrafo") desde el panel.
 - Opcional: versiones 1:1 para Demand Gen, borrar los 2 Shorts viejos en privado y vigilar reclamos de
@@ -426,7 +426,7 @@ Hosting estático desde la raíz, sin build:
       `ads_conversion` y en Ads quedó una sola acción principal por lead. Verificado en producción.
 - [ ] **Estimador como conversión**: marcar `estimador_total` como evento clave en GA4 e importarlo a
       Google Ads (contar "una").
-- [ ] **Conversiones de YouTube como secundarias** en los objetivos de la cuenta de Google Ads.
+- [x] **Conversiones de YouTube como secundarias** en Google Ads (2026‑11‑12).
 
 ### Landings — contenido / assets que faltan (para Mariano)
 - [x] **Fotos de las landings → WebP** (≤1200px, libwebp q80): ~4,8 MB → ~1,4 MB. OG en JPG a propósito.
