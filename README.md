@@ -106,9 +106,11 @@ propio en `landing.css`.
   bloque de contacto** (`?src=contacto-directo`)— pasan por la página intermedia `/whatsapp/` para
   tracking validado. **No queda ningún `wa.me` directo** en las páginas de contenido (sólo en
   `/whatsapp/`, que es el destino). El email queda como dato informativo en Contacto.
-- **Envíos**: se coordinan con **Via Cargo o la transportista que prefiera el cliente**; el flete se
-  cotiza aparte según destino (no hay transporte propio). **No se ofrece pago en destino**: no lo
-  pongas en ninguna página, FAQ, JSON-LD ni en `llms.txt`.
+- **Envíos**: se coordinan con **la transportista que prefiera el cliente o la que mejor llegue a su
+  zona**; el flete se cotiza aparte según destino (no hay transporte propio). **No se nombra a
+  ninguna empresa de transporte** (antes decía Via Cargo, que no llega a todo el país y no se le hace
+  publicidad; se sacó del sitio, `llms.txt`, la política de privacidad y los videos el 12/11/2026).
+  **No se ofrece pago en destino**: no lo pongas en ninguna página, FAQ, JSON-LD ni en `llms.txt`.
 - Footer / redes: **Instagram · Facebook · LinkedIn**.
 
 ## Cambios sobre el handoff
