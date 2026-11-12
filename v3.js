@@ -8,6 +8,24 @@
   var FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   if (ST_OK) GS.registerPlugin(ST);
 
+  /* ---------- Inicio de la visita (para /whatsapp/) ----------
+     /whatsapp/ sólo cuenta el click como lead si la persona estuvo un mínimo de
+     segundos en el sitio (ver MIN_SEG en whatsapp/index.html). Acá se marca
+     cuándo empezó la visita. Va en localStorage porque los CTA abren /whatsapp/
+     en pestaña nueva, y una pestaña nueva arranca con el sessionStorage vacío.
+     La visita se reinicia tras 30 min sin actividad, como una sesión de GA4.
+     La misma lógica está en cotizador.js: si cambiás una, cambiá la otra. */
+  (function marcarVisita() {
+    try {
+      var ahora = Date.now(), MAX_INACTIVO = 30 * 60 * 1000;
+      var visto = parseInt(localStorage.getItem('pm_visto_at'), 10);
+      if (!(visto > 0) || ahora - visto > MAX_INACTIVO || !(parseInt(localStorage.getItem('pm_visita_at'), 10) > 0)) {
+        localStorage.setItem('pm_visita_at', String(ahora));
+      }
+      localStorage.setItem('pm_visto_at', String(ahora));
+    } catch (e) {}
+  })();
+
   /* ---------- Hero entrance (sin cortina) ---------- */
   document.documentElement.classList.add('loaded');
   heroIn();   // heroIn está declarada más abajo en el mismo IIFE (hoisting): NO la muevas

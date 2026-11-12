@@ -132,8 +132,28 @@ src="https://www.facebook.com/tr?id=2982494008617961&ev=PageView&noscript=1"
       reasons.push('webdriver');
     }
 
+    // g) permanencia mínima en el sitio (nov 2026). Los 6 chequeos de arriba frenan
+    //    bots, no dedos: en PMax mobile (8 s de permanencia promedio) casi todos los
+    //    "leads" eran toques al botón flotante a los pocos segundos de entrar. El
+    //    click a WhatsApp cuenta como lead sólo si la visita lleva MIN_SEG segundos
+    //    (10 s = el umbral de sesión "con interacción" de GA4). Si es más rápido,
+    //    la persona igual llega a WhatsApp (paso 2) y se registra como
+    //    whatsapp_click_rapid, que no es conversión. El inicio de la visita lo marcan
+    //    v3.js y cotizador.js en localStorage (pm_visita_at / pm_visto_at). Sin ese
+    //    dato (entró directo a /whatsapp/ o el storage está bloqueado) no se aplica.
+    var MIN_SEG = 10;
+    var segEnSitio = null;
+    try {
+      var visitaAt = parseInt(localStorage.getItem('pm_visita_at'), 10);
+      var vistoAt = parseInt(localStorage.getItem('pm_visto_at'), 10);
+      if (visitaAt > 0 && vistoAt > 0 && Date.now() - vistoAt <= 30 * 60 * 1000) {
+        segEnSitio = Math.round((Date.now() - visitaAt) / 1000);
+      }
+    } catch (e) {}
+    var rapido = segEnSitio !== null && segEnSitio < MIN_SEG;
+
     // PASO 4 / 5: pushear según corresponda
-    if (reasons.length === 0) {
+    if (reasons.length === 0 && !rapido) {
       try { localStorage.setItem(DEDUP_KEY, String(Date.now())); } catch (e) {}
       try { sessionStorage.setItem('pm_wa_fired', '1'); } catch (e) {}   // respaldo si localStorage está bloqueado
       window.dataLayer.push({
@@ -143,15 +163,26 @@ src="https://www.facebook.com/tr?id=2982494008617961&ev=PageView&noscript=1"
         value: 50000,
         currency: 'ARS',
         wa_source: waSource,
+        secs_on_site: segEnSitio,
         page_referrer: document.referrer || 'direct'
       });
-      // Meta Pixel — Lead SÓLO en click validado (hereda los 6 chequeos anti-inflado)
+      // Meta Pixel — Lead SÓLO en click validado (hereda los chequeos anti-inflado)
       if (window.fbq) fbq('track', 'Lead', { value: 50000, currency: 'ARS' });
+    } else if (reasons.length === 0) {
+      // click legítimo pero demasiado rápido: no es conversión ni consume la dedup
+      // de 24 h, así que si vuelve con más tiempo en el sitio, ese click sí cuenta.
+      window.dataLayer.push({
+        event: 'whatsapp_click_rapid',
+        wa_source: waSource,
+        secs_on_site: segEnSitio,
+        page_referrer: document.referrer || 'direct'
+      });
     } else {
       window.dataLayer.push({
         event: 'whatsapp_click_blocked',
         block_reasons: reasons.join(','),
         wa_source: waSource,
+        secs_on_site: segEnSitio,
         page_referrer: document.referrer || 'direct'
       });
     }

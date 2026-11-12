@@ -60,6 +60,19 @@
     window.dataLayer.push(Object.assign({ event: ev }, extra || {}));
   }
 
+  /* Inicio de la visita, para que /whatsapp/ pueda exigir un mínimo de segundos
+     en el sitio antes de contar el click como lead. Misma lógica que v3.js. */
+  (function marcarVisita() {
+    try {
+      var ahora = Date.now(), MAX_INACTIVO = 30 * 60 * 1000;
+      var visto = parseInt(localStorage.getItem('pm_visto_at'), 10);
+      if (!(visto > 0) || ahora - visto > MAX_INACTIVO || !(parseInt(localStorage.getItem('pm_visita_at'), 10) > 0)) {
+        localStorage.setItem('pm_visita_at', String(ahora));
+      }
+      localStorage.setItem('pm_visto_at', String(ahora));
+    } catch (e) {}
+  })();
+
   /* Los eventos que son conversion (total, whatsapp, pdf) salen una sola vez
      por persona cada 24 h. Antes salian en cada click: corregir el telefono,
      apretar dos veces "Mandar al vendedor" o bajar el PDF de nuevo contaban
