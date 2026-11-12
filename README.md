@@ -264,6 +264,77 @@ configuran **dentro de GTM**, no en el código.
 >   `estimador_whatsapp` y `estimador_pdf` van a GA4 con su `value`/`currency`.
 > - **Pendiente:** cuando `estimador_total` aparezca en GA4 › Eventos recientes (tarda 24‑48 h en
 >   llegar), marcarlo como evento clave e importarlo a Google Ads como conversión (contar "una").
+>
+> **Verificado en producción (QA 2026‑11‑12, 16 h):** el sitio publicado es `main` (`53b6205`) y tiene
+> GTM en todas las páginas, la regla de 10 s y los eventos de auditoría en `/whatsapp/`, el guardado de
+> `gclid`/`fbclid` y los eventos del estimador. En GA4 › Tiempo real ya **no** entra `ads_conversion`
+> (hasta las ~10 h del 12/11 seguía contando: 14 en esa hora contra 2 `generate_lead`) y sí llega
+> `whatsapp_click_blocked`. **Los leads y las conversiones de Google anteriores al 13/11 están
+> inflados** (Ads contaba 82–94 conversiones por día): no usarlos como base de comparación.
+> - ⚠️ **Google Ads, objetivos de la cuenta:** además de `generate_lead` y "Lead form - Submit", figuran
+>   como **principales** "YouTube follow-on views" y "YouTube channel subscriptions" (hoy en 0) y
+>   "Contact (www.plasmartcba.com/)" (0 conv.). Con Demand Gen y los videos de YouTube activos, las dos
+>   de YouTube pueden empezar a sumar en la columna Conversiones de Search/PMax → **pasarlas a
+>   secundarias** (a decidir; en la campaña de Demand Gen ya se dejó sólo "Submit lead forms").
+
+## Medios pagos y contenido (estado al 2026‑11‑12)
+
+> Esto vive en los paneles (Google Ads, Meta, YouTube, Drive, Supermetrics), no en el código; se
+> documenta acá para tener un solo lugar de referencia.
+
+**Tope de inversión: Google + Meta ≤ USD 1.300 por mes, netos (sin impuestos).**
+
+**Google Ads** (cuenta 456‑601‑2695, factura en USD) — total **US$ 31/día ≈ US$ 940/mes**:
+
+| Campaña | Tipo | Presupuesto | Notas |
+|---|---|---|---|
+| Leads-Search-1 | Search | US$ 21/día | Maximizar conversiones |
+| Leads-Performance Max-1 | PMax | US$ 5/día | No se pausa; queda en US$ 5 |
+| DemandGen-YouTube-Video-1 | Demand Gen | US$ 5/día | Creada el 12/11. Sólo video de YouTube. Grupos *Arquitectura – Córdoba* (4 anuncios → `/arquitectura/` y `/cotizador/`) e *Industria – Córdoba* (1 anuncio → `/industria/`), 5 anuncios de video aprobados. Optimización de recursos desactivada. Objetivo: sólo "Submit lead forms" |
+
+**Meta Ads** (act_1465675161816069, factura en ARS) — total **ARS 18.000/día ≈ US$ 350/mes** (según
+el tipo de cambio):
+
+| Campaña | Presupuesto | Destino |
+|---|---|---|
+| Plasmart Sales | ARS 12.000/día (campaña) | Instagram Direct + Messenger + WhatsApp |
+| Plasmart Industrial (Consideración) | ARS 3.000/día (conjunto) | WhatsApp |
+| Plasmart · Remarketing · Mensajes | ARS 3.000/día (conjunto) | Instagram Direct + Messenger + WhatsApp — público web 180 d + IG/FB 365 d (nueva, 12/11) |
+| Plasmart · Mid Funnel · Engagement | — | Pausada |
+
+- 16 anuncios nuevos "Video musica nov26 · …" (9 en Sales, 5 en Industrial, 2 en Remarketing). Los de
+  plasma, plegado y producción industrial usan las **versiones corregidas** (v2) de los videos.
+- WhatsApp de la página de Facebook: **principal +54 9 351 382‑0321** (WhatsApp Business, el que usan
+  los anuncios); el 351 594‑2602 queda vinculado como secundario.
+- Publicidad política (UE): declarado **No**.
+
+**Videos (nov 2026)**
+- 45 piezas con la música de Fotograma 3/4, con fundido de salida (sin cortes bruscos) y respetando las
+  safe zones de Meta y YouTube: 5 spots de 30 s (1:1, 4:5 y 9:16 para Meta; 16:9 y Shorts 9:16 para
+  YouTube) y 10 stories de 15 s.
+- Coherencia imagen/texto corregida: story 02 (sólo corte plasma), story 03 (plegadora plegando + foto
+  de la plegadora + perfiles plegados) y tramos 02/04 y 03/04 del spot 04 (producción industrial).
+- **Drive**: carpetas de Meta y de YouTube con las versiones finales (las anteriores se reemplazaron, sin
+  duplicados).
+- **YouTube**: 20 videos públicos (10 Shorts de stories; 5 Shorts y 5 horizontales de los spots). Las
+  versiones viejas de las stories 02 y 03 (`ZdWQTP2m1mk`, `1A8Jo4KoucE`) quedaron en privado.
+
+**Dashboard en vivo (Supermetrics Studio):** "Plasmart · Panel de marketing" —
+<https://studio.supermetrics.com/d/6133e379-57bb-4744-9f0b-2e84bcf2346d> (privado; se comparte desde
+Studio). Consulta en vivo Google Ads, Meta, GA4 (267426802), YouTube y Search Console
+(`sc-domain:plasmartcba.com`). Tiene selector de período y comparación, el **ritmo del mes contra el
+tope de USD 1.300** (proyecta con los presupuestos activos del día) y un **aviso automático** cuando el
+período incluye datos anteriores a la corrección de la medición.
+
+**A decidir / pendiente**
+- **Noviembre 2026 cierra ≈ US$ 1.420** (unos US$ 120 sobre el tope) porque los primeros 12 días
+  corrieron con presupuestos más altos; con los presupuestos actuales un mes completo da ≈ US$ 1.300.
+  Opción: Search a US$ 14/día hasta el 30/11 y volver a US$ 21 el 1/12.
+- Google Ads: pasar a secundarias las conversiones de YouTube (ver *Analytics / Tracking*).
+- GA4: marcar `estimador_total` como evento clave e importarlo a Ads (contar "una").
+- PMax: sacar los temas de búsqueda de Arquitectura ("pantógrafo") desde el panel.
+- Opcional: versiones 1:1 para Demand Gen, borrar los 2 Shorts viejos en privado y vigilar reclamos de
+  Content ID por la música.
 
 ## SEO / LLM
 
@@ -333,8 +404,10 @@ npx serve .      # o:  python3 -m http.server 8080
 
 Hosting estático desde la raíz, sin build:
 
-- **GitHub Pages**: Settings → Pages → branch `main` / root (incluye `.nojekyll`).
-- **Vercel / Netlify / Cloudflare Pages**: sin build command; output = raíz del repo.
+- **Producción: Vercel** (proyecto `plasmart-website`). Cada push a `main` se publica solo en
+  `plasmartcba.com`; las otras ramas generan un preview.
+- Alternativas sin cambios de código: GitHub Pages (branch `main` / root, incluye `.nojekyll`),
+  Netlify o Cloudflare Pages (sin build command; output = raíz del repo).
 
 ## Pendientes / próximos pasos
 
@@ -348,8 +421,12 @@ Hosting estático desde la raíz, sin build:
       re-exportarlo desde el archivo de diseño original con imágenes a ~150 dpi.
 - [x] **GTM — inflado de conversión resuelto** (jun 2026): se quitó `whatsapp_direct_click` de los tags
       "Ads - Conv WhatsApp" y "GA4 - Event Lead"; la conversión cuenta sólo `whatsapp_click` validado.
-      Quedan los ajustes de auditoría del bloque *Analytics / Tracking* (mandar `whatsapp_click_blocked`
-      a GA4, contar "Una" por interacción en Ads).
+- [x] **Conversiones limpias de punta a punta** (2026‑11‑12): `whatsapp_click_rapid`/`_blocked` van a
+      GA4 como auditoría (GTM v19), `generate_lead` se cuenta una vez por sesión, se borró el evento
+      `ads_conversion` y en Ads quedó una sola acción principal por lead. Verificado en producción.
+- [ ] **Estimador como conversión**: marcar `estimador_total` como evento clave en GA4 e importarlo a
+      Google Ads (contar "una").
+- [ ] **Conversiones de YouTube como secundarias** en los objetivos de la cuenta de Google Ads.
 
 ### Landings — contenido / assets que faltan (para Mariano)
 - [x] **Fotos de las landings → WebP** (≤1200px, libwebp q80): ~4,8 MB → ~1,4 MB. OG en JPG a propósito.
