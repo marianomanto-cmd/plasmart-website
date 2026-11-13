@@ -445,6 +445,14 @@ html:not(.lib-on) .htrack { padding-block: 20px; }
    el padding agranda la zona táctil sin mover el layout (lo compensa el margen negativo) */
 .foot-bottom a { color: var(--muted); padding-block: 8px; margin-block: -8px; transition: color .3s; }
 .foot-bottom a:hover { color: var(--accent); }
+/* redes: fila de íconos monocromos (SVG inline, currentColor). Cada link es una
+   zona táctil de 44×44 sin borde; el margen negativo alinea el primer glifo con
+   el título de la columna. 7 × 44 = 308 px: entra en una fila desde 360 px. */
+.social { list-style: none; display: flex; flex-wrap: wrap; margin: -8px 0 0 -12px; }
+.social a, .foot-col .social a { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; color: var(--muted); transition: color .3s, background-color .3s; }
+.social a:hover, .foot-col .social a:hover { color: var(--accent); background: var(--panel); }
+.social a:focus-visible { border-radius: 50%; outline-offset: 0; }
+.social svg { width: 20px; height: 20px; fill: currentColor; display: block; }
 
 /* hero CTA */
 .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: clamp(34px, 4vw, 54px); }

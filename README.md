@@ -111,7 +111,27 @@ propio en `landing.css`.
   ninguna empresa de transporte** (antes decía Via Cargo, que no llega a todo el país y no se le hace
   publicidad; se sacó del sitio, `llms.txt`, la política de privacidad y los videos el 12/11/2026).
   **No se ofrece pago en destino**: no lo pongas en ninguna página, FAQ, JSON-LD ni en `llms.txt`.
-- Footer / redes: **Instagram · Facebook · LinkedIn**.
+- Footer / redes (13/11/2026): fila de **íconos** (`ul.social`, SVG inline monocromos con
+  `currentColor`, paths de [Simple Icons](https://simpleicons.org) v13.21.0, licencia CC0) en el footer
+  de `index.html`, `en.html`, `/arquitectura/`, `/industria/`, `/privacidad/` y `/privacy/`, y al pie del
+  estimador (`.cot-redes` en `/cotizador/`). Estilos en `v3.css` (bloque "redes", después de
+  `.foot-bottom`) y `cotizador.css` (`.cot-redes`). Cada ícono es una zona táctil de 44×44,
+  `aria-label` "Plasmart en …" / "Plasmart on …", `target="_blank" rel="noopener"`, sin UTM.
+  `/whatsapp/` no tiene footer (es la página puente). Perfiles verificados con la sesión de Plasmart:
+
+  | Red | URL |
+  |---|---|
+  | Instagram | https://www.instagram.com/plasmart_cba/ |
+  | Facebook | https://www.facebook.com/profile.php?id=61578691324841 (página 721419694387663) |
+  | TikTok | https://www.tiktok.com/@plasmartcba |
+  | YouTube | https://www.youtube.com/channel/UCzcOxL6aR5VqYcrDuONjXkg (se usa el ID: el @ del canal es el automático personal) |
+  | Pinterest | https://www.pinterest.com/plasmartcba/ |
+  | LinkedIn | https://www.linkedin.com/company/plasmartcba (página 79713745) |
+  | WhatsApp | `/whatsapp/?src=<pagina>-footer-redes` (o `cotizador-redes`), que redirige a wa.me/5493513820321 |
+
+  Las mismas URLs (menos WhatsApp) van en el `sameAs` del JSON-LD (home, EN, landings, estimador) y en
+  `llms.txt`. Si cambia un perfil, hay que tocar esos tres lugares. `v3.js` manda `social_click` también
+  para `pinterest.com`.
 
 ## Cambios sobre el handoff
 

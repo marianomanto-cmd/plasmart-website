@@ -379,6 +379,15 @@
   display: inline-block; padding: 10px 0; min-height: 40px;
 }
 .cot-volver a:hover { color: var(--text); }
+/* redes al pie del estimador (los íconos usan .social de v3.css) */
+.cot-redes { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px; }
+/* .cot-doc separa sus hijos con un gap grande: la fila de redes se pega a la de "Volver" */
+.cot-volver + .cot-redes { margin-top: calc(6px - clamp(46px, 6vh, 76px)); }
+.cot-redes-t {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint);
+}
+.cot-redes .social { margin: 0 0 0 -12px; }
 
 /* El nav de esta página no se opaca al scrollear (no carga v3.js) y abajo
    hay contenido denso: sin fondo propio se leían los dos encimados. */

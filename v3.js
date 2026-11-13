@@ -610,7 +610,7 @@
      /whatsapp/?src=... which fires `whatsapp_click` on that page instead. */
   (function () {
     window.dataLayer = window.dataLayer || [];
-    var SOCIAL = { 'instagram.com': 'instagram', 'facebook.com': 'facebook', 'fb.com': 'facebook', 'linkedin.com': 'linkedin', 'twitter.com': 'twitter', 'x.com': 'twitter', 'youtube.com': 'youtube', 'tiktok.com': 'tiktok' };
+    var SOCIAL = { 'instagram.com': 'instagram', 'facebook.com': 'facebook', 'fb.com': 'facebook', 'linkedin.com': 'linkedin', 'twitter.com': 'twitter', 'x.com': 'twitter', 'youtube.com': 'youtube', 'tiktok.com': 'tiktok', 'pinterest.com': 'pinterest' };
     document.addEventListener('click', function (e) {
       var link = e.target && e.target.closest ? e.target.closest('a') : null;
       if (!link || !link.href) return;
