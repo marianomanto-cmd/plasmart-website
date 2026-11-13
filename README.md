@@ -295,9 +295,9 @@ los presupuestos actuales un mes completo da ≈ US$ 1.300, así que quedan ≈ 
 
 | Campaña | Tipo | Presupuesto | Notas |
 |---|---|---|---|
-| Leads-Search-1 | Search | US$ 21/día | Maximizar conversiones |
+| Leads-Search-1 | Search | US$ 18/día | Maximizar conversiones. Bajó de US$ 21 el 13/11 para pasarle US$ 3 a Demand Gen |
 | Leads-Performance Max-1 | PMax | US$ 5/día | No se pausa; queda en US$ 5 |
-| DemandGen-YouTube-Video-1 | Demand Gen | US$ 5/día | Creada el 12/11. Sólo video de YouTube. Grupos *Arquitectura – Córdoba* (4 anuncios → `/arquitectura/` y `/cotizador/`) e *Industria – Córdoba* (1 anuncio → `/industria/`), 5 anuncios de video aprobados. Optimización de recursos desactivada. Objetivo: sólo "Submit lead forms" |
+| DemandGen-YouTube-Video-1 | Demand Gen | US$ 8/día | Creada el 12/11 con US$ 5; subió a US$ 8 el 13/11. Sólo video de YouTube. Grupos *Arquitectura – Córdoba* (4 anuncios → `/arquitectura/` y `/cotizador/`) e *Industria – Córdoba* (1 anuncio → `/industria/`), 5 anuncios de video aprobados. Optimización de recursos desactivada. Objetivo: sólo "Submit lead forms" |
 
 **Meta Ads** (act_1465675161816069, factura en ARS) — total **ARS 18.000/día ≈ US$ 350/mes** (según
 el tipo de cambio):
