@@ -904,7 +904,7 @@
           fechaLarga(hoy) + '<br />Corte láser · chapa negra</div>' +
       '</div>' +
 
-      '<dl class="pdf-cliente">' +
+      '<dl class="pdf-cliente" data-clarity-mask="True">' +
         '<div><dt>Cliente</dt><dd>' + esc(st.nombre.trim()) + '</dd></div>' +
         '<div><dt>Teléfono</dt><dd>' + (esc(st.telefono.trim()) || '—') + '</dd></div>' +
         '<div><dt>Email</dt><dd>' + (esc(st.email.trim()) || '—') + '</dd></div>' +
@@ -949,7 +949,7 @@
   function resumenPdf(it) {
     var p = [espTexto(it.espesor)];
     if (it.modo === 'm2') p.push(mm(it.m2) + ' m² por pieza');
-    else if (it.modo === 'dxf') p.push(it.dxfNombre ? esc(it.dxfNombre) : 'plano sin cargar');
+    else if (it.modo === 'dxf') p.push(it.dxfNombre ? '<span data-clarity-mask="True">' + esc(it.dxfNombre) + '</span>' : 'plano sin cargar');
     else p.push(mm(it.ancho) + ' × ' + mm(it.largo) + ' mm');
     return p.join(' · ');
   }
@@ -1126,7 +1126,7 @@
     function resumenItem(it) {
       var partes = [espTexto(it.espesor)];
       if (it.modo === 'm2') partes.push(mm(it.m2) + ' m²');
-      else if (it.modo === 'dxf') partes.push(it.dxfNombre ? esc(it.dxfNombre) : 'plano sin cargar');
+      else if (it.modo === 'dxf') partes.push(it.dxfNombre ? '<span data-clarity-mask="True">' + esc(it.dxfNombre) + '</span>' : 'plano sin cargar');
       else partes.push(mm(it.ancho) + ' × ' + mm(it.largo));
       var q = '<em>' + Math.max(1, Math.floor(num(it.cantidad)) || 1) + ' u</em>';
       if (it.plegado) q += ' <em>· plegado</em>';
@@ -1142,7 +1142,7 @@
         '<input id="dxf-' + it.id + '" type="file" accept=".dxf,application/dxf,image/vnd.dxf" data-dxf="' + it.id + '" />' +
         '<label class="est-pill est-pill-sm" for="dxf-' + it.id + '">' +
           (it.dxfNombre ? 'Elegir otro plano' : 'Elegir archivo DXF') + '</label>' +
-        (it.dxfNombre ? '<span class="est-filename mono">' + esc(it.dxfNombre) + '</span>' : '') +
+        (it.dxfNombre ? '<span class="est-filename mono" data-clarity-mask="True">' + esc(it.dxfNombre) + '</span>' : '') +
       '</div>';
 
       if (it.dxfLeyendo) return h + '<p class="est-nota mono">Leyendo el plano…</p>';
@@ -1172,7 +1172,7 @@
       return '<div class="est-datos' + (listo ? ' listo' : '') + '">' +
         '<span class="est-lbl mono est-datos-lbl">' +
           (listo ? '✓ Tus datos' : 'Tus datos — para mostrarte el número') + '</span>' +
-        '<div class="est-datos-campos">' +
+        '<div class="est-datos-campos" data-clarity-mask="True">' +
           '<div class="est-campo est-campo-ancho">' +
             '<label class="est-lbl mono" for="cot-nom">Nombre o empresa</label>' +
             '<input id="cot-nom" type="text" autocomplete="organization" data-d="nombre" value="' + esc(st.nombre) + '" /></div>' +

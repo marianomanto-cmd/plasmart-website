@@ -188,6 +188,14 @@ configuran **dentro de GTM**, no en el código.
 - **Landings (Arquitectura / Industria)**: **no** agregan ninguna conversión propia. Todos los CTA
   de presupuesto pasan por `/whatsapp/`, así que los **6 chequeos anti‑inflado** y la dedup por sesión
   (`pm_wa_fired`) **siguen aplicando sin cambios** — no hay nuevas vías de conversión que inflar.
+- **Microsoft Clarity `zd5hqnz9np`** (desde el 13/11/2026): mapas de calor y grabaciones de sesión.
+  Proyecto "Plasmart" en clarity.microsoft.com (cuenta Google mantovanimariano@transfil.com.ar).
+  Se carga por GTM con el tag **"Clarity - Base"** (HTML personalizado, All Pages, versión 21 del
+  container), no en el código. Los datos personales del estimador no se graban: los campos de
+  nombre, teléfono, email y ciudad (`.est-datos-campos`), el bloque de cliente del PDF
+  (`.pdf-cliente`) y el nombre de los DXF llevan `data-clarity-mask="True"`. Si se agrega otro
+  campo con datos personales, hay que sumarle ese atributo. Figura en `/privacidad/` y `/privacy/`
+  (sección 08).
 - **Meta Pixel `2982494008617961`** (hardcodeado, no por GTM): base **PageView** en `<head>` de todas
   las páginas (+ `<noscript>` tras `<body>`). El evento **`Lead`** (`value: 50000`, `currency: ARS`) se
   dispara **sólo dentro del bloque validado de `/whatsapp/`** —junto al `whatsapp_click`—, así que
