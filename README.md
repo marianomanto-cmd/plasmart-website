@@ -304,13 +304,29 @@ el tipo de cambio):
 
 | Campaña | Presupuesto | Destino |
 |---|---|---|
-| Plasmart Sales | ARS 12.000/día (campaña) | Instagram Direct + Messenger + WhatsApp |
+| Plasmart Sales | ARS 12.000/día (campaña) | Conjunto "New Sales Ad Set": Instagram Direct + Messenger + WhatsApp. Conjunto "Carruseles · WhatsApp" (13/11): sólo WhatsApp, comparte el presupuesto de la campaña |
 | Plasmart Industrial (Consideración) | ARS 3.000/día (conjunto) | WhatsApp |
 | Plasmart · Remarketing · Mensajes | ARS 3.000/día (conjunto) | Instagram Direct + Messenger + WhatsApp — público web 180 d + IG/FB 365 d (nueva, 12/11) |
 | Plasmart · Mid Funnel · Engagement | — | Pausada |
 
 - 16 anuncios nuevos "Video musica nov26 · …" (9 en Sales, 5 en Industrial, 2 en Remarketing). Los de
   plasma, plegado y producción industrial usan las **versiones corregidas** (v2) de los videos.
+- **Estáticos y carruseles (13/11)**, para mezclar formatos además del video. Hay 11 anuncios nuevos:
+  - Remarketing tiene 3 imágenes: "RMK · Imagen nov26 · Retomemos tu proyecto / Foto del espacio /
+    Obras reales".
+  - Sales tiene 4 imágenes: "Imagen nov26 · Privacidad sin perder luz / Sombra con diseño / Una
+    escalera que no se repite / Obras reales". También tiene el carrusel "Carrusel nov26 · Obras por
+    tipo" (7 tarjetas: frentes, cercos, barandas, escaleras, pérgolas, revestimientos y cierre), en el
+    conjunto "Carruseles · WhatsApp".
+  - Industrial tiene el carrusel "Carrusel nov26 · Capacidades" y 2 imágenes: "Imagen nov26 · Piezas
+    en serie / Cortamos y plegamos".
+
+  Cada imagen tiene versión 4:5 para feeds y 9:16 para Stories/Reels, con safe zones respetadas. La
+  9:16 se asignó a mano por ubicación en el Administrador de anuncios. Las tarjetas de carrusel son
+  1:1. En el carrusel de Sales quedó apagado "Visual touch-ups" para que Meta no recorte los textos.
+  Los anuncios de mensajes con destino combinado (IG + Messenger + WhatsApp) no aceptan carrusel, por
+  eso el conjunto separado sólo de WhatsApp. Las piezas están en `plasmart-estaticos-meta/` (outputs
+  de la sesión).
 - WhatsApp de la página de Facebook: **principal +54 9 351 382‑0321** (WhatsApp Business, el que usan
   los anuncios); el 351 594‑2602 queda vinculado como secundario.
 - Publicidad política (UE): declarado **No**.
