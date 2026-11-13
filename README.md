@@ -325,7 +325,11 @@ el tipo de cambio):
   **"Despachamos a todo el país"** en los 5 formatos. En Drive se subió como nueva versión de cada archivo
   (mismo ID y link), igual que la planilla `plasmart-meta-ads-textos.xlsx`. YouTube: nuevos
   `DTjPBwLb8Ng` (Short) y `FIH-CzVuvgc` (16:9), con descripción sin Via Cargo; los viejos
-  (`8EMn1RY6us4`, `onqZ7NCkiXE`) pasan a privado una vez que Demand Gen usa los nuevos.
+  (`8EMn1RY6us4`, `onqZ7NCkiXE`) quedaron en privado el 13/11. Meta: los 4 anuncios "20 años" (RMK y
+  Sales) usan los videos `-v2` (mismos IDs de anuncio). Demand Gen: "DG Arq - Spots 30s"
+  (`831518076226`) y "DG Arq - Stories B" (`831518111923`) usan los activos nuevos `438755842739`
+  (16:9) y `438755987648` (Short); ojo, la API de Supermetrics no crea activos de video a partir de un
+  ID de YouTube en `video_asset_ids`: los videos se agregaron desde la interfaz de Google Ads.
 - **Drive**: carpetas de Meta y de YouTube con las versiones finales (las anteriores se reemplazaron, sin
   duplicados).
 - **YouTube**: 20 videos públicos (10 Shorts de stories; 5 Shorts y 5 horizontales de los spots). Las
